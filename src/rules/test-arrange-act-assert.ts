@@ -123,7 +123,11 @@ const rule: Rule.RuleModule = {
         for (const label of options.require) {
           if (counts.has(label)) continue
 
-          context.report({ node, messageId: 'missing', data: { label } })
+          context.report({
+            node,
+            messageId: 'missing',
+            data: { label },
+          })
         }
 
         let highest = -1

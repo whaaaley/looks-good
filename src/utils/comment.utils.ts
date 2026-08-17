@@ -1,3 +1,4 @@
+import { endsSentence, endsWithCode } from './prose.utils.ts'
 import type { Rule } from 'eslint'
 import type { Comment } from 'estree'
 
@@ -20,9 +21,7 @@ export type ExemptionOptions = {
 const trailingUrl = /https?:\/\/\S+$/
 
 // A line closing on a symbol like `discord.js` reads as finished, not as a fragment.
-const trailingIdentifier = /[\w$)\]]\.[\w$]+$|`[^`]+`$/
-
-const terminal = /[.!?:]$/
+const trailingIdentifier = /[\w$)\]]\.[\w$]+$/
 
 export const isLineComment = (comment: { type: string }): boolean => {
   return comment.type === 'Line'
@@ -115,9 +114,10 @@ export const startsWithLabel = (text: string, labels: string[]): boolean => {
 // A comment carries on to the next line when it does not close a sentence itself.
 export const looksUnfinished = (text: string, options: ExemptionOptions): boolean => {
   if (text.length === 0) return false
-  if (terminal.test(text)) return false
+  if (endsSentence(text)) return false
   if (options.allowUrls && trailingUrl.test(text)) return false
   if (options.allowIdentifiers && trailingIdentifier.test(text)) return false
+  if (options.allowIdentifiers && endsWithCode(text)) return false
 
   return true
 }

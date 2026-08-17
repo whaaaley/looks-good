@@ -44,6 +44,23 @@ describe('All Comment Utility Tests', () => {
       assertEquals(unfinished, true)
     })
 
+    // The dot belongs to the abbreviation, so it does not close the sentence the way a period would.
+    it('reads a line trailing off after an abbreviation as unfinished', () => {
+      // Act
+      const unfinished = looksUnfinished('Pick a shorter name, e.g.', options)
+
+      // Assert
+      assertEquals(unfinished, true)
+    })
+
+    it('reads a line closing on a code span as finished', () => {
+      // Act
+      const unfinished = looksUnfinished('Format it with `deno fmt`', options)
+
+      // Assert
+      assertEquals(unfinished, false)
+    })
+
     it('reads an empty line as finished, since it continues nothing', () => {
       // Act
       const unfinished = looksUnfinished('', options)
@@ -89,6 +106,14 @@ describe('All Comment Utility Tests', () => {
     it('flags a dotted identifier when identifiers are not allowed', () => {
       // Act
       const unfinished = looksUnfinished('Configured through discord.js', { ...options, allowIdentifiers: false })
+
+      // Assert
+      assertEquals(unfinished, true)
+    })
+
+    it('flags a code span when identifiers are not allowed', () => {
+      // Act
+      const unfinished = looksUnfinished('Format it with `deno fmt`', { ...options, allowIdentifiers: false })
 
       // Assert
       assertEquals(unfinished, true)

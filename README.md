@@ -1,6 +1,8 @@
 # looks-good
 
-ESLint rules for conventions nothing else enforces.
+Lint rules for conventions nothing else enforces.
+
+The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
 
 ## Install
 
@@ -8,21 +10,21 @@ ESLint rules for conventions nothing else enforces.
 deno add jsr:@whaaaley/looks-good npm:eslint
 ```
 
-Requires ESLint 9 or later, and flat config.
+The package is `@whaaaley/looks-good` at version `0.1.0`.
+It exports the plugin from `.` and the separate eslint rule set from `./eslint-rules`.
+
+The plugin is consumed through a flat config.
+It is developed and tested against ESLint 10.8.1, and no earlier version has been tested.
 Legacy `.eslintrc` is not supported.
 
 ## Usage
 
-The plugin ships three configs.
+The plugin ships two configs.
 
-| Config | What it enables | When to use it |
-| --- | --- | --- |
-| `recommended` | every parser independent rule, with `comment-one-sentence-per-line` | the default |
-| `fixing` | the same set, with `comment-reflow` in place of `comment-one-sentence-per-line` | when you want `--fix` to join a wrapped sentence |
-| `typescript` | the rules that read TypeScript syntax | in addition to one of the above, on TypeScript files |
-
-`recommended` and `fixing` differ only in the comment wrapping rule.
-Enable one or the other, never both, since both report the same wrapped sentence.
+| Config | Description |
+| --- | --- |
+| `recommended` | the default set |
+| `typescript` | adds the rules that read TypeScript syntax |
 
 Most rules are enabled at `error`.
 Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
@@ -41,12 +43,24 @@ export default defineConfig([
 ])
 ```
 
-Swap in `looksGood.configs.fixing` for the fixing variant.
+`comment-reflow` rewrites the wrapped sentence that `comment-one-sentence-per-line` only reports.
+Both report the same wrap, so `recommended` enables the reporting one and leaves the fixer off.
+Turn one off and the other on to rewrite under `--fix` instead.
+
+```js
+looksGood.configs.recommended,
+{
+  rules: {
+    'looks-good/comment-one-sentence-per-line': 0,
+    'looks-good/comment-reflow': 'error',
+  },
+}
+```
 
 ### The typescript config
 
 `no-union-in-parameter-type` reads a node the default `espree` parser never produces, so it cannot fire on plain JavaScript.
-It lives in the `typescript` config rather than in `recommended` and `fixing`, so a JavaScript only project is never handed a rule that silently does nothing.
+It lives in the `typescript` config rather than in `recommended`, so a JavaScript only project is never handed a rule that silently does nothing.
 
 The config sets no parser of its own, since doing so would override the parser you chose.
 Spread it inside a config block where you have already set `@typescript-eslint/parser`.
@@ -79,9 +93,10 @@ export default defineConfig([
     files: ['**/*.ts'],
     plugins: { 'looks-good': looksGood },
     rules: {
+      'looks-good/blank-line-after-block': 'error',
       'looks-good/comment-content': ['error', {
         forbid: [
-          { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks' },
+          { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },
         ],
         forbidBlockComments: true,
       }],
@@ -95,11 +110,12 @@ export default defineConfig([
           { files: '**/*.test.ts', title: 'All * Tests' },
         ],
       }],
-      'looks-good/max-timeout-value': ['error', { max: 5000 }],
-      'looks-good/no-database-access-in-tests': 'error',
+      'looks-good/max-destructured-parameters': ['error', { max: 0 }],
+      'looks-good/max-single-line-statement-length': ['error', { maxLength: 80 }],
       'looks-good/no-emoji': 'error',
       'looks-good/no-ignored-tests': 'warn',
-      'looks-good/no-optional-chain-on-index': 'error',
+      'looks-good/no-single-line-nested-object': 'error',
+      'looks-good/object-comments-trailing': 'error',
       'looks-good/no-restricted-characters': ['error', {
         restrict: [
           { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.' },
@@ -137,26 +153,100 @@ It is independent of the plugin, so a consumer can take either one alone.
 
 ## Rules
 
-| Rule | Description | Fixable |
-| --- | --- | --- |
-| [comment-content](#comment-content) | Forbids comment text a project does not want left in source | |
-| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | |
-| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps onto the next line | yes |
-| [describe-group-order](#describe-group-order) | Requires sibling describe groups to appear in a configured order | |
-| [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | |
-| [max-timeout-value](#max-timeout-value) | Reports a named constant holding a number above a budget | |
-| [no-database-access-in-tests](#no-database-access-in-tests) | Reports a test that queries the database directly rather than through the interface under test | |
-| [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | |
-| [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | |
-| [no-optional-chain-on-index](#no-optional-chain-on-index) | Forbids optional chaining on an indexed access | |
-| [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | |
-| [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | |
-| [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | |
+| Rule | Description | Config | Fixable |
+| --- | --- | --- | --- |
+| [blank-line-after-block](#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
+| [comment-content](#comment-content) | Forbids comment text a project does not want left in source | recommended | |
+| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | recommended | |
+| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps onto the next line | opt in | yes |
+| [describe-group-order](#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
+| [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | recommended | |
+| [max-destructured-parameters](#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
+| [max-single-line-statement-length](#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
+| [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | recommended | |
+| [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
+| [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | recommended | |
+| [no-single-line-nested-object](#no-single-line-nested-object) | Keeps a nested object out of a call argument written on one line | recommended | |
+| [no-union-in-parameter-type](#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
+| [object-comments-trailing](#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
+| [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | recommended | |
+| [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | recommended | |
 
 `comment-reflow` and `comment-one-sentence-per-line` both catch a sentence that wraps onto the next line.
 The first rewrites, the second reports.
 Enable one or the other, never both, since both enabled report the same wrapped sentence twice.
-`recommended` enables `comment-one-sentence-per-line` and `fixing` enables `comment-reflow`.
+`recommended` enables `comment-one-sentence-per-line`, and `comment-reflow` is the one you opt into.
+
+### Rules that were removed
+
+`max-timeout-value`, `no-optional-chain-on-index`, and `no-database-access-in-tests` were removed.
+Each of them matched a syntax shape that ESLint core's `no-restricted-syntax` already expresses, so they carried a rule implementation for no added reach.
+A project that used them can get the same reports from core.
+
+```js
+// eslint.config.js
+export default [
+  {
+    rules: {
+      'no-restricted-syntax': ['error',
+        {
+          selector: 'VariableDeclarator[id.name=/TIMEOUT/i][init.value>5000]',
+          message: 'A timeout above 5000 waits out a delay rather than asserting against it.',
+        },
+        {
+          selector: 'MemberExpression[optional=true] > MemberExpression.object[computed=true]',
+          message: 'Destructure the element and guard it rather than chaining off an indexed access.',
+        },
+        {
+          selector: 'CallExpression[optional=true] > MemberExpression.callee[computed=true]',
+          message: 'Destructure the element and guard it rather than chaining off an indexed access.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: 'CallExpression > MemberExpression[computed=false][object.name=/^(db|tx|client|database)$/i][property.name=/^(insert|select|update|delete)$/i]',
+        message: 'Drive the interface under test rather than querying the database directly.',
+      }],
+    },
+  },
+]
+```
+
+Flat config replaces rule options rather than merging them, so a later config block setting its own `no-restricted-syntax` drops these entries.
+Keep every selector a project needs in one place.
+
+### blank-line-after-block
+
+Reports a statement that sits directly under the closing brace of an `if`, a loop, a `try`, or a `switch`.
+A closing brace ends a paragraph, so the next statement starts a new one and needs a blank line between them.
+A braceless guard such as `if (!first) return` ends in its own statement rather than a brace, so it is left alone.
+
+Examples of **incorrect** code for this rule:
+
+```js
+if (!input) {
+  return ''
+}
+const parsed = parse(input)
+```
+
+Examples of **correct** code for this rule:
+
+```js
+if (!input) {
+  return ''
+}
+
+const parsed = parse(input)
+```
+
+This rule takes no options.
+
+When a comment sits between the brace and the next statement, the comment is what the reader sees first, so the blank line is required above the comment.
 
 ### comment-content
 
@@ -184,8 +274,21 @@ const first = items.at(0)
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `forbid` | `[]` | A list of `{ pattern, message }`. `pattern` is a regex source string matched against the comment text, `message` is reported when it matches. |
+| `forbid` | `[]` | A list of `{ pattern, message, ignoreCase }`. `pattern` is a regex source string matched against the comment text, `message` is reported when it matches, and `ignoreCase` matches the pattern regardless of case. |
 | `forbidBlockComments` | `false` | Reports any `/* */` comment. |
+
+`ignoreCase` defaults to `false` and is set per entry, so one entry can be case sensitive while another is not.
+With it set, a `\\bTODO\\b` pattern also matches `todo` and `ToDo`.
+
+```js
+{
+  forbid: [
+    { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },
+  ],
+}
+```
+
+A pattern that is not a valid regular expression is reported once at the top of the file rather than being ignored.
 
 ### comment-one-sentence-per-line
 
@@ -336,83 +439,66 @@ A `title` is literal apart from `*`, which stands for any run of characters, and
 So `All * Tests` matches `All Event Tests` and not `Event Tests`, and every other character matches itself rather than as regex.
 Only the outermost describe is checked, so a nested one carries no title requirement of its own.
 
-### max-timeout-value
+### max-destructured-parameters
 
-Reports a named constant holding a number above a budget.
-The motivating case is a spec timeout that waits out a product delay rather than asserting against it.
+Reports a function parameter that destructures in the signature.
+A destructured signature hides the shape of the argument behind a list of names, and the names have to be read against the call site to work out what is being passed.
+Naming the parameter and destructuring it in the body puts the shape and the names in two separate places.
 
 Examples of **incorrect** code for this rule:
 
 ```js
-const TIMEOUT = 30000
-let SUCCESS_TIMEOUT_MS = 15_000
+const format = ({ title, body, author }) => {
+  return `${title} by ${author}`
+}
 ```
 
 Examples of **correct** code for this rule:
 
 ```js
-const TIMEOUT = 5000
-const RETRIES = 20000
+const format = (post) => {
+  const { title, author } = post
+
+  return `${title} by ${author}`
+}
 ```
 
 #### Options
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `namePattern` | `'TIMEOUT'` | A substring matched against the declared name without regard to case. |
-| `max` | `5000` | The largest allowed value. The bound is inclusive, so a value equal to it passes. |
-| `message` | | Optional prose appended to the report. |
+| `max` | `0` | The most bindings a destructured parameter may introduce. At `0` any destructuring in a signature is reported. |
 
-Only a variable declared with an identifier name and a numeric literal initializer is checked, so a computed value is left alone.
-A number written with underscore separators such as `30_000` is normalized by the parser and reads as `30000`.
+A nested pattern counts the names it introduces rather than itself, so `({ a, b: { c } })` counts three.
+An array pattern counts the same way, and a default value or a rest element counts what it wraps.
 
-### no-database-access-in-tests
+### max-single-line-statement-length
 
-Reports a test that queries the database directly rather than through the interface under test.
-A test that reaches past the interface duplicates its query logic, and it keeps passing when the interface it claims to cover is broken.
-
-ESLint core's `no-restricted-properties` can express the same match, but flat config replaces rule options rather than merging them.
-A consumer who sets their own `no-restricted-properties` entries silently drops the database restriction a shipped config had set, with no error.
-This rule owns its own rule id, so it cannot be clobbered that way.
+Reports a braceless `if` whose body sits on the same line as the condition when that line runs past `maxLength`.
+A short guard reads fine on one line, and a long one hides the body at the end of a line nobody scans that far into.
 
 Examples of **incorrect** code for this rule:
 
 ```js
-it('creates a task', async () => {
-  // Act
-  await createTask({ title: 'Write the spec' })
-
-  // Assert
-  const rows = await db.select().from(tasks)
-  assertEquals(rows.length, 1)
-})
+if (!parsed) return { status: 'failed', message: 'The input did not parse into anything usable' }
 ```
 
 Examples of **correct** code for this rule:
 
 ```js
-it('creates a task', async () => {
-  // Act
-  await createTask({ title: 'Write the spec' })
-
-  // Assert
-  const tasks = await listTasks()
-  assertEquals(tasks.length, 1)
-})
+if (!parsed) {
+  return { status: 'failed', message: 'The input did not parse into anything usable' }
+}
 ```
 
 #### Options
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `handles` | `['db', 'tx', 'client', 'database']` | Identifier names that hold a database connection. |
-| `methods` | `['insert', 'select', 'update', 'delete']` | Query builder methods called on those handles. |
-| `allow` | `[]` | Handle names exempted, for a test that legitimately must seed directly. |
-| `ignoreCase` | `true` | Matches handle and method names regardless of spelling case. |
-| `message` | | Replaces the default message entirely when a project wants its own wording. |
+| `maxLength` | `80` | The longest the line may run before the body has to move into braces. The bound is inclusive, so a line exactly this long passes. |
 
-A computed access such as `db['insert']()` is not matched, since the property is an expression rather than a name.
-Only the immediate object of the call is compared, so `a.b.insert()` does not match on `a`.
+A body already written in braces is left alone whatever its width, and a body already on its own line is not the form this rule governs.
+The fix wraps the body in braces on its own line, indented one step past the `if`.
 
 ### no-emoji
 
@@ -482,27 +568,6 @@ it('rejects an outsider', () => {
 
 A bare identifier written as `x` followed by a configured test function name counts too, so `xit`, `xtest`, and `xdescribe` are reported.
 
-### no-optional-chain-on-index
-
-Reports `?.` used on an indexed access, such as `items[0]?.name`.
-
-Examples of **incorrect** code for this rule:
-
-```js
-const name = items[0]?.name
-const trimmed = lines[index]?.trim()
-handlers[event]?.()
-```
-
-Examples of **correct** code for this rule:
-
-```js
-const [first] = items
-if (!first) return ''
-
-const name = first.name
-```
-
 ### no-restricted-characters
 
 Reports characters a project does not want in source.
@@ -535,6 +600,101 @@ const parsed = parse(input)
 | `strings` | `true` | Reports restricted characters in string literals and template strings. |
 | `comments` | `true` | Reports restricted characters in comments. |
 | `identifiers` | `true` | Reports restricted characters in identifiers. |
+
+### no-single-line-nested-object
+
+Reports an object nested inside a call argument that is written on one line.
+A call argument holding a nested object carries two levels of structure, and on one line the reader has to count braces to see where each level starts.
+Putting the outer object's properties on their own lines gives each level its own line.
+
+Examples of **incorrect** code for this rule:
+
+```js
+createUser({ name: 'Ada', address: { city: 'London' } })
+```
+
+Examples of **correct** code for this rule:
+
+```js
+createUser({
+  name: 'Ada',
+  address: { city: 'London' },
+})
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `minNestedProperties` | `1` | The fewest properties the nested object must hold before it is reported. At `0` an empty nested object counts too. |
+
+Only an outer object passed directly as an argument to a call or a `new` expression is checked, which is where the crowding happens.
+An outer object already spread across several lines is left alone whatever it nests.
+
+### no-union-in-parameter-type
+
+Reports a union type written inline in a function parameter annotation.
+A union in a signature states the values without stating what the set of them means, and the same union then gets rewritten at every other place that takes it.
+A named alias says what the set is once, and every signature refers to it.
+
+This rule reads a TypeScript node, so it ships in the `typescript` config rather than in `recommended`.
+
+Examples of **incorrect** code for this rule:
+
+```ts
+const setStatus = (status: 'open' | 'closed' | 'merged'): void => {
+  record(status)
+}
+```
+
+Examples of **correct** code for this rule:
+
+```ts
+type Status = 'open' | 'closed' | 'merged'
+
+const setStatus = (status: Status): void => {
+  record(status)
+}
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `allowNullable` | `false` | Exempts a two member union whose other member is `null` or `undefined`, so `string \| null` passes. |
+
+A rest parameter annotated as an array of a union is reported too, since the annotation sits one wrapper above the parameter.
+A `TSFunctionType` describes a type rather than a function being written, so its parameters are left alone.
+
+### object-comments-trailing
+
+Reports a comment that sits on its own line inside an object literal.
+A comment on its own line inside an object breaks the list of properties into paragraphs that the object does not actually have.
+Put it after the property it describes, or cut it.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const config = {
+  // The port the server binds to.
+  port: 3000,
+  host: 'localhost',
+}
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const config = {
+  port: 3000, // The port the server binds to.
+  host: 'localhost',
+}
+```
+
+This rule takes no options.
+
+A comment that sits inside one of the properties belongs to whatever nests there, so it is checked against that inner object rather than this one.
+A comment sharing a line with the opening brace counts as trailing that line.
 
 ### require-file-calls
 
@@ -678,6 +838,21 @@ it('adds two numbers', () => {
 | `minStatements` | `2` | A body with fewer statements than this is exempt, since a one line test needs no structure. |
 
 Only a line comment whose whole text is a label counts, so prose such as `// Act on the parsed input.` is left alone.
+
+## Tools
+
+These are for developing this repository, and are not part of the published plugin.
+
+`tools/hooks/` holds the git hooks, and `deno task install-hooks` points `core.hooksPath` at it.
+The `commit-msg` hook runs the commit message validator in `tools/commit/`, which checks the subject line against the types and scopes that file configures.
+The `pre-commit` hook runs `deno task lint` and `deno task test` from the repository root.
+
+The `post-commit` and `post-rewrite` hooks both run `deno task uncommitted`.
+
+`tools/uncommitted/` warns when too much work is sitting uncommitted.
+It reports when the working tree holds 12 or more changed files, or 400 or more changed lines counting insertions and deletions together.
+Either threshold alone trips the warning, and reaching both names them together.
+The warning names what is uncommitted and says to split the remaining work into focused commits before starting anything new.
 
 ## License
 
