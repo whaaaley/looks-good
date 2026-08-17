@@ -52,7 +52,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('no-ignored-tests'),
     },
     defaultOptions: [defaults],
-    // Deleting the test or landing the work behind it is a decision, so this reports only.
     fixable: undefined,
     schema: [
       {

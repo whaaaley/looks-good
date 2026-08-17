@@ -15,9 +15,8 @@ const imports: Linter.Config[] = [
   importPlugin.flatConfigs.recommended,
   {
     rules: {
-      // TypeScript resolves modules more accurately than the import plugin can.
-      'import-x/no-unresolved': 0,
-      'import-x/named': 0,
+      'import-x/no-unresolved': 0, // TypeScript resolves modules, not the plugin.
+      'import-x/named': 0, // TypeScript checks named exports, not the plugin.
 
       'import-x/export': 'error',
       'import-x/first': 'error',
@@ -27,7 +26,6 @@ const imports: Linter.Config[] = [
       'import-x/no-named-as-default': 'error',
       'import-x/no-named-as-default-member': 'error',
 
-      // Order is built-ins, external packages, internal modules, relative imports, then types.
       'import-x/order': ['error', {
         'newlines-between': 'never',
         alphabetize: {
@@ -47,8 +45,7 @@ const imports: Linter.Config[] = [
         ],
       }],
 
-      // Sort the names inside a single import declaration.
-      'sort-imports': ['error', {
+      'sort-imports': ['error', { // Sorts names within a declaration only.
         ignoreDeclarationSort: true,
         allowSeparatedGroups: false,
         ignoreCase: true,

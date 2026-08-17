@@ -24,7 +24,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('comment-reflow'),
     },
     defaultOptions: [defaults],
-    // Joining moves text without rewriting it, so the fix is safe to apply.
     fixable: 'whitespace',
     schema: [
       {

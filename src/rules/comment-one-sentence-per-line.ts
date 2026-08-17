@@ -24,7 +24,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('comment-one-sentence-per-line'),
     },
     defaultOptions: [defaults],
-    // Rewriting prose changes what it says, so this rule reports and never fixes.
     fixable: undefined,
     schema: [
       {
