@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "tasks": {
+    "check": "deno check --unstable-tsgo src/ tools/",
+    "lint": "deno task lint:deno && deno task lint:eslint",
+    "lint:deno": "deno lint",
+    "lint:eslint": "deno run -A npm:eslint src tools eslint.config.js",
+    "lint:fix": "deno run -A npm:eslint src tools eslint.config.js --fix",
+    "fmt": "deno fmt",
+    "fmt:check": "deno fmt --check",
+    "test": "deno test -A",
+    "test:coverage": "deno test -A --coverage=coverage",
+    "coverage": "deno coverage coverage",
+    "install-hooks": "git config core.hooksPath tools/commit/hooks"
+  },
+  "lint": {
+    "rules": {
+      "include": [
+        "explicit-function-return-type",
+        "explicit-module-boundary-types",
+        "no-explicit-any",
+        "no-non-null-assertion"
+      ]
+    }
+  },
+  "fmt": {
+    "lineWidth": 240,
+    "semiColons": false,
+    "singleQuote": true,
+    "exclude": [
+      "*.md",
+      "**/*.md"
+    ]
+  },
+  "imports": {
+    "@eslint/js": "npm:@eslint/js@^10.0.1",
+    "@std/assert": "jsr:@std/assert@^1.0.19",
+    "@std/path": "jsr:@std/path@^1.1.6",
+    "@types/eslint": "npm:@types/eslint@^9.6.1",
+    "@typescript-eslint/parser": "npm:@typescript-eslint/parser@^8.67.0",
+    "eslint": "npm:eslint@^10.8.1",
+    "eslint-plugin-import-x": "npm:eslint-plugin-import-x@^4.17.1",
+    "globals": "npm:globals@^17.11.0",
+    "typescript-eslint": "npm:typescript-eslint@^8.67.0",
+    "estree": "npm:@types/estree@^1.0.9"
+  }
+}
