@@ -215,5 +215,12 @@ tester.run('describe-title-pattern', rule, {
       options: [{ patterns: domain, testFunctions: ['suite'] }],
       errors: [{ messageId: 'missing', data: { function: 'suite', pattern: 'All * Tests', message: '' } }],
     },
+    // An allowTitles entry that does not compile reports as a configuration problem rather than crashing the run.
+    {
+      code: "describe('All Event Tests', () => {})",
+      filename: 'event.queries.test.ts',
+      options: [{ patterns: domain, allowTitles: ['(['] }],
+      errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
+    },
   ],
 })

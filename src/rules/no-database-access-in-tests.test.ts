@@ -84,6 +84,12 @@ tester.run('no-database-access-in-tests', rule, {
       options: [caseSensitive],
       errors: [{ messageId: 'direct' }],
     },
+    // An allow entry respects ignoreCase, so a differently cased entry does not exempt the handle.
+    {
+      code: 'db.insert({ id: 1 })',
+      options: [{ ...caseSensitive, allow: ['DB'] }],
+      errors: [{ messageId: 'direct' }],
+    },
     // A chain reports where the identifier is the immediate object of the called method.
     {
       code: 'a.b(db.insert({ id: 1 }))',

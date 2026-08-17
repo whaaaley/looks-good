@@ -313,5 +313,11 @@ tester.run('test-arrange-act-assert', rule, {
         { messageId: 'missing', data: { label: 'Assert' } },
       ],
     },
+    // An allowTitles entry that does not compile reports as a configuration problem rather than crashing the run.
+    {
+      code: 'export const helper = 1',
+      options: [{ allowTitles: ['(['] }],
+      errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
+    },
   ],
 })

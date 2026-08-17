@@ -19,6 +19,7 @@ const defaults: Options = {
 
 // Matches pictographs and the sequences built from them.
 // A skin tone modifier, a zero width joiner run, and a flag pair each count as one emoji.
+// This carries the `g` flag, so only matchAll may consume it, since test or exec would leak lastIndex across files.
 const emoji = /\p{RI}\p{RI}|\p{Extended_Pictographic}(\p{Emoji_Modifier}|️)?(‍\p{Extended_Pictographic}(\p{Emoji_Modifier}|️)?)*/gu
 
 const found = (text: string, allow: Set<string>): string[] => {

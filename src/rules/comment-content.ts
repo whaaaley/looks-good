@@ -1,6 +1,8 @@
 import { readComments } from '../utils/comment.utils.ts'
 import { docUrl } from '../utils/docs.utils.ts'
+import { compilePattern } from '../utils/regex.utils.ts'
 import type { Rule } from 'eslint'
+import type { Program } from 'estree'
 
 export type ForbiddenPattern = {
   pattern: string
@@ -51,18 +53,38 @@ const rule: Rule.RuleModule = {
     messages: {
       forbidden: '{{message}}',
       blockComment: 'This is a block comment, so rewrite it as line comments',
+      invalidPattern: "The pattern '{{source}}' is not a valid regular expression. Correct it in this rule's configuration.",
     },
   },
 
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const forbidden = options.forbid.map((entry) => ({
-      expression: new RegExp(entry.pattern, 'u'),
-      message: entry.message,
-    }))
+    const forbidden: { expression: RegExp; message: string }[] = []
+    const invalid: string[] = []
+
+    for (const entry of options.forbid) {
+      const expression = compilePattern({ source: entry.pattern, flags: 'u' })
+
+      if (!expression) {
+        invalid.push(entry.pattern)
+        continue
+      }
+
+      forbidden.push({ expression, message: entry.message })
+    }
+
+    if (forbidden.length === 0 && invalid.length === 0 && !options.forbidBlockComments) return {}
 
     return {
-      'Program:exit': (): void => {
+      'Program:exit': (program: Program): void => {
+        for (const source of invalid) {
+          context.report({
+            node: program,
+            messageId: 'invalidPattern',
+            data: { source },
+          })
+        }
+
         for (const comment of readComments(context)) {
           if (options.forbidBlockComments && comment.block) {
             context.report({

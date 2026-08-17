@@ -1,4 +1,7 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { escapeRegExp, globToRegExp } from '../utils/glob.utils.ts'
+import { compilePattern } from '../utils/regex.utils.ts'
+import { calleeName, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Program } from 'estree'
 
@@ -20,21 +23,6 @@ const defaults: Options = {
   allowTitles: [],
 }
 
-const escapeRegExp = (source: string): string => {
-  return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-// A glob segment is literal apart from `*`, which stands for any run of characters.
-// `**` and `*` both cross directory separators, since a path glob here is matched against a whole path.
-const globToRegExp = (glob: string): RegExp => {
-  const body = glob
-    .split(/\*+/)
-    .map((part) => escapeRegExp(part))
-    .join('.*')
-
-  return new RegExp(`^${body}$`, 'u')
-}
-
 // A title pattern is literal apart from `*`, so `All * Tests` matches `All Event Tests` and nothing shorter.
 const titleToRegExp = (pattern: string): RegExp => {
   const body = pattern
@@ -43,18 +31,6 @@ const titleToRegExp = (pattern: string): RegExp => {
     .join('.*')
 
   return new RegExp(`^${body}$`, 'u')
-}
-
-// A call written as `describe.only` or `describe.skip` is still that test function.
-const calleeName = (node: CallExpression): string => {
-  const { callee } = node
-  if (callee.type === 'Identifier') return callee.name
-
-  if (callee.type === 'MemberExpression' && callee.object.type === 'Identifier') {
-    return callee.object.name
-  }
-
-  return ''
 }
 
 // A call sits at the top level when nothing between it and the program is a function.
@@ -70,15 +46,6 @@ const isTopLevel = (node: Rule.Node): boolean => {
   }
 
   return true
-}
-
-const readTitle = (node: CallExpression): string => {
-  const [first] = node.arguments
-  if (!first) return ''
-  if (first.type !== 'Literal') return ''
-  if (typeof first.value !== 'string') return ''
-
-  return first.value
 }
 
 const rule: Rule.RuleModule = {
@@ -117,19 +84,46 @@ const rule: Rule.RuleModule = {
     messages: {
       mismatch: "The top level describe is titled '{{title}}', which does not match '{{pattern}}'.{{message}}",
       missing: "This file has no top level {{function}} title, so nothing names what it tests. Wrap it in one titled '{{pattern}}'.{{message}}",
+      invalidPattern: "The allowed title '{{source}}' is not a valid regular expression. Correct it in this rule's configuration.",
     },
   },
 
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const exempt = options.allowTitles.map((source) => new RegExp(source))
+    const exempt: RegExp[] = []
+    const invalid: string[] = []
+
+    for (const source of options.allowTitles) {
+      const expression = compilePattern({ source, flags: 'u' })
+
+      if (!expression) {
+        invalid.push(source)
+        continue
+      }
+
+      exempt.push(expression)
+    }
+
+    const reportInvalid = (program: Program): void => {
+      for (const source of invalid) {
+        context.report({
+          node: program,
+          messageId: 'invalidPattern',
+          data: { source },
+        })
+      }
+    }
 
     // The first entry whose glob matches the path wins, so a narrow entry is listed before a broad one.
     const matched = options.patterns.find((entry) => {
       return globToRegExp(entry.files).test(context.filename)
     })
 
-    if (!matched) return {}
+    if (!matched) {
+      if (invalid.length === 0) return {}
+
+      return { 'Program:exit': reportInvalid }
+    }
 
     const expected = titleToRegExp(matched.title)
     const message = matched.message ? ` ${matched.message}` : ''
@@ -150,6 +144,8 @@ const rule: Rule.RuleModule = {
       },
 
       'Program:exit': (program: Program): void => {
+        reportInvalid(program)
+
         if (!outermost) {
           context.report({
             node: program,

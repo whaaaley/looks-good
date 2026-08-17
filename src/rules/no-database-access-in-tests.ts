@@ -52,7 +52,7 @@ const rule: Rule.RuleModule = {
     // Compiling once in create keeps a large file from rebuilding these per node.
     const handles = new Set(options.handles.map(fold))
     const methods = new Set(options.methods.map(fold))
-    const allow = new Set(options.allow.map((name) => name.toLowerCase()))
+    const allow = new Set(options.allow.map(fold))
 
     if (handles.size === 0) return {}
     if (methods.size === 0) return {}
@@ -70,7 +70,7 @@ const rule: Rule.RuleModule = {
         const method = callee.property.name
 
         // An allowed handle is exempt, so a test that must seed directly stays usable.
-        if (allow.has(handle.toLowerCase())) return
+        if (allow.has(fold(handle))) return
         if (!handles.has(fold(handle))) return
         if (!methods.has(fold(method))) return
 

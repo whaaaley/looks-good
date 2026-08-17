@@ -2,7 +2,14 @@ import { findWrappedPairs, isDirective, readLineComments, startsWithLabel } from
 import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 
-const defaults = {
+type Options = {
+  maxLength: number
+  allowUrls: boolean
+  allowIdentifiers: boolean
+  allowLabels: string[]
+}
+
+const defaults: Options = {
   maxLength: 120,
   allowUrls: true,
   allowIdentifiers: true,
@@ -38,7 +45,7 @@ const rule: Rule.RuleModule = {
   },
 
   create(context): Rule.RuleListener {
-    const options = { ...defaults, ...context.options[0] }
+    const options: Options = { ...defaults, ...context.options[0] }
 
     return {
       'Program:exit': (): void => {

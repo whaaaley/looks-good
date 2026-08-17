@@ -1,4 +1,6 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { escapeRegExp } from '../utils/glob.utils.ts'
+import { calleeName, readBody, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Node } from 'estree'
 
@@ -30,41 +32,6 @@ type Group = {
   node: CallExpression
 }
 
-// A call written as `describe.only` or `describe.skip` is still that group function.
-const calleeName = (node: CallExpression): string => {
-  const { callee } = node
-  if (callee.type === 'Identifier') return callee.name
-
-  if (callee.type === 'MemberExpression' && callee.object.type === 'Identifier') {
-    return callee.object.name
-  }
-
-  return ''
-}
-
-const readTitle = (node: CallExpression): string => {
-  const [first] = node.arguments
-  if (!first) return ''
-  if (first.type !== 'Literal') return ''
-  if (typeof first.value !== 'string') return ''
-
-  return first.value
-}
-
-// The body is the block of the last function argument, which is where a group nests its children.
-const readBody = (node: CallExpression): Node | null => {
-  for (let index = node.arguments.length - 1; index >= 0; index -= 1) {
-    const argument = node.arguments[index]
-    if (!argument) continue
-    if (argument.type !== 'FunctionExpression' && argument.type !== 'ArrowFunctionExpression') continue
-    if (argument.body.type !== 'BlockStatement') return null
-
-    return argument.body
-  }
-
-  return null
-}
-
 // A statement inside a group body is a child group only when it is a bare call to a group function.
 const readChildCall = (statement: Node, testFunctions: string[]): CallExpression | null => {
   if (statement.type !== 'ExpressionStatement') return null
@@ -76,25 +43,16 @@ const readChildCall = (statement: Node, testFunctions: string[]): CallExpression
   return call
 }
 
-const escapeForRegExp = (source: string): string => {
-  return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-const hasWholeWord = (haystack: string, needle: string, ignoreCase: boolean): boolean => {
+// The needles come from the configured sequence, so each whole word pattern is built once per rule run.
+const compileWholeWords = (names: string[], ignoreCase: boolean): Map<string, RegExp> => {
   const flags = ignoreCase ? 'iu' : 'u'
-  const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])${escapeForRegExp(needle)}(?![\\p{L}\\p{N}_])`, flags)
+  const compiled = new Map<string, RegExp>()
 
-  return pattern.test(haystack)
-}
-
-const matchesName = (title: string, name: string, options: Options): boolean => {
-  if (options.match === 'exact') {
-    if (!options.ignoreCase) return title === name
-
-    return title.toLowerCase() === name.toLowerCase()
+  for (const name of names) {
+    compiled.set(name, new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(name)}(?![\\p{L}\\p{N}_])`, flags))
   }
 
-  return hasWholeWord(title, name, options.ignoreCase)
+  return compiled
 }
 
 const rule: Rule.RuleModule = {
@@ -134,13 +92,27 @@ const rule: Rule.RuleModule = {
     const named = options.sequence.filter((name) => name !== wildcard)
     const wildcardRank = options.sequence.indexOf(wildcard)
     const expected = options.sequence.join(', then ')
+    const wholeWords = compileWholeWords(named, options.ignoreCase)
+
+    const matchesName = (title: string, name: string): boolean => {
+      if (options.match === 'exact') {
+        if (!options.ignoreCase) return title === name
+
+        return title.toLowerCase() === name.toLowerCase()
+      }
+
+      const pattern = wholeWords.get(name)
+      if (!pattern) return false
+
+      return pattern.test(title)
+    }
 
     // A title matching no name sits in the wildcard slot, and is otherwise unranked.
     const rankOf = (title: string): number => {
       for (let index = 0; index < options.sequence.length; index += 1) {
         const name = options.sequence[index]
         if (!name || name === wildcard) continue
-        if (matchesName(title, name, options)) return index
+        if (matchesName(title, name)) return index
       }
 
       return wildcardRank
@@ -171,11 +143,11 @@ const rule: Rule.RuleModule = {
       if (!options.requireAll) return
 
       // A set where no group is named at all is a set of wrappers, and has no sequence to complete.
-      const isNamed = (group: Group): boolean => named.some((name) => matchesName(group.title, name, options))
+      const isNamed = (group: Group): boolean => named.some((name) => matchesName(group.title, name))
       if (!groups.some(isNamed)) return
 
       for (const name of named) {
-        if (groups.some((group) => matchesName(group.title, name, options))) continue
+        if (groups.some((group) => matchesName(group.title, name))) continue
 
         context.report({
           node: report,

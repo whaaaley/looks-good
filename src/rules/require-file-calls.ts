@@ -166,6 +166,8 @@ const rule: Rule.RuleModule = {
       return globToRegExp(entry.files).test(context.filename)
     })
 
+    if (applicable.length === 0 && dangling.length === 0) return {}
+
     return {
       CallExpression: (node: CallExpression): void => {
         const { callee } = node

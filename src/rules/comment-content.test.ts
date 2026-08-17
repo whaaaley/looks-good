@@ -84,5 +84,11 @@ tester.run('comment-content', rule, {
       options: [markers],
       errors: [{ messageId: 'forbidden' }],
     },
+    // A pattern that does not compile reports as a configuration problem rather than crashing the run.
+    {
+      code: '// A plain comment.\nconst a = 1',
+      options: [{ forbid: [{ pattern: '([', message: 'Never reached.' }] }],
+      errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
+    },
   ],
 })

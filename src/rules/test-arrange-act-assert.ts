@@ -1,7 +1,8 @@
 import { isLineComment } from '../utils/comment.utils.ts'
 import { docUrl } from '../utils/docs.utils.ts'
+import { compilePattern } from '../utils/regex.utils.ts'
 import type { Rule } from 'eslint'
-import type { CallExpression, Node } from 'estree'
+import type { CallExpression, Node, Program } from 'estree'
 
 type Options = {
   require: string[]
@@ -86,15 +87,39 @@ const rule: Rule.RuleModule = {
       missing: "This test body has no '// {{label}}' comment. Label the {{label}} step so the phases of the test read apart.",
       order: "The '// {{label}}' comment comes after '// {{previous}}'. Move it above so the body reads {{expected}}.",
       duplicate: "This body labels '// {{label}}' more than once. Keep one label per phase, or split the extra phase into its own test.",
+      invalidPattern: "The allowed title '{{source}}' is not a valid regular expression. Correct it in this rule's configuration.",
     },
   },
 
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const exempt = options.allowTitles.map((source) => new RegExp(source))
+    const exempt: RegExp[] = []
+    const invalid: string[] = []
+
+    for (const source of options.allowTitles) {
+      const expression = compilePattern({ source, flags: 'u' })
+
+      if (!expression) {
+        invalid.push(source)
+        continue
+      }
+
+      exempt.push(expression)
+    }
+
     const labels = new Set(options.order)
 
     return {
+      'Program:exit': (program: Program): void => {
+        for (const source of invalid) {
+          context.report({
+            node: program,
+            messageId: 'invalidPattern',
+            data: { source },
+          })
+        }
+      },
+
       CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
         if (!options.testFunctions.includes(calleeName(node))) return
 
