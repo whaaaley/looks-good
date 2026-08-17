@@ -10,20 +10,30 @@ export type TextPositions = {
 
 export type TextFinding = Record<string, string>
 
+export type TextMatch = {
+  data: TextFinding
+  index: number
+  length: number
+  replacement?: string
+}
+
+export type TextFixer = (range: [number, number], match: TextMatch) => Rule.Fix | undefined
+
 export type TextListenerOptions = {
   context: Rule.RuleContext
   positions: TextPositions
-  scan: (text: string) => TextFinding[]
+  scan: (text: string) => TextMatch[]
   messageId: string
+  fixComment?: TextFixer
 }
 
 // Builds the listener that visits every text position a rule cares about.
 export const buildTextListener = (options: TextListenerOptions): Rule.RuleListener => {
-  const { context, positions, scan, messageId } = options
+  const { context, positions, scan, messageId, fixComment } = options
 
   const report = (node: Rule.Node, text: string): void => {
-    for (const data of scan(text)) {
-      context.report({ node, messageId, data })
+    for (const match of scan(text)) {
+      context.report({ node, messageId, data: match.data })
     }
   }
 
@@ -49,14 +59,28 @@ export const buildTextListener = (options: TextListenerOptions): Rule.RuleListen
 
   if (positions.comments) {
     listener['Program:exit'] = (): void => {
+      const source = context.sourceCode.getText()
+
       for (const comment of readComments(context)) {
-        for (const data of scan(comment.text)) {
+        const [start, end] = comment.range
+
+        // Scanning the raw slice rather than the trimmed text keeps every index aligned with the file.
+        for (const match of scan(source.slice(start, end))) {
+          const at = start + match.index
+
           // A comment has no node to attach to, so the report lands on its own line.
-          context.report({
+          const descriptor: Rule.ReportDescriptor = {
             loc: { line: comment.line, column: 0 },
             messageId,
-            data,
-          })
+            data: match.data,
+          }
+
+          // A rule that declares no fixable meta throws if a report carries a fix, so this is attached only when one is offered.
+          if (fixComment) {
+            descriptor.fix = (): Rule.Fix | null => fixComment([at, at + match.length], match) ?? null
+          }
+
+          context.report(descriptor)
         }
       }
     }

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import { RuleTester } from 'eslint'
 import { buildTextListener } from './textScan.utils.ts'
-import type { TextFinding, TextPositions } from './textScan.utils.ts'
+import type { TextFinding, TextMatch, TextPositions } from './textScan.utils.ts'
 import type { Rule } from 'eslint'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
@@ -15,8 +15,19 @@ const defaults: TextPositions = {
 }
 
 // Reports every `x`, so a case's error count states exactly which text positions were visited.
-const scan = (text: string): TextFinding[] => {
-  return [...text].filter((character) => character === 'x').map(() => ({ found: 'x' }))
+// Each match carries its own index, which a comment fixer needs to reach the right occurrence.
+const scan = (text: string): TextMatch[] => {
+  const matches: TextMatch[] = []
+
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] !== 'x') continue
+
+    const data: TextFinding = { found: 'x' }
+
+    matches.push({ data, index, length: 1 })
+  }
+
+  return matches
 }
 
 const rule: Rule.RuleModule = {
@@ -97,6 +108,58 @@ tester.run('buildTextListener', rule, {
     {
       code: '// x',
       errors: [{ messageId: 'found', line: 1, column: 1 }],
+    },
+  ],
+})
+
+// A fixing rule proves the index a scan reports lands on the right character of the file.
+const fixingRule: Rule.RuleModule = {
+  meta: {
+    type: 'problem',
+    fixable: 'code',
+    schema: [],
+    messages: {
+      found: "Found '{{found}}'",
+    },
+  },
+
+  create(context): Rule.RuleListener {
+    const fixComment = (range: [number, number]): Rule.Fix => ({ range, text: 'y' })
+
+    return buildTextListener({ context, positions: defaults, scan, messageId: 'found', fixComment })
+  },
+}
+
+const fixingTester = new RuleTester()
+
+fixingTester.run('buildTextListener fixing', fixingRule, {
+  valid: [
+    { code: '// clean' },
+  ],
+  invalid: [
+    // The offset is measured against the raw comment, so the prefix width is already accounted for.
+    {
+      code: '// x',
+      errors: 1,
+      output: '// y',
+    },
+    // Two occurrences on one line each fix at their own offset rather than both at the first.
+    {
+      code: '// x and x',
+      errors: 2,
+      output: '// y and y',
+    },
+    // A block comment is scanned raw the same way.
+    {
+      code: '/* x here */',
+      errors: 1,
+      output: '/* y here */',
+    },
+    // A string is reported without a fix, so only the comment is rewritten.
+    {
+      code: 'const a = "x"\n// x',
+      errors: 2,
+      output: 'const a = "x"\n// y',
     },
   ],
 })

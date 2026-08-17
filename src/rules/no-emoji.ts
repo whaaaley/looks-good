@@ -1,6 +1,6 @@
 import { docUrl } from '../utils/docs.utils.ts'
 import { buildTextListener } from '../utils/textScan.utils.ts'
-import type { TextFinding } from '../utils/textScan.utils.ts'
+import type { TextFinding, TextMatch } from '../utils/textScan.utils.ts'
 import type { Rule } from 'eslint'
 
 type Options = {
@@ -22,14 +22,16 @@ const defaults: Options = {
 // This carries the `g` flag, so only matchAll may consume it, since test or exec would leak lastIndex across files.
 const emoji = /\p{RI}\p{RI}|\p{Extended_Pictographic}(\p{Emoji_Modifier}|️)?(‍\p{Extended_Pictographic}(\p{Emoji_Modifier}|️)?)*/gu
 
-const found = (text: string, allow: Set<string>): string[] => {
-  const matches: string[] = []
+const found = (text: string, allow: Set<string>): TextMatch[] => {
+  const matches: TextMatch[] = []
 
   for (const match of text.matchAll(emoji)) {
     const [value] = match
     if (allow.has(value)) continue
 
-    matches.push(value)
+    const data: TextFinding = { emoji: value }
+
+    matches.push({ data, index: match.index, length: value.length })
   }
 
   return matches
@@ -65,9 +67,7 @@ const rule: Rule.RuleModule = {
     const options: Options = { ...defaults, ...context.options[0] }
     const allow = new Set(options.allow)
 
-    const scan = (text: string): TextFinding[] => {
-      return found(text, allow).map((value) => ({ emoji: value }))
-    }
+    const scan = (text: string): TextMatch[] => found(text, allow)
 
     return buildTextListener({ context, positions: options, scan, messageId: 'emoji' })
   },

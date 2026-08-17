@@ -26,7 +26,6 @@ const reporting = {
   'max-destructured-parameters': maxDestructuredParameters,
   'no-emoji': noEmoji,
   'no-ignored-tests': noIgnoredTests,
-  'no-restricted-characters': noRestrictedCharacters,
   'no-single-line-nested-object': noSingleLineNestedObject,
   'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
@@ -35,11 +34,12 @@ const reporting = {
 }
 
 // Rules that rewrite under --fix.
-// A violation here moves text without changing what it says.
+// A violation here moves text, or swaps one character for the spelling a project asked for.
 const fixable = {
   'blank-line-after-block': blankLineAfterBlock,
   'comment-reflow': commentReflow,
   'max-single-line-statement-length': maxSingleLineStatementLength,
+  'no-restricted-characters': noRestrictedCharacters,
 }
 
 const rules = {

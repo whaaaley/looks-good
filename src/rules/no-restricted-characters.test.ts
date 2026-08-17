@@ -21,6 +21,27 @@ const punctuation = {
   ],
 }
 
+// A replacement is the machine field the fixer reads, and the message stays human prose.
+const fixingDashes = {
+  restrict: [
+    { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.', replacement: '. ' },
+  ],
+}
+
+const fixingPunctuation = {
+  restrict: [
+    { chars: '…', message: 'Write three dots instead.', replacement: '...' },
+    { chars: '“”', message: 'Use a straight quote instead.', replacement: '"' },
+  ],
+}
+
+// An astral character is two code units wide, so the replaced range has to be sized by the character itself.
+const fixingAstral = {
+  restrict: [
+    { chars: '𝑥', message: 'Write a plain letter instead.', replacement: 'x' },
+  ],
+}
+
 tester.run('no-restricted-characters', rule, {
   valid: [
     // With nothing configured the rule restricts nothing.
@@ -90,6 +111,69 @@ tester.run('no-restricted-characters', rule, {
       code: 'const a = "…"',
       options: [{ restrict: [{ chars: '…', message: 'Write three dots instead.' }] }],
       errors: [{ messageId: 'restricted', data: { character: '…', message: 'Write three dots instead.' } }],
+    },
+    // A restriction with no replacement stays report only, so a consumer configured before the fixer sees no rewrite.
+    {
+      code: '// An em dash — in a comment the fixer leaves alone.',
+      options: [dashes],
+      errors: 1,
+      output: null,
+    },
+    // A replacement rewrites the comment in place.
+    {
+      code: '// An ellipsis … here.',
+      options: [fixingPunctuation],
+      errors: 1,
+      output: '// An ellipsis ... here.',
+    },
+    // Two restricted characters on one line each fix at their own offset.
+    {
+      code: '// An ellipsis … and another … here.',
+      options: [fixingPunctuation],
+      errors: 2,
+      output: '// An ellipsis ... and another ... here.',
+    },
+    // Two characters from different restrictions on one line fix independently.
+    {
+      code: '// An ellipsis … and a quote ” here.',
+      options: [fixingPunctuation],
+      errors: 2,
+      output: '// An ellipsis ... and a quote " here.',
+    },
+    // Never dropping the character means a dash becomes a sentence break rather than joining the words.
+    {
+      code: '// One clause—another clause.',
+      options: [fixingDashes],
+      errors: 1,
+      output: '// One clause. another clause.',
+    },
+    // A block comment is rewritten the same way.
+    {
+      code: '/* An ellipsis … here. */',
+      options: [fixingPunctuation],
+      errors: 1,
+      output: '/* An ellipsis ... here. */',
+    },
+    // A surrogate pair is two code units wide, so a range sized at one would split it.
+    {
+      code: '// A letter 𝑥 here.',
+      options: [fixingAstral],
+      errors: 1,
+      output: '// A letter x here.',
+    },
+    // A string and an identifier report without a fix, since a rewrite there can change what the program does.
+    {
+      code: 'const a = "an ellipsis … here"\n// An ellipsis … here.',
+      options: [fixingPunctuation],
+      errors: 2,
+      output: 'const a = "an ellipsis … here"\n// An ellipsis ... here.',
+    },
+    // The allow list is honored before anything is fixed.
+    {
+      code: '// An ellipsis … and a quote ” here.',
+      options: [{ ...fixingPunctuation, allow: ['…'] }],
+      errors: 1,
+      output: '// An ellipsis … and a quote " here.',
     },
   ],
 })
