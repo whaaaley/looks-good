@@ -3,7 +3,7 @@ import { assert, assertEquals } from '@std/assert'
 import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
-import { fixing, plugin, recommended } from './index.ts'
+import { fixing, plugin, recommended, typescript } from './index.ts'
 
 const linter = new Linter()
 
@@ -64,7 +64,9 @@ describe('All Plugin Tests', () => {
       const onDisk: string[] = []
 
       for await (const entry of Deno.readDir(directory)) {
-        if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) continue
+        if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) {
+          continue
+        }
 
         onDisk.push(entry.name.replace(/\.ts$/, ''))
       }
@@ -98,9 +100,26 @@ describe('All Plugin Tests', () => {
   })
 
   describe('shipped configs', () => {
-    it('exposes both configs on the plugin', () => {
+    it('exposes every config on the plugin', () => {
       // Assert
-      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['fixing', 'recommended'])
+      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['fixing', 'recommended', 'typescript'])
+    })
+
+    // A rule that reads TypeScript nodes can never fire under the default parser.
+    it('keeps the typescript only rules out of recommended and fixing', () => {
+      // Arrange
+      const tsOnly = Object.keys(typescript.rules ?? {})
+
+      // Act
+      const leaked = tsOnly.filter((name) => name in (recommended.rules ?? {}) || name in (fixing.rules ?? {}))
+
+      // Assert
+      assertEquals(leaked, [])
+    })
+
+    it('sets no parser of its own in the typescript config', () => {
+      // Assert
+      assertEquals(typescript.languageOptions?.parser, undefined)
     })
 
     // Both enabled would report one wrapped sentence twice, once per rule.
@@ -117,12 +136,16 @@ describe('All Plugin Tests', () => {
       assertEquals(inFixing, ['looks-good/comment-reflow'])
     })
 
-    it('enables every registered rule across the two configs', () => {
+    it('enables every registered rule across all three configs', () => {
       // Arrange
       const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
 
       // Act
-      const enabled = new Set([...Object.keys(recommended.rules ?? {}), ...Object.keys(fixing.rules ?? {})])
+      const enabled = new Set([
+        ...Object.keys(recommended.rules ?? {}),
+        ...Object.keys(fixing.rules ?? {}),
+        ...Object.keys(typescript.rules ?? {}),
+      ])
 
       // Assert
       assertEquals(registered.filter((name) => !enabled.has(name)), [])
