@@ -1,3 +1,5 @@
+import { safe } from './safe.utils.ts'
+
 export type PatternSource = {
   source: string
   flags: string
@@ -7,9 +9,9 @@ export type PatternSource = {
 export const compilePattern = (pattern: PatternSource): RegExp | null => {
   const { source, flags } = pattern
 
-  try {
-    return new RegExp(source, flags)
-  } catch {
-    return null
-  }
+  const { data, error } = safe(() => new RegExp(source, flags))
+
+  if (error) return null
+
+  return data
 }

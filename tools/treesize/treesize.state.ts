@@ -1,3 +1,5 @@
+import { safe } from '../../src/utils/safe.utils.ts'
+
 // Remembers which tier was last announced, so a tree that stays large is only described once.
 
 export type State = {
@@ -9,17 +11,10 @@ export const empty: State = { sessionId: '', announced: '' }
 
 // A state written by a different session describes a tree this session has not spoken about yet.
 
-const decode = (raw: string): unknown => {
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
-}
-
 export const parse = (raw: string, sessionId: string): State => {
-  const parsed = decode(raw)
+  const { data: parsed, error } = safe((): unknown => JSON.parse(raw))
 
+  if (error) return empty
   if (!parsed || typeof parsed !== 'object') return empty
   if (!('sessionId' in parsed) || !('announced' in parsed)) return empty
 

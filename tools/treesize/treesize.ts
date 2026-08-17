@@ -1,4 +1,5 @@
 import { dirname, join } from '@std/path'
+import { safeAsync } from '../../src/utils/safe.utils.ts'
 import { empty, parse, serialize, type State } from './treesize.state.ts'
 import { decide } from './treesize.tier.ts'
 
@@ -12,15 +13,12 @@ const statePath = (root: string): string => {
 const git = async (root: string, args: string[]): Promise<string> => {
   const command = new Deno.Command('git', { args, cwd: root, stdout: 'piped', stderr: 'null' })
 
-  try {
-    const { code, stdout } = await command.output()
+  const { data, error } = await safeAsync(() => command.output())
 
-    if (code !== 0) return ''
+  if (error) return ''
+  if (data.code !== 0) return ''
 
-    return new TextDecoder().decode(stdout)
-  } catch {
-    return ''
-  }
+  return new TextDecoder().decode(data.stdout)
 }
 
 // A shortstat line names only its nonzero parts, as in "3 files changed, 12 insertions(+)".
@@ -37,20 +35,19 @@ const countIn = (shortstat: string, noun: string): number => {
 }
 
 const readState = async (path: string, sessionId: string): Promise<State> => {
-  try {
-    return parse(await Deno.readTextFile(path), sessionId)
-  } catch {
-    return empty
-  }
+  const { data, error } = await safeAsync(() => Deno.readTextFile(path))
+
+  if (error) return empty
+
+  return parse(data, sessionId)
 }
 
 const writeState = async (path: string, state: State): Promise<void> => {
-  try {
+  // A state file this hook cannot write only costs the next run its memory of the last tier.
+  await safeAsync(async () => {
     await Deno.mkdir(dirname(path), { recursive: true })
     await Deno.writeTextFile(path, serialize(state))
-  } catch {
-    return
-  }
+  })
 }
 
 type Payload = {
@@ -72,19 +69,17 @@ const stringAt = (source: object, key: string): string => {
 const readPayload = async (): Promise<Payload> => {
   const blank = { toolName: '', sessionId: '', cwd: '' }
 
-  try {
-    const raw = await new Response(Deno.stdin.readable).text()
-    const parsed: unknown = JSON.parse(raw)
+  const { data: parsed, error } = await safeAsync(async (): Promise<unknown> => {
+    return JSON.parse(await new Response(Deno.stdin.readable).text())
+  })
 
-    if (!parsed || typeof parsed !== 'object') return blank
+  if (error) return blank
+  if (!parsed || typeof parsed !== 'object') return blank
 
-    return {
-      toolName: stringAt(parsed, 'tool_name'),
-      sessionId: stringAt(parsed, 'session_id'),
-      cwd: stringAt(parsed, 'cwd'),
-    }
-  } catch {
-    return blank
+  return {
+    toolName: stringAt(parsed, 'tool_name'),
+    sessionId: stringAt(parsed, 'session_id'),
+    cwd: stringAt(parsed, 'cwd'),
   }
 }
 
@@ -130,10 +125,7 @@ const main = async (): Promise<void> => {
   console.error(message)
 }
 
-try {
-  await main()
-} catch {
-  // An unexpected failure is still not worth interrupting an edit over.
-}
+// An unexpected failure is still not worth interrupting an edit over.
+await safeAsync(main)
 
 Deno.exit(0)
