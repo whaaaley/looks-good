@@ -2,6 +2,13 @@
 
 ESLint rules for conventions nothing else enforces.
 
+## Docs
+
+- [Rules](https://github.com/whaaaley/looks-good/blob/main/docs/rules.md) - every rule, its options, and examples of what it reports
+- [Configs](https://github.com/whaaaley/looks-good/blob/main/docs/configs.md) - what each of the three configs enables, what it costs to install, and the two rules none of them turn on
+- [Result Helper](https://github.com/whaaaley/looks-good/blob/main/docs/result-helper.md) - the `safe` and `safeAsync` source, and enabling `no-try-catch-handler` against it
+- [ESLint Rule Set](https://github.com/whaaaley/looks-good/blob/main/docs/eslint-rules.md) - the curated eslint, import, and typescript-eslint rules shipped as `./eslint-rules`
+
 The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
 
 | Rule | Description | Config | Fixable |
@@ -66,13 +73,6 @@ The plugin also ships three configs, `recommended`, `parsing`, and `typescript`.
 looksGood.configs.recommended,
 looksGood.configs.parsing,
 ```
-
-## Docs
-
-- [Rules](docs/rules.md) -- every rule, its options, and examples of what it reports
-- [Configs](docs/configs.md) -- what each of the three configs enables, what it costs to install, and the two rules none of them turn on
-- [Result Helper](docs/result-helper.md) -- the `safe` and `safeAsync` source, and enabling `no-try-catch-handler` against it
-- [ESLint Rule Set](docs/eslint-rules.md) -- the curated eslint, import, and typescript-eslint rules shipped as `./eslint-rules`
 
 ## Tools
 

@@ -742,5 +742,5 @@ Keep every selector a project needs in one place.
 
 ## Related Docs
 
-- [Configs](configs.md) -- which config enables each rule and what it costs to install
-- [Result Helper](result-helper.md) -- the `safe` and `safeAsync` source `no-try-catch-handler` points at
+- [Configs](configs.md) - which config enables each rule and what it costs to install
+- [Result Helper](result-helper.md) - the `safe` and `safeAsync` source `no-try-catch-handler` points at

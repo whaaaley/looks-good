@@ -125,6 +125,6 @@ export default defineConfig([
 
 ## Related Docs
 
-- [Rules](rules.md) -- what each rule reports and the options it takes
-- [Result Helper](result-helper.md) -- enabling `no-try-catch-handler`
-- [ESLint Rule Set](eslint-rules.md) -- the third-party rules shipped alongside the plugin
+- [Rules](rules.md) - what each rule reports and the options it takes
+- [Result Helper](result-helper.md) - enabling `no-try-catch-handler`
+- [ESLint Rule Set](eslint-rules.md) - the third-party rules shipped alongside the plugin

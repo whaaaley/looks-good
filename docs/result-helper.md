@@ -72,5 +72,5 @@ Exempt the file that defines it.
 
 ## Related Docs
 
-- [Rules](rules.md#no-try-catch-handler) -- what the rule reports and the options it takes
-- [Configs](configs.md) -- the shipped configs, none of which enable this rule
+- [Rules](rules.md#no-try-catch-handler) - what the rule reports and the options it takes
+- [Configs](configs.md) - the shipped configs, none of which enable this rule

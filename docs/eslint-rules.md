@@ -21,4 +21,4 @@ It is independent of the plugin, so a consumer can take either one alone.
 
 ## Related Docs
 
-- [Configs](configs.md) -- the plugin's own configs, which this set sits alongside
+- [Configs](configs.md) - the plugin's own configs, which this set sits alongside
