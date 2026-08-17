@@ -3,7 +3,7 @@ import importPlugin from 'eslint-plugin-import-x'
 import tseslint from 'typescript-eslint'
 import type { Linter } from 'eslint'
 
-// Rules from other people's plugins, configured the way this project wants them.
+// The eslint rules this project considers correct, drawn from eslint and its plugins.
 // The rules written here live in the plugin, which a consumer imports separately.
 
 const base: Linter.Config[] = [

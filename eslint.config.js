@@ -1,8 +1,8 @@
-import externalRules from './src/external-rules.ts'
+import eslintRules from './src/eslint-rules.ts'
 import { plugin } from './src/index.ts'
 
 // This repository lints itself with the two configs it ships.
-// externalRules holds rules from other plugins, and looksGoodRules holds the rules written here.
+// eslintRules holds the eslint recommended set, and looksGoodRules holds the rules written here.
 
 const looksGoodRules = [
   {
@@ -62,7 +62,7 @@ const tests = [
 ]
 
 export default [
-  ...externalRules.recommended,
+  ...eslintRules.recommended,
   ...looksGoodRules,
   ...self,
   ...tests,
