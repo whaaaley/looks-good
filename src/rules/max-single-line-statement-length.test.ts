@@ -50,6 +50,24 @@ tester.run('max-single-line-statement-length', rule, {
       errors: [{ messageId: 'tooLong' }],
       output: inLoop(`if (${wide}) {\n    continue\n  }`),
     },
+    // A trailing line comment annotated the body, so it moves inside the braces with it.
+    {
+      code: inFunction(`if (${wide}) return {} // explains the branch`),
+      errors: [{ messageId: 'tooLong' }],
+      output: inFunction(`if (${wide}) {\n    return {} // explains the branch\n  }`),
+    },
+    // A block comment on the same line moves the same way.
+    {
+      code: inFunction(`if (${wide}) return {} /* explains */`),
+      errors: [{ messageId: 'tooLong' }],
+      output: inFunction(`if (${wide}) {\n    return {} /* explains */\n  }`),
+    },
+    // A comment on the next line annotates that line, so the fix leaves it alone.
+    {
+      code: inFunction(`if (${wide}) return {}\n  // annotates the close`),
+      errors: [{ messageId: 'tooLong' }],
+      output: inFunction(`if (${wide}) {\n    return {}\n  }\n  // annotates the close`),
+    },
     // A narrower limit reports a line the default would accept.
     {
       code: inFunction("if (!first) return ''"),

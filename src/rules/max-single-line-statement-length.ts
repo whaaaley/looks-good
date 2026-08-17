@@ -1,6 +1,6 @@
 import { docUrl } from '../utils/docs.utils.ts'
-import type { Rule } from 'eslint'
-import type { IfStatement } from 'estree'
+import type { Rule, SourceCode } from 'eslint'
+import type { IfStatement, Statement } from 'estree'
 
 type Options = {
   maxLength: number
@@ -8,6 +8,24 @@ type Options = {
 
 const defaults: Options = {
   maxLength: 80,
+}
+
+type Trailing = {
+  text: string
+  end: number
+}
+
+// A comment left outside the replaced range survives after the closing brace, where it reads as a header for the next statement.
+const trailingComment = (sourceCode: SourceCode, consequent: Statement): Trailing | undefined => {
+  const after = sourceCode.getTokenAfter(consequent, { includeComments: true })
+  if (!after) return undefined
+  if (after.type !== 'Line' && after.type !== 'Block') return undefined
+  if (after.loc?.start.line !== consequent.loc?.start.line) return undefined
+  if (!after.range) return undefined
+
+  const [start, end] = after.range
+
+  return { text: sourceCode.getText().slice(start, end), end }
 }
 
 const rule: Rule.RuleModule = {
@@ -61,8 +79,15 @@ const rule: Rule.RuleModule = {
             // The body indents one step past the if, and the closing brace lines up with it.
             const [indent = ''] = line.match(/^\s*/) ?? []
             const body = sourceCode.getText(consequent)
+            const trailing = trailingComment(sourceCode, consequent)
 
-            return fixer.replaceText(consequent, `{\n${indent}  ${body}\n${indent}}`)
+            if (!trailing) {
+              return fixer.replaceText(consequent, `{\n${indent}  ${body}\n${indent}}`)
+            }
+
+            const [start = 0] = consequent.range ?? []
+
+            return fixer.replaceTextRange([start, trailing.end], `{\n${indent}  ${body} ${trailing.text}\n${indent}}`)
           },
         })
       },
