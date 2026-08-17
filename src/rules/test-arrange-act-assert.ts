@@ -1,8 +1,9 @@
 import { isLineComment } from '../utils/comment.utils.ts'
 import { docUrl } from '../utils/docs.utils.ts'
 import { compilePattern } from '../utils/regex.utils.ts'
+import { calleeName, readBody, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
-import type { CallExpression, Node, Program } from 'estree'
+import type { CallExpression, Program } from 'estree'
 
 type Options = {
   require: string[]
@@ -25,41 +26,6 @@ type Placed = {
   line: number
 }
 
-// A call written as `it.only` or `test.skip` is still that test function.
-const calleeName = (node: CallExpression): string => {
-  const { callee } = node
-  if (callee.type === 'Identifier') return callee.name
-
-  if (callee.type === 'MemberExpression' && callee.object.type === 'Identifier') {
-    return callee.object.name
-  }
-
-  return ''
-}
-
-const readTitle = (node: CallExpression): string => {
-  const [first] = node.arguments
-  if (!first) return ''
-  if (first.type !== 'Literal') return ''
-  if (typeof first.value !== 'string') return ''
-
-  return first.value
-}
-
-// The body is the block of the last function argument, which is where a test does its work.
-const readBody = (node: CallExpression): Node | null => {
-  for (let index = node.arguments.length - 1; index >= 0; index -= 1) {
-    const argument = node.arguments[index]
-    if (!argument) continue
-    if (argument.type !== 'FunctionExpression' && argument.type !== 'ArrowFunctionExpression') continue
-    if (argument.body.type !== 'BlockStatement') return null
-
-    return argument.body
-  }
-
-  return null
-}
-
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -68,7 +34,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('test-arrange-act-assert'),
     },
     defaultOptions: [defaults],
-    // Where one phase ends and the next begins is a judgement call, so this reports only.
     fixable: undefined,
     schema: [
       {

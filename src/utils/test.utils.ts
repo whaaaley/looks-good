@@ -27,7 +27,10 @@ export const readBody = (node: CallExpression): Node | null => {
   for (let index = node.arguments.length - 1; index >= 0; index -= 1) {
     const argument = node.arguments[index]
     if (!argument) continue
-    if (argument.type !== 'FunctionExpression' && argument.type !== 'ArrowFunctionExpression') continue
+    if (argument.type !== 'FunctionExpression' && argument.type !== 'ArrowFunctionExpression') {
+      continue
+    }
+
     if (argument.body.type !== 'BlockStatement') return null
 
     return argument.body
