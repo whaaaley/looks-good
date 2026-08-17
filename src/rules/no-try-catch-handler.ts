@@ -58,7 +58,6 @@ const rule: Rule.RuleModule = {
       helperFrom: 'Wrap the call in {{helper}} from {{module}} and guard on the returned error. A try with only a finally clause is still allowed.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 

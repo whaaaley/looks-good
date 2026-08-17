@@ -55,7 +55,6 @@ const rule: Rule.RuleModule = {
       invalidPattern: "The allowed title '{{source}}' is not a valid regular expression. Correct it in this rule's configuration.",
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     const exempt: RegExp[] = []
@@ -84,7 +83,6 @@ const rule: Rule.RuleModule = {
           })
         }
       },
-
       CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
         if (!options.testFunctions.includes(calleeName(node))) return
 

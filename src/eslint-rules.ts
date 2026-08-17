@@ -32,7 +32,6 @@ const imports: Linter.Config[] = [
       'import-x/no-named-default': 'error',
       'import-x/no-named-as-default': 'error',
       'import-x/no-named-as-default-member': 'error',
-
       'import-x/order': ['error', {
         'newlines-between': 'never',
         alphabetize: {
@@ -51,7 +50,6 @@ const imports: Linter.Config[] = [
           'type',
         ],
       }],
-
       'sort-imports': ['error', { // Sorts names within a declaration only.
         ignoreDeclarationSort: true,
         allowSeparatedGroups: false,

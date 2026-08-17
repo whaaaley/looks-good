@@ -26,6 +26,7 @@ import describeGroupOrder from './rules/describe-group-order.ts'
 import describeTitlePattern from './rules/describe-title-pattern.ts'
 import maxDestructuredParameters from './rules/max-destructured-parameters.ts'
 import maxSingleLineStatementLength from './rules/max-single-line-statement-length.ts'
+import noBlankLineInObject from './rules/no-blank-line-in-object.ts'
 import noEmoji from './rules/no-emoji.ts'
 import noIgnoredTests from './rules/no-ignored-tests.ts'
 import noRestrictedCharacters from './rules/no-restricted-characters.ts'
@@ -63,6 +64,7 @@ const fixable = {
   'blank-line-after-block': blankLineAfterBlock,
   'comment-reflow': commentReflow,
   'max-single-line-statement-length': maxSingleLineStatementLength,
+  'no-blank-line-in-object': noBlankLineInObject,
   'no-restricted-characters': noRestrictedCharacters,
 }
 
@@ -109,6 +111,7 @@ const errors = {
   'looks-good/describe-group-order': 'error',
   'looks-good/max-destructured-parameters': 'error',
   'looks-good/max-single-line-statement-length': 'error',
+  'looks-good/no-blank-line-in-object': 'error',
   'looks-good/no-single-line-nested-object': 'error',
   'looks-good/no-test-before-group': 'error',
   'looks-good/object-comments-trailing': 'error',

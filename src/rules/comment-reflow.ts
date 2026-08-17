@@ -42,7 +42,6 @@ const rule: Rule.RuleModule = {
       tooLongToJoin: 'This sentence continues on the next line, but joining them would run past {{maxLength}} characters',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 

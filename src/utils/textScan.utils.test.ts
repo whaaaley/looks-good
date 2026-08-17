@@ -48,7 +48,6 @@ const rule: Rule.RuleModule = {
       found: "Found '{{found}}'",
     },
   },
-
   create(context): Rule.RuleListener {
     const positions: TextPositions = { ...defaults, ...context.options[0] }
 
@@ -122,7 +121,6 @@ const fixingRule: Rule.RuleModule = {
       found: "Found '{{found}}'",
     },
   },
-
   create(context): Rule.RuleListener {
     const fixComment = (range: [number, number]): Rule.Fix => ({ range, text: 'y' })
 

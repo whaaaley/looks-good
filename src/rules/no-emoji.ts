@@ -62,7 +62,6 @@ const rule: Rule.RuleModule = {
       emoji: "Emoji '{{emoji}}' is not allowed here",
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     const allow = new Set(options.allow)

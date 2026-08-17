@@ -67,7 +67,6 @@ const rule: Rule.RuleModule = {
       ignored: "This test is marked '{{modifier}}', so it proves nothing while it sits here. Land the work it covers and un-skip it, rather than leaving it skipped.",
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 

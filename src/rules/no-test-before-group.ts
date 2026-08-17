@@ -45,7 +45,6 @@ const rule: Rule.RuleModule = {
       beforeUntitled: 'This test sits above the first group below it. Move it inside the group it belongs to, so it does not read as the primary behaviour here.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
@@ -81,7 +80,6 @@ const rule: Rule.RuleModule = {
       Program: (): void => {
         checkBody(context.sourceCode.ast.body)
       },
-
       CallExpression: (node: CallExpression): void => {
         if (!options.groupFunctions.includes(calleeName(node))) return
 

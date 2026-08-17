@@ -82,7 +82,6 @@ const rule: Rule.RuleModule = {
       missing: "No group here covers '{{name}}'. Add a '{{name}}' group so this file reads {{expected}}.",
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     if (options.sequence.length === 0) return {}
@@ -201,7 +200,6 @@ const rule: Rule.RuleModule = {
 
         checkSiblings(groups, node)
       },
-
       CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
         if (!options.testFunctions.includes(calleeName(node))) return
         if (options.depth === 'top' && isNested(node)) return

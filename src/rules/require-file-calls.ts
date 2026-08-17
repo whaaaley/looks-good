@@ -132,7 +132,6 @@ const rule: Rule.RuleModule = {
       unknownFound: "The entry '{{id}}' waits on '{{found}}', which no entry defines. Name an entry that exists.",
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     const known = new Set(options.patterns.map((entry) => entry.id))
@@ -172,23 +171,19 @@ const rule: Rule.RuleModule = {
           contents.methods.add(callee.property.name)
         }
       },
-
       MemberExpression: (node: MemberExpression): void => {
         if (node.object.type !== 'Identifier') return
 
         contents.members.add(node.object.name)
       },
-
       Identifier: (node: Identifier): void => {
         contents.identifiers.add(node.name)
       },
-
       Literal: (node: Literal): void => {
         if (typeof node.value !== 'string') return
 
         contents.literals.add(node.value)
       },
-
       'Program:exit': (program: Program): void => {
         for (const entry of dangling) {
           context.report({

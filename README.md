@@ -23,6 +23,7 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
 | [max-destructured-parameters](docs/rules.md#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
 | [max-single-line-statement-length](docs/rules.md#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
+| [no-blank-line-in-object](docs/rules.md#no-blank-line-in-object) | Keeps a blank line out from between the properties of an object literal | recommended | yes |
 | [no-emoji](docs/rules.md#no-emoji) | Reports emoji in code, comments, and identifiers | parsing | |
 | [no-ignored-tests](docs/rules.md#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
 | [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source | parsing | |

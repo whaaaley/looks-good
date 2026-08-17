@@ -289,6 +289,44 @@ if (!parsed) {
 A body already written in braces is left alone whatever its width, and a body already on its own line is not the form this rule governs.
 The fix wraps the body in braces on its own line, indented one step past the `if`.
 
+### no-blank-line-in-object
+
+Reports a blank line written between the properties of an object literal.
+An object literal is one paragraph, so a gap inside it splits a single declaration into what reads as two, and the reader looks for a boundary that the braces already drew.
+Closing the gap leaves the object as one unit.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const listeners = {
+  Program: () => {
+    check()
+  },
+
+  CallExpression: () => {
+    check()
+  },
+}
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const listeners = {
+  Program: () => {
+    check()
+  },
+  CallExpression: () => {
+    check()
+  },
+}
+```
+
+Only the gap between one member and the next is reported, so padding after the opening brace or before the closing brace is left alone.
+A blank line inside a property's value belongs to whatever is written there, so a function body assigned to a property keeps its own spacing.
+This leaves the rule and `blank-line-after-block` on separate ground, and a blank line that rule requires after a nested closing brace is never reported here.
+The fix deletes the blank lines between the two members.
+
 ### no-emoji
 
 Reports emoji in code, comments, and identifiers.

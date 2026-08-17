@@ -42,7 +42,6 @@ const rule: Rule.RuleModule = {
       tooLong: 'This comment runs to {{length}} characters, past the {{maxLength}} configured. Shorten the sentence rather than wrapping it.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 

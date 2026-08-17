@@ -76,7 +76,6 @@ const rule: Rule.RuleModule = {
       above: 'This parameter destructures {{count}} bindings, which is above the {{max}} allowed. Name the parameter and destructure it in the body instead.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
