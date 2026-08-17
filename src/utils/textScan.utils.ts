@@ -18,7 +18,9 @@ export type TextListenerOptions = {
 }
 
 // Builds the listener that visits every text position a rule cares about.
-export const buildTextListener = ({ context, positions, scan, messageId }: TextListenerOptions): Rule.RuleListener => {
+export const buildTextListener = (options: TextListenerOptions): Rule.RuleListener => {
+  const { context, positions, scan, messageId } = options
+
   const report = (node: Rule.Node, text: string): void => {
     for (const data of scan(text)) {
       context.report({ node, messageId, data })
