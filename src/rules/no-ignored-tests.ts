@@ -76,7 +76,11 @@ const rule: Rule.RuleModule = {
         const found = readModifier(node, options)
         if (!found) return
 
-        context.report({ node, messageId: 'ignored', data: { modifier: found.modifier } })
+        context.report({
+          node,
+          messageId: 'ignored',
+          data: { modifier: found.modifier },
+        })
       },
     }
   },

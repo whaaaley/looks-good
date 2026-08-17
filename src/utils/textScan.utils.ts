@@ -52,7 +52,11 @@ export const buildTextListener = (options: TextListenerOptions): Rule.RuleListen
       for (const comment of readComments(context)) {
         for (const data of scan(comment.text)) {
           // A comment has no node to attach to, so the report lands on its own line.
-          context.report({ loc: { line: comment.line, column: 0 }, messageId, data })
+          context.report({
+            loc: { line: comment.line, column: 0 },
+            messageId,
+            data,
+          })
         }
       }
     }
