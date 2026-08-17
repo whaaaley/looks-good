@@ -1,39 +1,32 @@
 import eslintRules from './src/eslint-rules.ts'
-import { plugin } from './src/index.ts'
+import { fixing } from './src/index.ts'
 
 // This repository lints itself with the two configs it ships.
-// eslintRules holds the eslint recommended set, and looksGoodRules holds the rules written here.
+// eslintRules holds the eslint recommended set, and fixing holds every rule written here.
 
+// The rules that take patterns report nothing until this project supplies its own.
 const looksGoodRules = [
+  fixing,
   {
-    plugins: {
-      'looks-good': plugin,
-    },
     rules: {
-      // Reporting rules, which never rewrite.
       'looks-good/comment-content': ['error', {
         forbid: [
-          { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks' },
+          { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },
         ],
         forbidBlockComments: true,
       }],
       'looks-good/describe-title-pattern': ['error', {
         patterns: [
-          { files: 'src/**/*.test.ts', title: 'All * Tests' },
+          { files: 'src/utils/*.test.ts', title: 'All * Tests' },
+          { files: 'tools/**/*.test.ts', title: 'All * Tests' },
         ],
       }],
-      'looks-good/no-emoji': 'error',
-      'looks-good/no-optional-chain-on-index': 'error',
       'looks-good/no-restricted-characters': ['error', {
         restrict: [
           { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.' },
           { chars: '…', message: 'Write three dots instead.' },
         ],
       }],
-      'looks-good/test-arrange-act-assert': 'error',
-
-      // Fixing. This stands in for comment-one-sentence-per-line, which reports the same wrap.
-      'looks-good/comment-reflow': 'error',
     },
   },
 ]
@@ -57,6 +50,13 @@ const tests = [
       '@typescript-eslint/consistent-type-assertions': 0,
       'looks-good/no-emoji': 0,
       'looks-good/no-restricted-characters': 0,
+    },
+  },
+  // RuleTester names the suite it drives, so the file declares no describe of its own.
+  {
+    files: ['src/utils/textScan.utils.test.ts'],
+    rules: {
+      'looks-good/describe-title-pattern': 0,
     },
   },
 ]
