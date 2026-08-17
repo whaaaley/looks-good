@@ -47,15 +47,6 @@ The plugin is consumed through a flat config.
 It is developed and tested against ESLint 10.8.1, and no earlier version has been tested.
 Legacy `.eslintrc` is not supported.
 
-## Runtimes
-
-Verified on Node 24.19.0, Node 26.7.0, and Bun 1.3.14, with all 431 tests passing under each.
-
-Run `deno task runtimes` to reproduce it.
-
-The count covers `src/utils/` and `src/rules/`, which is every rule and every helper.
-It leaves out `src/index.test.ts`, which walks the docs with `Deno.readDir` to check each rule is documented and is a repository check rather than a test of the plugin.
-
 ## Usage
 
 List the rules you want and set the options that suit your project.
