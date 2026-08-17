@@ -8,34 +8,7 @@ ESLint rules for conventions nothing else enforces.
 - [Configs](https://github.com/whaaaley/looks-good/blob/main/docs/configs.md) - what each of the three configs enables, what it costs to install, and the two rules none of them turn on
 - [Result Helper](https://github.com/whaaaley/looks-good/blob/main/docs/result-helper.md) - the `safe` and `safeAsync` source, and enabling `no-try-catch-handler` against it
 - [ESLint Rule Set](https://github.com/whaaaley/looks-good/blob/main/docs/eslint-rules.md) - the curated eslint, import, and typescript-eslint rules shipped as `./eslint-rules`
-
-## Rules
-
-The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
-
-| Rule | Description | Config | Fixable |
-| --- | --- | --- | --- |
-| [blank-line-after-block](docs/rules.md#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
-| [comment-content](docs/rules.md#comment-content) | Forbids comment text a project does not want left in source | parsing | |
-| [comment-one-sentence-per-line](docs/rules.md#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | parsing | |
-| [comment-reflow](docs/rules.md#comment-reflow) | Joins a comment sentence that wraps onto the next line | opt in | yes |
-| [describe-group-order](docs/rules.md#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
-| [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
-| [max-destructured-parameters](docs/rules.md#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
-| [max-single-line-statement-length](docs/rules.md#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
-| [no-blank-line-in-object](docs/rules.md#no-blank-line-in-object) | Keeps a blank line out from between the properties of an object literal | recommended | yes |
-| [no-emoji](docs/rules.md#no-emoji) | Reports emoji in code, comments, and identifiers | parsing | |
-| [no-ignored-tests](docs/rules.md#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
-| [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source | parsing | |
-| [no-single-line-nested-object](docs/rules.md#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
-| [no-test-before-group](docs/rules.md#no-test-before-group) | Reports a test written above the first group in the same body | recommended | |
-| [no-try-catch-handler](docs/rules.md#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |
-| [no-union-in-parameter-type](docs/rules.md#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
-| [object-comments-trailing](docs/rules.md#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
-| [require-file-calls](docs/rules.md#require-file-calls) | Requires a file to contain the calls its path or contents call for | parsing | |
-| [test-arrange-act-assert](docs/rules.md#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | parsing | |
-
-The Config column says which config enables each rule, and `opt in` means none of them does.
+- [Tools](https://github.com/whaaaley/looks-good/blob/main/docs/tools.md) - the git hooks and the repo-local tooling this repository is developed with, which the published plugin does not include
 
 ## Install
 
@@ -78,17 +51,30 @@ looksGood.configs.recommended,
 looksGood.configs.parsing,
 ```
 
-## Tools
+## Rules
 
-These are for developing this repository, and are not part of the published plugin.
+The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
 
-`tools/hooks/` holds the git hooks, and `deno task install-hooks` points `core.hooksPath` at it.
-The `commit-msg` hook runs the commit message validator in `tools/commit/`, which checks the subject line against the types and scopes that file configures.
-The `pre-commit` hook runs `deno task lint` and `deno task test` from the repository root.
+| Rule | Description | Config | Fixable |
+| --- | --- | --- | --- |
+| [blank-line-after-block](docs/rules.md#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
+| [comment-content](docs/rules.md#comment-content) | Forbids comment text a project does not want left in source | parsing | |
+| [comment-one-sentence-per-line](docs/rules.md#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | parsing | |
+| [comment-reflow](docs/rules.md#comment-reflow) | Joins a comment sentence that wraps onto the next line | opt in | yes |
+| [describe-group-order](docs/rules.md#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
+| [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
+| [max-destructured-parameters](docs/rules.md#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
+| [max-single-line-statement-length](docs/rules.md#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
+| [no-blank-line-in-object](docs/rules.md#no-blank-line-in-object) | Keeps a blank line out from between the properties of an object literal | recommended | yes |
+| [no-emoji](docs/rules.md#no-emoji) | Reports emoji in code, comments, and identifiers | parsing | |
+| [no-ignored-tests](docs/rules.md#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
+| [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source | parsing | |
+| [no-single-line-nested-object](docs/rules.md#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
+| [no-test-before-group](docs/rules.md#no-test-before-group) | Reports a test written above the first group in the same body | recommended | |
+| [no-try-catch-handler](docs/rules.md#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |
+| [no-union-in-parameter-type](docs/rules.md#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
+| [object-comments-trailing](docs/rules.md#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
+| [require-file-calls](docs/rules.md#require-file-calls) | Requires a file to contain the calls its path or contents call for | parsing | |
+| [test-arrange-act-assert](docs/rules.md#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | parsing | |
 
-The `post-commit` and `post-rewrite` hooks both run `deno task uncommitted`.
-
-`tools/uncommitted/` warns when too much work is sitting uncommitted.
-It reports when the working tree holds 12 or more changed files, or 400 or more changed lines counting insertions and deletions together.
-Either threshold alone trips the warning, and reaching both names them together.
-The warning names what is uncommitted and says to split the remaining work into focused commits before starting anything new.
+The Config column says which config enables each rule, and `opt in` means none of them does.
