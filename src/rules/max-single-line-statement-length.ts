@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { locationOf } from '../utils/location.utils.ts'
 import type { Rule, SourceCode } from 'eslint'
 import type { IfStatement, Statement } from 'estree'
 
@@ -20,7 +21,11 @@ const trailingComment = (sourceCode: SourceCode, consequent: Statement): Trailin
   const after = sourceCode.getTokenAfter(consequent, { includeComments: true })
   if (!after) return undefined
   if (after.type !== 'Line' && after.type !== 'Block') return undefined
-  if (after.loc?.start.line !== consequent.loc?.start.line) return undefined
+
+  const comment = locationOf(after)
+  const body = locationOf(consequent)
+  if (!comment || !body) return undefined
+  if (comment.start.line !== body.start.line) return undefined
   if (!after.range) return undefined
 
   const [start, end] = after.range
@@ -50,7 +55,6 @@ const rule: Rule.RuleModule = {
       tooLong: 'This runs to {{length}} characters, past the {{maxLength}} configured. Put the body on its own line in braces.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     const { sourceCode } = context
@@ -61,13 +65,15 @@ const rule: Rule.RuleModule = {
 
         // A braced body already reads as its own paragraph, whatever its width.
         if (consequent.type === 'BlockStatement') return
-        if (!consequent.loc) return
-        if (!node.loc) return
+
+        const bodyLocation = locationOf(consequent)
+        const statementLocation = locationOf(node)
+        if (!bodyLocation || !statementLocation) return
 
         // A body already on its own line is not the single line form this rule governs.
-        if (consequent.loc.start.line !== node.loc.start.line) return
+        if (bodyLocation.start.line !== statementLocation.start.line) return
 
-        const line = sourceCode.lines[node.loc.start.line - 1]
+        const line = sourceCode.lines[statementLocation.start.line - 1]
         if (line === undefined) return
         if (line.length <= options.maxLength) return
 

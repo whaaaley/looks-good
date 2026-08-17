@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { locationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { ObjectExpression, Property, SpreadElement } from 'estree'
 
@@ -23,7 +24,6 @@ const rule: Rule.RuleModule = {
       ownLine: 'This comment sits on its own line inside an object literal. Put it after the property it describes, or cut it.',
     },
   },
-
   create(context): Rule.RuleListener {
     const { sourceCode } = context
 
@@ -31,28 +31,32 @@ const rule: Rule.RuleModule = {
       ObjectExpression: (node: ObjectExpression): void => {
         const comments = sourceCode.getCommentsInside(node)
         if (comments.length === 0) return
-        if (!node.loc) return
+
+        const opening = locationOf(node)
+        if (!opening) return
 
         // A property line holds the code a trailing comment would describe.
-        const occupied = new Set<number>([node.loc.start.line])
+        const occupied = new Set<number>([opening.start.line])
 
         for (const property of node.properties) {
-          if (property.loc) occupied.add(property.loc.start.line)
+          const location = locationOf(property)
+          if (location) occupied.add(location.start.line)
         }
 
         for (const comment of comments) {
           const range = comment.range
-          if (!comment.loc || !range) continue
+          const location = locationOf(comment)
+          if (!location || !range) continue
 
           // A comment sharing a line with a property trails it, which is the form this rule wants.
-          if (occupied.has(comment.loc.start.line)) continue
+          if (occupied.has(location.start.line)) continue
 
           // A comment inside a property belongs to whatever nests there, not to this object.
           if (node.properties.some((property) => encloses(property, range))) {
             continue
           }
 
-          context.report({ loc: comment.loc, messageId: 'ownLine' })
+          context.report({ loc: location, messageId: 'ownLine' })
         }
       },
     }

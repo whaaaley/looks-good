@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { locationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { SourceLocation } from 'estree'
 
@@ -104,7 +105,6 @@ const rule: Rule.RuleModule = {
       inline: 'This parameter spells its union inline. Extract it to a named type alias and annotate the parameter with that name.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
@@ -120,14 +120,16 @@ const rule: Rule.RuleModule = {
     return {
       TSUnionType: (node: Rule.Node): void => {
         if (!isTypeNode(node)) return
-        if (!node.loc) return
+
+        const location = locationOf(node)
+        if (!location) return
         if (isExemptNullable(node)) return
 
         const annotation = annotationOf(node)
         if (!annotation) return
         if (!isParameterAnnotation(annotation)) return
 
-        context.report({ loc: node.loc, messageId: 'inline' })
+        context.report({ loc: location, messageId: 'inline' })
       },
     }
   },

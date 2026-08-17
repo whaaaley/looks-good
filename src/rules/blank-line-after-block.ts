@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { locationOf, readerLocationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { BlockStatement, Node, Statement } from 'estree'
 
@@ -27,7 +28,6 @@ const rule: Rule.RuleModule = {
       touching: 'This statement sits against the brace above it. Put a blank line between them.',
     },
   },
-
   create(context): Rule.RuleListener {
     const { sourceCode } = context
 
@@ -44,14 +44,14 @@ const rule: Rule.RuleModule = {
 
         const next = body[index + 1]
         if (!next) return
-        if (!statement.loc) return
-        if (!next.loc) return
 
-        // A comment between the two is what the reader sees, so it is what must be separated.
-        const [between] = sourceCode.getCommentsBefore(next)
-        const following = between?.loc ?? next.loc
+        const preceding = locationOf(statement)
+        if (!preceding) return
 
-        if (following.start.line > statement.loc.end.line + 1) return
+        const following = readerLocationOf(sourceCode, next)
+        if (!following) return
+
+        if (following.start.line > preceding.end.line + 1) return
 
         context.report({
           node: next,
@@ -67,7 +67,6 @@ const rule: Rule.RuleModule = {
       Program: (node): void => {
         check(node.body.filter((entry): entry is Statement => entry.type !== 'ImportDeclaration'))
       },
-
       BlockStatement: (node: BlockStatement): void => {
         check(node.body)
       },

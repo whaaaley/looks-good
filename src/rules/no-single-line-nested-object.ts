@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { isSingleLine } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { ObjectExpression } from 'estree'
 
@@ -8,12 +9,6 @@ type Options = {
 
 const defaults: Options = {
   minNestedProperties: 1,
-}
-
-const isSingleLine = (node: ObjectExpression): boolean => {
-  if (!node.loc) return false
-
-  return node.loc.start.line === node.loc.end.line
 }
 
 const rule: Rule.RuleModule = {
@@ -38,7 +33,6 @@ const rule: Rule.RuleModule = {
       nested: 'This argument nests an object inside an object written on one line. Put the outer object properties on their own lines.',
     },
   },
-
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
