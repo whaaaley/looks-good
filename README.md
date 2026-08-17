@@ -44,12 +44,21 @@ export default defineConfig([
 ])
 ```
 
-The plugin also ships three configs, `recommended`, `parsing`, and `typescript`.
+The plugin also ships three configs.
+
+| Config | What it enables | What it costs |
+| --- | --- | --- |
+| `recommended` | the rules that need nothing beyond eslint | nothing |
+| `parsing` | the rules that read the text inside a file | parse-english, nlcst-to-string, mdast-util-from-markdown, and minimatch |
+| `typescript` | the rules that read TypeScript syntax nodes | a TypeScript parser you set yourself |
 
 ```js
 looksGood.configs.recommended,
 looksGood.configs.parsing,
+looksGood.configs.typescript,
 ```
+
+Two rules are in no config. `comment-reflow` reports the same wrap as `comment-one-sentence-per-line`, so a project turns one off to use the other. `no-try-catch-handler` names a result helper you write first.
 
 ## Rules
 
