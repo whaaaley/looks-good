@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -e
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec deno run --allow-read "$HOOK_DIR/../commit.ts" "$1"
+exec deno run --allow-read "$HOOK_DIR/../commit/commit.ts" "$1"

@@ -28,7 +28,8 @@
     "test": "deno test -A",
     "test:coverage": "deno test -A --coverage=coverage",
     "coverage": "deno coverage coverage",
-    "install-hooks": "git config core.hooksPath tools/commit/hooks"
+    "uncommitted": "deno run --allow-run=git tools/uncommitted/uncommitted.ts",
+    "install-hooks": "git config core.hooksPath tools/hooks"
   },
   "lint": {
     "rules": {
@@ -52,6 +53,7 @@
   "imports": {
     "@eslint/js": "npm:@eslint/js@^10.0.1",
     "@std/assert": "jsr:@std/assert@^1.0.19",
+    "@std/cli": "jsr:@std/cli@^1.0.32",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@types/eslint": "npm:@types/eslint@^9.6.1",
     "@typescript-eslint/parser": "npm:@typescript-eslint/parser@^8.67.0",
