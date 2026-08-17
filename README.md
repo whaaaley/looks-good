@@ -5,7 +5,7 @@ ESLint rules for conventions nothing else enforces.
 ## Install
 
 ```sh
-deno add npm:eslint jsr:@whaaaley/looks-good
+deno add jsr:@whaaaley/looks-good npm:eslint
 ```
 
 Requires ESLint 9 or later, and flat config.
@@ -13,15 +13,16 @@ Legacy `.eslintrc` is not supported.
 
 ## Usage
 
-The plugin ships two configs, and they differ only in which comment wrapping rule they enable.
+The plugin ships three configs.
 
-| Config | Comment wrapping rule | Rewrites on `--fix` |
+| Config | What it enables | When to use it |
 | --- | --- | --- |
-| `recommended` | `comment-one-sentence-per-line` | no |
-| `fixing` | `comment-reflow` | yes |
+| `recommended` | every parser independent rule, with `comment-one-sentence-per-line` | the default |
+| `fixing` | the same set, with `comment-reflow` in place of `comment-one-sentence-per-line` | when you want `--fix` to join a wrapped sentence |
+| `typescript` | the rules that read TypeScript syntax | in addition to one of the above, on TypeScript files |
 
-Every other rule is enabled in both.
-Pick `fixing` when you want `--fix` to join a wrapped sentence for you.
+`recommended` and `fixing` differ only in the comment wrapping rule.
+Enable one or the other, never both, since both report the same wrapped sentence.
 
 Most rules are enabled at `error`.
 Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
@@ -36,6 +37,32 @@ export default defineConfig([
   looksGood.configs.recommended,
   {
     files: ['**/*.ts'],
+  },
+])
+```
+
+Swap in `looksGood.configs.fixing` for the fixing variant.
+
+### The typescript config
+
+`no-union-in-parameter-type` reads a node the default `espree` parser never produces, so it cannot fire on plain JavaScript.
+It lives in the `typescript` config rather than in `recommended` and `fixing`, so a JavaScript only project is never handed a rule that silently does nothing.
+
+The config sets no parser of its own, since doing so would override the parser you chose.
+Spread it inside a config block where you have already set `@typescript-eslint/parser`.
+
+```js
+// eslint.config.js
+import { defineConfig } from 'eslint/config'
+import tsParser from '@typescript-eslint/parser'
+import looksGood from '@whaaaley/looks-good'
+
+export default defineConfig([
+  looksGood.configs.recommended,
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: { parser: tsParser },
+    ...looksGood.configs.typescript,
   },
 ])
 ```
