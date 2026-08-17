@@ -24,8 +24,7 @@ const defaults: Options = {
 }
 
 // A restriction lists characters rather than a pattern, so each is matched literally.
-const matches = (text: string, chars: string, allow: Set<string>): string[] => {
-  const restricted = new Set([...chars])
+const matches = (text: string, restricted: Set<string>, allow: Set<string>): string[] => {
   const found: string[] = []
 
   for (const character of text) {
@@ -79,8 +78,14 @@ const rule: Rule.RuleModule = {
     const options: Options = { ...defaults, ...context.options[0] }
     const allow = new Set(options.allow)
 
+    // Compiling once in create keeps a large file from rebuilding these per node.
+    const restrictions = options.restrict.map((restriction) => ({
+      chars: new Set([...restriction.chars]),
+      message: restriction.message,
+    }))
+
     const report = (node: Rule.Node, text: string): void => {
-      for (const restriction of options.restrict) {
+      for (const restriction of restrictions) {
         for (const character of matches(text, restriction.chars, allow)) {
           context.report({
             node,
@@ -114,7 +119,7 @@ const rule: Rule.RuleModule = {
     if (options.comments) {
       listener['Program:exit'] = (): void => {
         for (const comment of readComments(context)) {
-          for (const restriction of options.restrict) {
+          for (const restriction of restrictions) {
             for (const character of matches(comment.text, restriction.chars, allow)) {
               context.report({
                 loc: { line: comment.line, column: 0 },

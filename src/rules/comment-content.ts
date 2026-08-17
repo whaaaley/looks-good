@@ -54,7 +54,7 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     const forbidden = options.forbid.map((entry) => ({
-      expression: new RegExp(entry.pattern),
+      expression: new RegExp(entry.pattern, 'u'),
       message: entry.message,
     }))
 

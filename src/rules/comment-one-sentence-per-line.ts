@@ -56,8 +56,7 @@ const rule: Rule.RuleModule = {
             return
           }
 
-
-          const [next] = comments.slice(index + 1)
+          const next = comments[index + 1]
           if (!next) return
           if (!isAdjacent(comment, next)) return
 
