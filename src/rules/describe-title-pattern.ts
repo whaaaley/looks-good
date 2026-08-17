@@ -1,5 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
-import { escapeRegExp, globToRegExp } from '../utils/glob.utils.ts'
+import { matchesGlob } from '../utils/glob.utils.ts'
 import { compilePattern } from '../utils/regex.utils.ts'
 import { calleeName, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
@@ -27,7 +27,7 @@ const defaults: Options = {
 const titleToRegExp = (pattern: string): RegExp => {
   const body = pattern
     .split('*')
-    .map((part) => escapeRegExp(part))
+    .map((part) => RegExp.escape(part))
     .join('.*')
 
   return new RegExp(`^${body}$`, 'u')
@@ -56,7 +56,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('describe-title-pattern'),
     },
     defaultOptions: [defaults],
-    // Renaming a suite is a decision, so this reports only.
     fixable: undefined,
     schema: [
       {
@@ -116,7 +115,7 @@ const rule: Rule.RuleModule = {
 
     // The first entry whose glob matches the path wins, so a narrow entry is listed before a broad one.
     const matched = options.patterns.find((entry) => {
-      return globToRegExp(entry.files).test(context.filename)
+      return matchesGlob(entry.files, context.filename, context.cwd)
     })
 
     if (!matched) {

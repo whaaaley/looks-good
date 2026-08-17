@@ -10,6 +10,9 @@ const tester = new RuleTester()
 
 const domain = [{ files: '*.queries.test.ts', title: 'All * Tests' }]
 
+// ESLint relativizes an absolute path against the cwd before matching, so a tree glob is written relative to it.
+const absolute = `${Deno.cwd()}/src/apps/governance/event/event.queries.test.ts`
+
 const layered = [
   { files: '*.security.test.ts', title: '* Security Tests', message: 'A security file names the domain it defends.' },
   { files: '*.test.ts', title: 'All * Tests' },
@@ -116,8 +119,21 @@ tester.run('describe-title-pattern', rule, {
       filename: 'src/apps/governance/event/event.queries.test.ts',
       options: [{ patterns: [{ files: 'src/apps/**/*.test.ts', title: 'All * Tests' }] }],
     },
+    // An absolute path relativized against the cwd still matches a tree glob.
+    {
+      code: "describe('All Event Tests', () => {})",
+      filename: absolute,
+      options: [{ patterns: [{ files: 'src/apps/**/*.test.ts', title: 'All * Tests' }] }],
+    },
   ],
   invalid: [
+    // A bad title under an absolute path proves the tree glob matched rather than silently missing.
+    {
+      code: "describe('Event Tests', () => {})",
+      filename: absolute,
+      options: [{ patterns: [{ files: 'src/apps/**/*.test.ts', title: 'All * Tests' }] }],
+      errors: [{ messageId: 'mismatch' }],
+    },
     // A title missing the required prefix.
     {
       code: "describe('Event Tests', () => {})",

@@ -1,4 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
+import { matchesGlob } from '../utils/glob.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Identifier, Literal, MemberExpression, Program } from 'estree'
 
@@ -35,21 +36,6 @@ type Contents = {
   literals: Set<string>
 }
 
-const escapeRegExp = (source: string): string => {
-  return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-// A glob segment is literal apart from `*`, which stands for any run of characters.
-// `**` and `*` both cross directory separators, since a path glob here is matched against a whole path.
-const globToRegExp = (glob: string): RegExp => {
-  const body = glob
-    .split(/\*+/)
-    .map((part) => escapeRegExp(part))
-    .join('.*')
-
-  return new RegExp(`^${body}$`, 'u')
-}
-
 // A matcher name is literal apart from a trailing `*`, so `caller*` matches `caller` and `callerTwo`.
 const nameMatches = (pattern: string, name: string): boolean => {
   if (!pattern.endsWith('*')) return pattern === name
@@ -75,9 +61,17 @@ const satisfies = (matcher: Matcher, contents: Contents): boolean => {
     return someMatches(matcher.call, contents.calls)
   }
 
-  if (matcher.member !== undefined) return someMatches(matcher.member, contents.members)
-  if (matcher.identifier !== undefined) return someMatches(matcher.identifier, contents.identifiers)
-  if (matcher.literal !== undefined) return contents.literals.has(matcher.literal)
+  if (matcher.member !== undefined) {
+    return someMatches(matcher.member, contents.members)
+  }
+
+  if (matcher.identifier !== undefined) {
+    return someMatches(matcher.identifier, contents.identifiers)
+  }
+
+  if (matcher.literal !== undefined) {
+    return contents.literals.has(matcher.literal)
+  }
 
   return true
 }
@@ -101,7 +95,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('require-file-calls'),
     },
     defaultOptions: [defaults],
-    // Writing the missing call is a decision, so this reports only.
     fixable: undefined,
     schema: [
       {
@@ -163,7 +156,7 @@ const rule: Rule.RuleModule = {
     const applicable = options.patterns.filter((entry) => {
       if (!entry.files) return true
 
-      return globToRegExp(entry.files).test(context.filename)
+      return matchesGlob(entry.files, context.filename, context.cwd)
     })
 
     if (applicable.length === 0 && dangling.length === 0) return {}
@@ -222,7 +215,9 @@ const rule: Rule.RuleModule = {
 
         for (const entry of applicable) {
           const references = entry.when?.references
-          if (references && !someMatches(references, contents.identifiers)) continue
+          if (references && !someMatches(references, contents.identifiers)) {
+            continue
+          }
 
           const found = entry.when?.found
           if (found && !satisfied.has(found)) continue

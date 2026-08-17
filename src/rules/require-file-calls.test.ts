@@ -8,6 +8,16 @@ RuleTester.it = it as never
 
 const tester = new RuleTester()
 
+// ESLint relativizes an absolute path against the cwd before matching, so a tree glob is written relative to it.
+const absolute = `${Deno.cwd()}/src/apps/governance/event/event.router.ts`
+
+const treeEntry = [{
+  id: 'router-registers',
+  files: 'src/apps/**/*.router.ts',
+  require: [{ call: 'router' }],
+  message: 'A router file builds its router with router().',
+}]
+
 const routerEntry = [{
   id: 'router-registers',
   files: '*.router.ts',
@@ -66,6 +76,12 @@ tester.run('require-file-calls', rule, {
       code: 'export const eventRouter = router({})',
       filename: 'event.router.ts',
       options: [{ patterns: routerEntry }],
+    },
+    // An absolute path relativized against the cwd still matches a tree glob.
+    {
+      code: 'export const eventRouter = router({})',
+      filename: absolute,
+      options: [{ patterns: treeEntry }],
     },
     // A method call on any receiver satisfies a `*.` matcher.
     {
@@ -159,6 +175,13 @@ tester.run('require-file-calls', rule, {
     },
   ],
   invalid: [
+    // A missing call under an absolute path proves the tree glob matched rather than silently missing.
+    {
+      code: 'export const eventRouter = {}',
+      filename: absolute,
+      options: [{ patterns: treeEntry }],
+      errors: [{ messageId: 'missing' }],
+    },
     // The required call is missing.
     {
       code: 'export const eventRouter = {}',
