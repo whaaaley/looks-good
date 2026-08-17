@@ -29,6 +29,8 @@
     "test:coverage": "deno test -A --coverage=coverage",
     "coverage": "deno coverage coverage",
     "uncommitted": "deno run --allow-run=git tools/uncommitted/uncommitted.ts",
+    "treesize": "deno run --allow-run=git --allow-read=.claude --allow-write=.claude tools/treesize/treesize.ts",
+    "docdrift": "deno run --allow-read=. --allow-env=__MINIMATCH_TESTING_PLATFORM__ tools/docdrift/docdrift.ts",
     "install-hooks": "git config core.hooksPath tools/hooks"
   },
   "lint": {
