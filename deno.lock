@@ -1121,24 +1121,6 @@
       "npm:nlcst-to-string@4",
       "npm:parse-english@7",
       "npm:typescript-eslint@^8.67.0"
-    ],
-    "packageJson": {
-      "dependencies": [
-        "npm:@eslint/js@^10.0.1",
-        "npm:@jsr/std__assert@^1.0.19",
-        "npm:@jsr/std__cli@^1.0.32",
-        "npm:@jsr/std__path@^1.1.6",
-        "npm:@types/node@^26.2.0",
-        "npm:@typescript-eslint/parser@^8.67.0",
-        "npm:eslint-plugin-import-x@^4.17.1",
-        "npm:eslint@^10.8.1",
-        "npm:globals@^17.11.0",
-        "npm:mdast-util-from-markdown@^2.0.3",
-        "npm:minimatch@^10.2.6",
-        "npm:nlcst-to-string@4",
-        "npm:parse-english@7",
-        "npm:typescript-eslint@^8.67.0"
-      ]
-    }
+    ]
   }
 }

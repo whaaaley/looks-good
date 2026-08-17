@@ -35,8 +35,6 @@
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "test": "deno test -A",
-    "test:node": "node --test 'src/utils/*.test.ts' 'src/rules/*.test.ts'",
-    "test:bun": "bun test src/utils/ src/rules/",
     "test:coverage": "deno test -A --coverage=coverage",
     "coverage": "deno coverage coverage",
     "uncommitted": "deno run --allow-run=git tools/uncommitted/uncommitted.ts",

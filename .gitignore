@@ -2,3 +2,6 @@ coverage/
 node_modules/
 deleted/
 .claude/treesize.state.json
+package.json
+package-lock.json
+.npmrc
