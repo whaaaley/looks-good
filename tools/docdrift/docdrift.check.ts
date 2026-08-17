@@ -46,9 +46,10 @@ export const ruleHeadingsIn = (markdown: string): string[] => {
 }
 
 // The rules table links each row to the section anchor, so the link target names the rule.
+// The table and the sections sit in different files, so a link may carry a path before the anchor.
 export const tableRowsIn = (markdown: string): string[] => {
   const rows: string[] = []
-  const pattern = /^\| \[([a-z-]+)\]\(#([a-z-]+)\)/
+  const pattern = /^\| \[([a-z-]+)\]\([a-z0-9./-]*#([a-z-]+)\)/
 
   for (const line of markdown.split('\n')) {
     const found = pattern.exec(line)

@@ -4,3 +4,4 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 deno task lint
 deno task test
+deno task dashprose || true

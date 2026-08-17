@@ -96,7 +96,8 @@ const rule: Rule.RuleModule = {
         }
 
         for (const comment of readComments(context)) {
-          if (options.forbidBlockComments && comment.block) {
+          // A jsdoc block is read by a documentation tool, so it is not the prose block this option targets.
+          if (options.forbidBlockComments && comment.block && !comment.text.startsWith('*')) {
             context.report({
               loc: { line: comment.line, column: 0 },
               messageId: 'blockComment',

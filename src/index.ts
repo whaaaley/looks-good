@@ -1,3 +1,23 @@
+/**
+ * An eslint plugin of rules for comment text, test structure, and statement shape.
+ *
+ * The plugin object is exported as {@link plugin} and as the default export.
+ * Three flat configs are exported for spreading into a consumer config:
+ * {@link recommended}, {@link parsing}, and {@link typescript}. The same three
+ * are reachable as `plugin.configs`.
+ *
+ * Two registered rules are enabled by no config. `comment-reflow` is off
+ * because it and `comment-one-sentence-per-line` report the same wrap, so a
+ * consumer picks one: turn `comment-one-sentence-per-line` off and
+ * `comment-reflow` on to rewrite a wrapped sentence under `--fix` instead.
+ * `no-try-catch-handler` is off because it names a result helper the consumer
+ * has to have written first, and enabled without one it would tell a project to
+ * call a function that does not exist there. Write the helper, then enable the
+ * rule with the module path it lives at.
+ *
+ * @module
+ */
+
 import blankLineAfterBlock from './rules/blank-line-after-block.ts'
 import commentContent from './rules/comment-content.ts'
 import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
@@ -49,6 +69,25 @@ const rules = {
   ...fixable,
 }
 
+/**
+ * The plugin object, holding every rule the package registers.
+ *
+ * Use this to wire rules by hand instead of spreading one of the configs, which
+ * is what a project wants when it enables a rule no config turns on, such as
+ * `comment-reflow` or `no-try-catch-handler`.
+ *
+ * @example
+ * ```js
+ * import { plugin } from '@whaaaley/looks-good'
+ *
+ * export default [
+ *   {
+ *     plugins: { 'looks-good': plugin },
+ *     rules: { 'looks-good/comment-reflow': ['error', { maxLength: 100 }] },
+ *   },
+ * ]
+ * ```
+ */
 export const plugin: ESLint.Plugin = {
   meta: {
     name: 'looks-good',
@@ -72,9 +111,23 @@ const errors = {
   'looks-good/object-comments-trailing': 'error',
 } as const
 
-// A consumer spreads this into a flat config, and every rule reads as looks-good/<name>.
-// This is a house style rather than a cautious baseline, so turn off what a project disagrees with.
-// It holds the rules that read estree nodes alone, so it pulls in no package beyond eslint itself.
+/**
+ * The house style, spread into a flat config so every rule reads as
+ * `looks-good/<name>`.
+ *
+ * These are one project's choices rather than a cautious baseline, so turn off
+ * what a project disagrees with. It holds the rules that read estree nodes
+ * alone, so it costs no package beyond eslint itself.
+ *
+ * @example
+ * ```js
+ * import { recommended } from '@whaaaley/looks-good'
+ *
+ * export default [
+ *   recommended,
+ * ]
+ * ```
+ */
 export const recommended: Linter.Config = {
   plugins: {
     'looks-good': plugin,
@@ -85,11 +138,25 @@ export const recommended: Linter.Config = {
   },
 }
 
-// Rules that parse the text inside a file rather than reading estree nodes alone.
-// Sentences come from parse-english, code spans from mdast-util-from-markdown, and path patterns from minimatch.
-// Every rule here works the moment it is enabled, so this config is about what the plugin costs rather than what it can do.
-// comment-reflow is left off because it and comment-one-sentence-per-line report the same wrap.
-// Turn this one off and that one on to rewrite a wrapped sentence under --fix instead.
+/**
+ * The rules that parse the text inside a file rather than reading estree nodes
+ * alone.
+ *
+ * This costs four npm packages: sentences come from parse-english and
+ * nlcst-to-string, code spans from mdast-util-from-markdown, and path patterns
+ * from minimatch. Every rule here works the moment it is enabled, so this
+ * config is about what the plugin costs rather than what it can do.
+ *
+ * @example
+ * ```js
+ * import { parsing, recommended } from '@whaaaley/looks-good'
+ *
+ * export default [
+ *   recommended,
+ *   parsing,
+ * ]
+ * ```
+ */
 export const parsing: Linter.Config = {
   plugins: {
     'looks-good': plugin,
@@ -105,13 +172,28 @@ export const parsing: Linter.Config = {
   },
 }
 
-// no-try-catch-handler is in no config, because it points at a result helper the consumer has to have written first.
-// Enabled without one, it would tell a project to call a function that does not exist there.
-// Write the helper, then enable the rule with the module path it lives at.
-
-// Rules that read TypeScript syntax nodes, which the default espree parser never produces.
-// This config sets no parser of its own, so it never overrides the one the consumer chose.
-// Spread it inside a config block that already sets @typescript-eslint/parser.
+/**
+ * The rules that read TypeScript syntax nodes, which the default espree parser
+ * never produces.
+ *
+ * This config sets no parser of its own, so it never overrides the one the
+ * consumer chose. Spread it inside a config block that already sets
+ * `@typescript-eslint/parser`.
+ *
+ * @example
+ * ```js
+ * import { typescript } from '@whaaaley/looks-good'
+ * import tsParser from '@typescript-eslint/parser'
+ *
+ * export default [
+ *   {
+ *     files: ['**\/*.ts'],
+ *     languageOptions: { parser: tsParser },
+ *     ...typescript,
+ *   },
+ * ]
+ * ```
+ */
 export const typescript: Linter.Config = {
   plugins: {
     'looks-good': plugin,

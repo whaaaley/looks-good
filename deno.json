@@ -35,11 +35,14 @@
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "test": "deno test -A",
+    "test:node": "node --test 'src/utils/*.test.ts' 'src/rules/*.test.ts'",
+    "test:bun": "bun test src/utils/ src/rules/",
     "test:coverage": "deno test -A --coverage=coverage",
     "coverage": "deno coverage coverage",
     "uncommitted": "deno run --allow-run=git tools/uncommitted/uncommitted.ts",
     "treesize": "deno run --allow-run=git --allow-read=.claude --allow-write=.claude tools/treesize/treesize.ts",
     "docdrift": "deno run --allow-read=. --allow-env=__MINIMATCH_TESTING_PLATFORM__ tools/docdrift/docdrift.ts",
+    "dashprose": "deno run --allow-read=. tools/dashprose/dashprose.ts",
     "install-hooks": "git config core.hooksPath tools/hooks"
   },
   "lint": {

@@ -193,9 +193,9 @@ describe('All Docdrift Tests', () => {
   })
 
   describe('reading the README', () => {
-    it('reads a rule heading and skips a prose section written at the same depth', () => {
+    it('reads a rule heading and ignores a heading of any other depth', () => {
       // Arrange
-      const markdown = ['### no-emoji', '', '### Rules that were removed', '', '### comment-reflow'].join('\n')
+      const markdown = ['### no-emoji', '', '## Rules That Were Removed', '', '### comment-reflow'].join('\n')
 
       // Act
       const headings = ruleHeadingsIn(markdown)
@@ -207,6 +207,17 @@ describe('All Docdrift Tests', () => {
     it('reads the rule name out of a table row link', () => {
       // Arrange
       const markdown = ['| [no-emoji](#no-emoji) | Reports emoji | recommended | |', '| not a row |'].join('\n')
+
+      // Act
+      const rows = tableRowsIn(markdown)
+
+      // Assert
+      assertEquals(rows, ['no-emoji'])
+    })
+
+    it('reads the rule name out of a table row linking into another page', () => {
+      // Arrange
+      const markdown = '| [no-emoji](docs/rules.md#no-emoji) | Reports emoji | recommended | |'
 
       // Act
       const rows = tableRowsIn(markdown)

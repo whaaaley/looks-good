@@ -2,14 +2,15 @@ import { parseArgs } from '@std/cli/parse-args'
 import { fromFileUrl, join } from '@std/path'
 import { plugin } from '../../src/index.ts'
 import { check, optionsByRuleIn, ruleHeadingsIn, tableRowsIn } from './docdrift.check.ts'
-import { readmePath } from './docdrift.config.ts'
+import { docPaths } from './docdrift.config.ts'
 
 const printHelp = (): void => {
   console.log([
     'usage: deno task docdrift',
     '',
-    'Reminds you when README.md no longer matches the rules and configs the',
-    'plugin registers. Structural correspondence only, never prose accuracy.',
+    'Reminds you when the README and the docs no longer match the rules and',
+    'configs the plugin registers. Structural correspondence only, never prose',
+    'accuracy.',
     '',
     'options:',
     '  -h, --help  print this message',
@@ -69,7 +70,14 @@ const main = async (): Promise<void> => {
     Deno.exit(0)
   }
 
-  const markdown = await Deno.readTextFile(join(repoRoot, readmePath))
+  const pages: string[] = []
+
+  for (const path of docPaths) {
+    pages.push(await Deno.readTextFile(join(repoRoot, path)))
+  }
+
+  // A page ending mid-line would otherwise glue its last line to the next page's first heading.
+  const markdown = pages.join('\n')
 
   const configNames = Object.keys(plugin.configs ?? {})
 

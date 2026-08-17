@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { describe, it } from 'node:test'
 import { RuleTester } from 'eslint'
 import rule from './require-file-calls.ts'
@@ -9,7 +10,7 @@ RuleTester.it = it as never
 const tester = new RuleTester()
 
 // ESLint relativizes an absolute path against the cwd before matching, so a tree glob is written relative to it.
-const absolute = `${Deno.cwd()}/src/apps/governance/event/event.router.ts`
+const absolute = `${process.cwd()}/src/apps/governance/event/event.router.ts`
 
 const treeEntry = [{
   id: 'router-registers',

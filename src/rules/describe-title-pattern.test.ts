@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { describe, it } from 'node:test'
 import { RuleTester } from 'eslint'
 import rule from './describe-title-pattern.ts'
@@ -11,7 +12,7 @@ const tester = new RuleTester()
 const domain = [{ files: '*.queries.test.ts', title: 'All * Tests' }]
 
 // ESLint relativizes an absolute path against the cwd before matching, so a tree glob is written relative to it.
-const absolute = `${Deno.cwd()}/src/apps/governance/event/event.queries.test.ts`
+const absolute = `${process.cwd()}/src/apps/governance/event/event.queries.test.ts`
 
 const layered = [
   { files: '*.security.test.ts', title: '* Security Tests', message: 'A security file names the domain it defends.' },

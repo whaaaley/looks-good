@@ -1,0 +1,24 @@
+# ESLint Rule Set
+
+`src/eslint-rules.ts` holds the eslint, import, and typescript-eslint rules this project considers correct, separately from the plugin.
+It is published as the `./eslint-rules` export.
+
+Its default export has a `recommended` property, which is a list of flat configs rather than a single one, so it is spread rather than listed.
+
+```js
+// eslint.config.js
+import eslintRules from '@whaaaley/looks-good/eslint-rules'
+import looksGood from '@whaaaley/looks-good'
+
+export default [
+  ...eslintRules.recommended,
+  looksGood.configs.recommended,
+]
+```
+
+It covers `@eslint/js` recommended, the `import-x` rules including a configured `import-x/order`, and the `typescript-eslint` strict set.
+It is independent of the plugin, so a consumer can take either one alone.
+
+## Related Docs
+
+- [Configs](configs.md) -- the plugin's own configs, which this set sits alongside
