@@ -10,35 +10,32 @@ type SafeError = {
 
 export type SafeResult<T> = SafeSuccess<T> | SafeError
 
-// A thrown value is not always an Error, so a non Error is wrapped rather than passed through.
-const toError = (thrown: unknown): Error => {
-  return thrown instanceof Error ? thrown : new Error(String(thrown))
-}
-
 export const safe = <T>(fn: () => T): SafeResult<T> => {
   try {
+    const data = fn()
     return {
-      data: fn(),
+      data,
       error: null,
     }
-  } catch (thrown) {
+  } catch (error) {
     return {
       data: null,
-      error: toError(thrown),
+      error: error instanceof Error ? error : new Error(String(error)),
     }
   }
 }
 
 export const safeAsync = async <T>(fn: () => Promise<T>): Promise<SafeResult<T>> => {
   try {
+    const data = await fn()
     return {
-      data: await fn(),
+      data,
       error: null,
     }
-  } catch (thrown) {
+  } catch (error) {
     return {
       data: null,
-      error: toError(thrown),
+      error: error instanceof Error ? error : new Error(String(error)),
     }
   }
 }

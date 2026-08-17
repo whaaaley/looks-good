@@ -117,6 +117,19 @@ describe('All Plugin Tests', () => {
       assertEquals(leaked, [])
     })
 
+    // recommended is the whole house style, so a rule it omits is one of the two documented exceptions.
+    it('enables every rule except the typescript only set and the wrapping fixer', () => {
+      // Arrange
+      const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
+      const exceptions = [...Object.keys(typescript.rules ?? {}), 'looks-good/comment-reflow']
+
+      // Act
+      const missing = registered.filter((name) => !(name in (recommended.rules ?? {})))
+
+      // Assert
+      assertEquals(missing.sort(), exceptions.sort())
+    })
+
     it('sets no parser of its own in the typescript config', () => {
       // Assert
       assertEquals(typescript.languageOptions?.parser, undefined)
@@ -128,10 +141,10 @@ describe('All Plugin Tests', () => {
       const wrapping = ['looks-good/comment-one-sentence-per-line', 'looks-good/comment-reflow']
 
       // Act
-      const inRecommended = wrapping.filter((name) => name in (recommended.rules ?? {}))
+      const enabled = wrapping.filter((name) => name in (recommended.rules ?? {}))
 
       // Assert
-      assertEquals(inRecommended, ['looks-good/comment-one-sentence-per-line'])
+      assertEquals(enabled, ['looks-good/comment-one-sentence-per-line'])
     })
 
     // comment-reflow is the one rule a consumer opts into, since it replaces its reporting sibling.

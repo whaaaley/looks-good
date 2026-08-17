@@ -64,6 +64,7 @@ const warnings = {
 // Rules that report a defect, where the fix is to change the code.
 const errors = {
   'looks-good/blank-line-after-block': 'error',
+  'looks-good/comment-one-sentence-per-line': 'error',
   'looks-good/describe-group-order': 'error',
   'looks-good/describe-title-pattern': 'error',
   'looks-good/max-destructured-parameters': 'error',
@@ -77,6 +78,7 @@ const errors = {
 } as const
 
 // A consumer spreads this into a flat config, and every rule reads as looks-good/<name>.
+// This is a house style rather than a cautious baseline, so turn off what a project disagrees with.
 // comment-reflow is left off because it and comment-one-sentence-per-line report the same wrap.
 // Turn this one off and that one on to rewrite a wrapped sentence under --fix instead.
 export const recommended: Linter.Config = {
@@ -86,7 +88,6 @@ export const recommended: Linter.Config = {
   rules: {
     ...warnings,
     ...errors,
-    'looks-good/comment-one-sentence-per-line': 'error',
   },
 }
 

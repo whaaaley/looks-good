@@ -19,16 +19,8 @@ Legacy `.eslintrc` is not supported.
 
 ## Usage
 
-The plugin ships two configs.
-
-| Config | Description |
-| --- | --- |
-| `recommended` | the default set |
-| `typescript` | adds the rules that read TypeScript syntax |
-
-Most rules are enabled at `error`.
-Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
-A marker comment and a skipped test are both notes about work still to do, so they do not break a build.
+List the rules you want and set the options that suit your project.
+Every rule reads as `looks-good/<name>`, and the table below says what each one does.
 
 ```js
 // eslint.config.js
@@ -36,12 +28,29 @@ import { defineConfig } from 'eslint/config'
 import looksGood from '@whaaaley/looks-good'
 
 export default defineConfig([
-  looksGood.configs.recommended,
   {
     files: ['**/*.ts'],
+    plugins: { 'looks-good': looksGood },
+    rules: {
+      'looks-good/no-emoji': 'error',
+      'looks-good/test-arrange-act-assert': 'error',
+    },
   },
 ])
 ```
+
+The plugin also ships two configs.
+`recommended` is this project's house style, offered as an example of one set of choices rather than a baseline to adopt.
+Read it, take the parts you agree with, and leave the rest.
+`typescript` is separate because its rules read TypeScript syntax nodes the default parser never produces.
+
+```js
+looksGood.configs.recommended,
+```
+
+Most rules in `recommended` are enabled at `error`.
+Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
+A marker comment and a skipped test are both notes about work still to do, so they do not break a build.
 
 `comment-reflow` rewrites the wrapped sentence that `comment-one-sentence-per-line` only reports.
 Both report the same wrap, so `recommended` enables the reporting one and leaves the fixer off.
@@ -53,6 +62,87 @@ looksGood.configs.recommended,
   rules: {
     'looks-good/comment-one-sentence-per-line': 0,
     'looks-good/comment-reflow': 'error',
+  },
+}
+```
+
+### A result helper instead of try/catch
+
+This house style goes with a go-style result helper, which keeps the happy path unindented and names the failure at the call site.
+The plugin ships no rule for it, since a shipped `no-restricted-syntax` block would replace rather than merge with one you already set.
+Configure it yourself.
+
+```js
+'no-restricted-syntax': ['error',
+  {
+    selector: '[async=true] > BlockStatement > TryStatement[handler]',
+    message: 'Wrap the call in safeAsync and guard on the returned error. A try with only a finally clause is still allowed.',
+  },
+  {
+    selector: '[async=false] > BlockStatement > TryStatement[handler]',
+    message: 'Wrap the call in safe and guard on the returned error. A try with only a finally clause is still allowed.',
+  },
+]
+```
+
+The child combinator scopes each selector to the nearest enclosing function, which is what picks the right helper name.
+It therefore misses a `try` nested inside an `if` or a loop, since only a direct function body matches.
+A descendant combinator would catch those, but it matches every async ancestor and so double reports a sync function inside an async one.
+
+The selectors expect a helper of this shape.
+
+```ts
+type SafeSuccess<T> = {
+  data: T
+  error: null
+}
+
+type SafeError = {
+  data: null
+  error: Error
+}
+
+export type SafeResult<T> = SafeSuccess<T> | SafeError
+
+export const safe = <T>(fn: () => T): SafeResult<T> => {
+  try {
+    const data = fn()
+    return {
+      data,
+      error: null,
+    }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error(String(error)),
+    }
+  }
+}
+
+export const safeAsync = async <T>(fn: () => Promise<T>): Promise<SafeResult<T>> => {
+  try {
+    const data = await fn()
+    return {
+      data,
+      error: null,
+    }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error(String(error)),
+    }
+  }
+}
+```
+
+The helper is the one boundary that turns a throw into a returned error, so it holds the `try/catch` the selectors forbid.
+Exempt the file that defines it.
+
+```js
+{
+  files: ['src/utils/safe.utils.ts'],
+  rules: {
+    'no-restricted-syntax': 0,
   },
 }
 ```
@@ -81,7 +171,10 @@ export default defineConfig([
 ])
 ```
 
-Configure a rule by listing it yourself instead.
+### Every rule listed out
+
+This is what `recommended` enables, written out with its options.
+Copy it and cut what your project does not want.
 
 ```js
 // eslint.config.js
@@ -176,6 +269,7 @@ It is independent of the plugin, so a consumer can take either one alone.
 The first rewrites, the second reports.
 Enable one or the other, never both, since both enabled report the same wrapped sentence twice.
 `recommended` enables `comment-one-sentence-per-line`, and `comment-reflow` is the one you opt into.
+The Config column says which config enables each rule, and `opt in` means neither does.
 
 ### Rules that were removed
 

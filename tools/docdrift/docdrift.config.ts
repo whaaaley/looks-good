@@ -11,5 +11,7 @@ export const optionsHeading = '#### Options'
 // Prose sections written at rule depth that document no rule and must not be read as one.
 export const nonRuleHeadings = [
   'Rules that were removed',
+  'A result helper instead of try/catch',
+  'Every rule listed out',
   'The typescript config',
 ]
