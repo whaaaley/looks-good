@@ -31,6 +31,7 @@ export default defineConfig([
       }],
       'looks-good/comment-one-sentence-per-line': 'error',
       'looks-good/comment-reflow': 'error',
+      'looks-good/no-emoji': 'error',
       'looks-good/no-optional-chain-on-index': 'error',
     },
   },
@@ -44,6 +45,7 @@ export default defineConfig([
 | [comment-content](#comment-content) | Reports comments matching a pattern you configure | |
 | [comment-one-sentence-per-line](#comment-one-sentence-per-line) | Reports a comment sentence that wraps, a line with two sentences, or a comment past a length | |
 | [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps, and splits a line with two sentences | yes |
+| [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | |
 | [no-optional-chain-on-index](#no-optional-chain-on-index) | Reports `?.` used on an indexed access | |
 
 `comment-reflow` and `comment-one-sentence-per-line` catch the same problems.
@@ -140,6 +142,39 @@ const a = 1
 | `allowUrls` | `true` | Exempts a line ending in a url. |
 | `allowIdentifiers` | `true` | Exempts a line ending in a symbol. |
 | `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
+
+### no-emoji
+
+Reports emoji in code, comments, and identifiers.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const status = 'Done 🎉'
+
+// Ship it 🚀
+const ship = true
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const status = 'Done'
+
+// Ship it.
+const ship = true
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `allow` | `[]` | Emoji that are permitted anywhere. |
+| `strings` | `true` | Reports emoji in string literals and template strings. |
+| `comments` | `true` | Reports emoji in comments. |
+| `identifiers` | `true` | Reports emoji in identifiers. |
+
+A skin tone modifier, a zero width joiner run, and a regional indicator pair each count as one emoji, so `allow` takes the whole sequence.
 
 ### no-optional-chain-on-index
 
