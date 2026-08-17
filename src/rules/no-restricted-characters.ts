@@ -91,7 +91,7 @@ const rule: Rule.RuleModule = {
 
     // Compiling once in create keeps a large file from rebuilding these per node.
     const restrictions = options.restrict.map((restriction) => ({
-      chars: new Set([...restriction.chars]),
+      chars: new Set(restriction.chars),
       message: restriction.message,
       replacement: restriction.replacement,
     }))

@@ -11,7 +11,8 @@
       "**/*.test.ts",
       "tools/",
       ".claude/",
-      "eslint.config.js"
+      "eslint.config.js",
+      ".oxlintrc.json"
     ]
   },
   "compilerOptions": {
@@ -28,8 +29,9 @@
   ],
   "tasks": {
     "check": "deno check --unstable-tsgo src/ tools/",
-    "lint": "deno task lint:deno && deno task lint:eslint",
+    "lint": "deno task lint:deno && deno task lint:oxlint && deno task lint:eslint",
     "lint:deno": "deno lint",
+    "lint:oxlint": "deno run -A npm:oxlint@1.78.0 src tools",
     "lint:eslint": "deno run -A npm:eslint src tools eslint.config.js",
     "lint:fix": "deno run -A npm:eslint src tools eslint.config.js --fix",
     "fmt": "deno fmt",
