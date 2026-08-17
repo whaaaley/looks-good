@@ -78,11 +78,11 @@ export default defineConfig([
 | [describe-group-order](#describe-group-order) | Requires sibling describe groups to appear in a configured order | |
 | [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | |
 | [max-timeout-value](#max-timeout-value) | Reports a named constant holding a number above a budget | |
+| [no-database-access-in-tests](#no-database-access-in-tests) | Reports a test that queries the database directly rather than through the interface under test | |
 | [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | |
 | [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | |
 | [no-optional-chain-on-index](#no-optional-chain-on-index) | Forbids optional chaining on an indexed access | |
 | [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | |
-| [no-restricted-method-calls](#no-restricted-method-calls) | Reports a method call on an object a project does not want called directly | |
 | [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | |
 | [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | |
 
@@ -299,6 +299,54 @@ const RETRIES = 20000
 Only a variable declared with an identifier name and a numeric literal initializer is checked, so a computed value is left alone.
 A number written with underscore separators such as `30_000` is normalized by the parser and reads as `30000`.
 
+### no-database-access-in-tests
+
+Reports a test that queries the database directly rather than through the interface under test.
+A test that reaches past the interface duplicates its query logic, and it keeps passing when the interface it claims to cover is broken.
+
+ESLint core's `no-restricted-properties` can express the same match, but flat config replaces rule options rather than merging them.
+A consumer who sets their own `no-restricted-properties` entries silently drops the database restriction a shipped config had set, with no error.
+This rule owns its own rule id, so it cannot be clobbered that way.
+
+Examples of **incorrect** code for this rule:
+
+```js
+it('creates a task', async () => {
+  // Act
+  await createTask({ title: 'Write the spec' })
+
+  // Assert
+  const rows = await db.select().from(tasks)
+  assertEquals(rows.length, 1)
+})
+```
+
+Examples of **correct** code for this rule:
+
+```js
+it('creates a task', async () => {
+  // Act
+  await createTask({ title: 'Write the spec' })
+
+  // Assert
+  const tasks = await listTasks()
+  assertEquals(tasks.length, 1)
+})
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `handles` | `['db', 'tx', 'client', 'database']` | Identifier names that hold a database connection. |
+| `methods` | `['insert', 'select', 'update', 'delete']` | Query builder methods called on those handles. |
+| `allow` | `[]` | Handle names exempted, for a test that legitimately must seed directly. |
+| `ignoreCase` | `true` | Matches handle and method names regardless of spelling case. |
+| `message` | | Replaces the default message entirely when a project wants its own wording. |
+
+A computed access such as `db['insert']()` is not matched, since the property is an expression rather than a name.
+Only the immediate object of the call is compared, so `a.b.insert()` does not match on `a`.
+
 ### no-emoji
 
 Reports emoji in code, comments, and identifiers.
@@ -420,36 +468,6 @@ const parsed = parse(input)
 | `strings` | `true` | Reports restricted characters in string literals and template strings. |
 | `comments` | `true` | Reports restricted characters in comments. |
 | `identifiers` | `true` | Reports restricted characters in identifiers. |
-
-### no-restricted-method-calls
-
-Reports a method call on a receiver you name, such as a test file reaching past its router into the database.
-Nothing in the rule knows what any of these names mean, so the receivers and methods are entirely configuration.
-A call matches when the object of a non-computed member expression is one of `receivers` and the property is one of `methods`.
-A computed access such as `db['insert']()` is not matched, since the property there is an expression rather than a name.
-
-Examples of **incorrect** code for this rule:
-
-```js
-/* eslint looks-good/no-restricted-method-calls: ["error", { restrict: [{ receivers: ["db", "tx"], methods: ["insert", "select"], message: "Call the router rather than reaching past it." }] }] */
-
-const rows = db.select()
-```
-
-Examples of **correct** code for this rule:
-
-```js
-/* eslint looks-good/no-restricted-method-calls: ["error", { restrict: [{ receivers: ["db", "tx"], methods: ["insert", "select"], message: "Call the router rather than reaching past it." }] }] */
-
-const rows = await router.list()
-```
-
-#### Options
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `restrict` | `[]` | A list of `{ receivers, methods, message, ignoreCase }`. `receivers` are identifier names matched against the object, `methods` are property names matched against the property, and `message` is reported when both match. `ignoreCase` defaults to `true`, since `DB.insert()` is the same mistake as `db.insert()`. |
-| `allow` | `[]` | Receiver names exempt from every restriction, so a specific handle can be permitted. |
 
 ### require-file-calls
 
