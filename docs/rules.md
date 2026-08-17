@@ -422,6 +422,58 @@ createUser({
 Only an outer object passed directly as an argument to a call or a `new` expression is checked, which is where the crowding happens.
 An outer object already spread across several lines is left alone whatever it nests.
 
+### no-test-before-group
+
+Reports a test written above the first group in the same body.
+A test placed there reads as the primary behaviour of the file or of the group it sits in, whatever it actually covers, so a reader takes the wrong thing as the subject.
+Only the statements above the first group are reported, and a body that declares no group at all is left alone.
+
+Examples of **incorrect** code for this rule:
+
+```js
+/* eslint looks-good/no-test-before-group: "error" */
+
+describe('All Task Tests', () => {
+  it('creates a task', () => {})
+
+  describe('create', () => {
+    it('rejects an empty title', () => {})
+  })
+})
+```
+
+Examples of **correct** code for this rule:
+
+```js
+/* eslint looks-good/no-test-before-group: "error" */
+
+describe('All Task Tests', () => {
+  describe('create', () => {
+    it('creates a task', () => {})
+    it('rejects an empty title', () => {})
+  })
+})
+```
+
+```js
+/* eslint looks-good/no-test-before-group: "error" */
+
+// A file of tests with no group declares no subject to sit above.
+it('creates a task', () => {})
+it('deletes a task', () => {})
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `testFunctions` | `['it', 'test']` | The calls that declare a test. A call written as `it.only` or `it.skip` counts as its base name. |
+| `groupFunctions` | `['describe']` | The calls that declare a group. A call written as `describe.only` or `describe.skip` counts as its base name. |
+
+Every body is checked, not only the top level of the file, so a group holding a test above a nested group is reported the same way.
+A test written after the last group is a different shape and is not reported, because it does not stand in front of the groups a reader scans first.
+A curried call such as `describe.each([1])('create', ...)` names its function through another call, which resolves to no name, so it does not count as a group.
+
 ### no-try-catch-handler
 
 Reports a `try` statement that has a `catch` clause, in favour of a go-style result helper that returns its failure instead of throwing it.

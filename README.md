@@ -27,6 +27,7 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [no-ignored-tests](docs/rules.md#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
 | [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source | parsing | |
 | [no-single-line-nested-object](docs/rules.md#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
+| [no-test-before-group](docs/rules.md#no-test-before-group) | Reports a test written above the first group in the same body | recommended | |
 | [no-try-catch-handler](docs/rules.md#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |
 | [no-union-in-parameter-type](docs/rules.md#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
 | [object-comments-trailing](docs/rules.md#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |

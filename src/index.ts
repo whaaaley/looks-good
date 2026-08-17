@@ -30,6 +30,7 @@ import noEmoji from './rules/no-emoji.ts'
 import noIgnoredTests from './rules/no-ignored-tests.ts'
 import noRestrictedCharacters from './rules/no-restricted-characters.ts'
 import noSingleLineNestedObject from './rules/no-single-line-nested-object.ts'
+import noTestBeforeGroup from './rules/no-test-before-group.ts'
 import noTryCatchHandler from './rules/no-try-catch-handler.ts'
 import noUnionInParameterType from './rules/no-union-in-parameter-type.ts'
 import objectCommentsTrailing from './rules/object-comments-trailing.ts'
@@ -48,6 +49,7 @@ const reporting = {
   'no-emoji': noEmoji,
   'no-ignored-tests': noIgnoredTests,
   'no-single-line-nested-object': noSingleLineNestedObject,
+  'no-test-before-group': noTestBeforeGroup,
   'no-try-catch-handler': noTryCatchHandler,
   'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
@@ -108,6 +110,7 @@ const errors = {
   'looks-good/max-destructured-parameters': 'error',
   'looks-good/max-single-line-statement-length': 'error',
   'looks-good/no-single-line-nested-object': 'error',
+  'looks-good/no-test-before-group': 'error',
   'looks-good/object-comments-trailing': 'error',
 } as const
 
