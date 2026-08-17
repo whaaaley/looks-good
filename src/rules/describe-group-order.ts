@@ -1,5 +1,4 @@
 import { docUrl } from '../utils/docs.utils.ts'
-import { escapeRegExp } from '../utils/glob.utils.ts'
 import { calleeName, readBody, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Node } from 'estree'
@@ -49,7 +48,7 @@ const compileWholeWords = (names: string[], ignoreCase: boolean): Map<string, Re
   const compiled = new Map<string, RegExp>()
 
   for (const name of names) {
-    compiled.set(name, new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(name)}(?![\\p{L}\\p{N}_])`, flags))
+    compiled.set(name, new RegExp(`(?<![\\p{L}\\p{N}_])${RegExp.escape(name)}(?![\\p{L}\\p{N}_])`, flags))
   }
 
   return compiled
@@ -63,7 +62,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('describe-group-order'),
     },
     defaultOptions: [defaults],
-    // Reordering test groups moves code, which is not safe to automate.
     fixable: undefined,
     schema: [
       {
@@ -178,7 +176,9 @@ const rule: Rule.RuleModule = {
       let current: Rule.Node | null = node.parent
 
       while (current) {
-        if (current.type === 'CallExpression' && options.testFunctions.includes(calleeName(current))) return true
+        if (current.type === 'CallExpression' && options.testFunctions.includes(calleeName(current))) {
+          return true
+        }
 
         current = current.type === 'Program' ? null : current.parent
       }
