@@ -52,8 +52,6 @@ Legacy `.eslintrc` is not supported.
 Verified on Node 24.19.0, Node 26.7.0, and Bun 1.3.14, with all 431 tests passing under each.
 
 Run `deno task runtimes` to reproduce it.
-The sources are copied to a temporary directory, the dependencies are installed there as npm packages, and the suite runs under each runtime.
-Nothing is written inside the repository, because a `package.json` beside `deno.json` switches Deno to node-modules resolution and breaks `deno check`.
 
 The count covers `src/utils/` and `src/rules/`, which is every rule and every helper.
 It leaves out `src/index.test.ts`, which walks the docs with `Deno.readDir` to check each rule is documented and is a repository check rather than a test of the plugin.
