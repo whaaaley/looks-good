@@ -12,6 +12,11 @@ tester.run('no-ignored-tests', rule, {
   valid: [
     // A test that runs is the only test that proves anything.
     { code: "it('creates a task', () => {})" },
+    // The x prefix follows the skip modifier, so dropping skip drops the prefix form too.
+    {
+      code: "xit('creates a task', () => {})",
+      options: [{ modifiers: ['ignore'] }],
+    },
     { code: "test('creates a task', () => {})" },
     { code: "describe('create', () => {})" },
     // A modifier that leaves the test running is not a skip.

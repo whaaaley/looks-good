@@ -203,7 +203,20 @@ const rule: Rule.RuleModule = {
           })
         }
 
+        const meets = (entry: FileRequirement): boolean => {
+          const all = entry.require ?? []
+          const any = entry.requireAny ?? []
+
+          return all.every((matcher) => satisfies(matcher, contents)) &&
+            (any.length === 0 || any.some((matcher) => satisfies(matcher, contents)))
+        }
+
+        // Every entry is measured before any is gated, so a when.found may name an entry declared later in the list.
         const satisfied = new Set<string>()
+
+        for (const entry of applicable) {
+          if (meets(entry)) satisfied.add(entry.id)
+        }
 
         for (const entry of applicable) {
           const references = entry.when?.references
@@ -212,16 +225,7 @@ const rule: Rule.RuleModule = {
           const found = entry.when?.found
           if (found && !satisfied.has(found)) continue
 
-          const all = entry.require ?? []
-          const any = entry.requireAny ?? []
-
-          const met = all.every((matcher) => satisfies(matcher, contents)) &&
-            (any.length === 0 || any.some((matcher) => satisfies(matcher, contents)))
-
-          if (met) {
-            satisfied.add(entry.id)
-            continue
-          }
+          if (satisfied.has(entry.id)) continue
 
           context.report({
             node: program,

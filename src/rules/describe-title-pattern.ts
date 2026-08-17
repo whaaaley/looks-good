@@ -57,6 +57,21 @@ const calleeName = (node: CallExpression): string => {
   return ''
 }
 
+// A call sits at the top level when nothing between it and the program is a function.
+const isTopLevel = (node: Rule.Node): boolean => {
+  let current: Rule.Node | null = node.parent
+
+  while (current) {
+    if (current.type === 'FunctionDeclaration') return false
+    if (current.type === 'FunctionExpression') return false
+    if (current.type === 'ArrowFunctionExpression') return false
+
+    current = current.parent
+  }
+
+  return true
+}
+
 const readTitle = (node: CallExpression): string => {
   const [first] = node.arguments
   if (!first) return ''
@@ -126,6 +141,10 @@ const rule: Rule.RuleModule = {
       CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
         if (outermost) return
         if (!options.testFunctions.includes(calleeName(node))) return
+
+        // A call inside a function is nested, even when traversal reaches it first.
+        // Taking it would report a mismatch on a file whose own top level describe is correct.
+        if (!isTopLevel(node)) return
 
         outermost = node
       },

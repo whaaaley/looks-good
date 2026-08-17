@@ -23,6 +23,12 @@ tester.run('describe-title-pattern', rule, {
       filename: 'event.queries.test.ts',
       options: [{ patterns: domain }],
     },
+    // A describe inside a helper is nested, even though traversal reaches it first.
+    {
+      code: "const shared = () => describe('shared cases', () => {})\ndescribe('All Event Tests', () => { shared() })",
+      filename: 'event.queries.test.ts',
+      options: [{ patterns: domain }],
+    },
     // A wildcard standing in for several words.
     {
       code: "describe('All Recurring Event Tests', () => {})",

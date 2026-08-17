@@ -30,11 +30,14 @@ const readModifier = (node: CallExpression, options: Options): Found | null => {
   }
 
   if (callee.type === 'Identifier') {
+    // The x prefix is shorthand for skipping, so it follows whether skip is configured.
+    if (!options.modifiers.includes('skip')) return null
     if (!callee.name.startsWith('x')) return null
 
     const base = callee.name.slice(1)
     if (!options.testFunctions.includes(base)) return null
 
+    // The reported name is the one written in the source, so a reader can find it.
     return { modifier: callee.name }
   }
 
