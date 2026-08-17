@@ -77,8 +77,9 @@ export const readComments = (context: Rule.RuleContext): CommentLine[] => {
   return collected
 }
 
+// A bare prefix match would exempt prose such as "Actually this sentence wraps".
 export const startsWithLabel = (text: string, labels: string[]): boolean => {
-  return labels.some((label) => text.startsWith(label))
+  return labels.some((label) => text === label || text.startsWith(`${label} `) || text.startsWith(`${label}:`))
 }
 
 // A comment carries on to the next line when it does not close a sentence itself.

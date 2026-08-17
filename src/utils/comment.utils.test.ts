@@ -104,6 +104,23 @@ describe('All Comment Utility Tests', () => {
       assertEquals(labelled, true)
     })
 
+    // A bare prefix match would exempt any sentence starting with a label word.
+    it('does not recognise prose that begins with a label word', () => {
+      // Act
+      const labelled = startsWithLabel('Actually this sentence wraps', options.allowLabels)
+
+      // Assert
+      assertEquals(labelled, false)
+    })
+
+    it('recognises a label followed by a colon', () => {
+      // Act
+      const labelled = startsWithLabel('Act: call the thing', options.allowLabels)
+
+      // Assert
+      assertEquals(labelled, true)
+    })
+
     it('does not recognise prose that merely resembles one', () => {
       // Act
       const labelled = startsWithLabel('Consider the arrangement', options.allowLabels)
