@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "deno task --quiet --cwd \"$CLAUDE_PROJECT_DIR\" treesize",
+            "timeout": 10,
+            "statusMessage": "Checking uncommitted tree size"
+          }
+        ]
+      }
+    ]
+  }
+}

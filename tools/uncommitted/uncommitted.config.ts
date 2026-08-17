@@ -4,3 +4,18 @@
 export const fileThreshold = 12
 
 export const lineThreshold = 400
+
+export type Tier = {
+  name: string
+  files: number
+  lines: number
+}
+
+// Ordered from smallest to largest, so the last tier a tree reaches is the one that describes it.
+// The first tier restates the thresholds above rather than holding its own copy of them.
+
+export const tiers: Tier[] = [
+  { name: 'notice', files: fileThreshold, lines: lineThreshold },
+  { name: 'warning', files: 25, lines: 900 },
+  { name: 'urgent', files: 40, lines: 1500 },
+]
