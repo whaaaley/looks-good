@@ -20,6 +20,12 @@ const trackers = {
   ],
 }
 
+const anyCaseMarkers = {
+  forbid: [
+    { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },
+  ],
+}
+
 tester.run('comment-content', rule, {
   valid: [
     // With nothing configured the rule forbids nothing.
@@ -44,6 +50,11 @@ tester.run('comment-content', rule, {
     {
       code: 'const TODO = 1',
       options: [markers],
+    },
+    // ignoreCase widens the match without widening it past a word boundary.
+    {
+      code: '// A comment about todos in general.\nconst a = 1',
+      options: [anyCaseMarkers],
     },
   ],
   invalid: [

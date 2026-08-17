@@ -7,6 +7,13 @@ import type { Program } from 'estree'
 export type ForbiddenPattern = {
   pattern: string
   message: string
+  ignoreCase?: boolean
+}
+
+// A forbidden pattern once its source compiles, which is what comment text is matched against.
+type CompiledPattern = {
+  expression: RegExp
+  message: string
 }
 
 type Options = {
@@ -27,7 +34,6 @@ const rule: Rule.RuleModule = {
       url: docUrl('comment-content'),
     },
     defaultOptions: [defaults],
-    // Deciding what a marker should have said needs a person, so this reports only.
     fixable: undefined,
     schema: [
       {
@@ -43,6 +49,7 @@ const rule: Rule.RuleModule = {
               properties: {
                 pattern: { type: 'string' },
                 message: { type: 'string' },
+                ignoreCase: { type: 'boolean' },
               },
             },
           },
@@ -59,11 +66,12 @@ const rule: Rule.RuleModule = {
 
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const forbidden: { expression: RegExp; message: string }[] = []
+    const forbidden: CompiledPattern[] = []
     const invalid: string[] = []
 
     for (const entry of options.forbid) {
-      const expression = compilePattern({ source: entry.pattern, flags: 'u' })
+      const flags = entry.ignoreCase ? 'iu' : 'u'
+      const expression = compilePattern({ source: entry.pattern, flags })
 
       if (!expression) {
         invalid.push(entry.pattern)
@@ -73,7 +81,9 @@ const rule: Rule.RuleModule = {
       forbidden.push({ expression, message: entry.message })
     }
 
-    if (forbidden.length === 0 && invalid.length === 0 && !options.forbidBlockComments) return {}
+    if (forbidden.length === 0 && invalid.length === 0 && !options.forbidBlockComments) {
+      return {}
+    }
 
     return {
       'Program:exit': (program: Program): void => {
