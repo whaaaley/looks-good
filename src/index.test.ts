@@ -3,7 +3,7 @@ import { assert, assertEquals } from '@std/assert'
 import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
-import { plugin, recommended, typescript } from './index.ts'
+import { parsing, plugin, recommended, typescript } from './index.ts'
 
 const linter = new Linter()
 
@@ -102,7 +102,7 @@ describe('All Plugin Tests', () => {
   describe('shipped configs', () => {
     it('exposes every config on the plugin', () => {
       // Assert
-      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['recommended', 'typescript'])
+      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['parsing', 'recommended', 'typescript'])
     })
 
     // A rule that reads TypeScript nodes can never fire under the default parser.
@@ -117,22 +117,40 @@ describe('All Plugin Tests', () => {
       assertEquals(leaked, [])
     })
 
-    // recommended is the whole house style, so a rule it omits is one of the two documented exceptions.
-    it('enables every rule except the typescript only set and the wrapping fixer', () => {
-      // Arrange
-      const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
-      const exceptions = [...Object.keys(typescript.rules ?? {}), 'looks-good/comment-reflow']
-
-      // Act
-      const missing = registered.filter((name) => !(name in (recommended.rules ?? {})))
-
-      // Assert
-      assertEquals(missing.sort(), exceptions.sort())
-    })
-
     it('sets no parser of its own in the typescript config', () => {
       // Assert
       assertEquals(typescript.languageOptions?.parser, undefined)
+    })
+
+    // The three configs partition the rules, so no rule is enabled by two of them.
+    it('enables each rule in exactly one config', () => {
+      // Arrange
+      const configs = [recommended, parsing, typescript]
+
+      // Act
+      const counted = new Map<string, number>()
+
+      for (const config of configs) {
+        for (const name of Object.keys(config.rules ?? {})) {
+          counted.set(name, (counted.get(name) ?? 0) + 1)
+        }
+      }
+
+      // Assert
+      const duplicated = [...counted.keys()].filter((name) => (counted.get(name) ?? 0) > 1)
+      assertEquals(duplicated, [])
+    })
+
+    // A consumer who takes recommended alone installs eslint and nothing else.
+    it('keeps the rules that parse text out of recommended', () => {
+      // Arrange
+      const parsingRules = Object.keys(parsing.rules ?? {})
+
+      // Act
+      const leaked = parsingRules.filter((name) => name in (recommended.rules ?? {}))
+
+      // Assert
+      assertEquals(leaked, [])
     })
 
     // Both enabled would report one wrapped sentence twice, once per rule.
@@ -141,25 +159,27 @@ describe('All Plugin Tests', () => {
       const wrapping = ['looks-good/comment-one-sentence-per-line', 'looks-good/comment-reflow']
 
       // Act
-      const enabled = wrapping.filter((name) => name in (recommended.rules ?? {}))
+      const enabled = wrapping.filter((name) => name in (parsing.rules ?? {}))
 
       // Assert
       assertEquals(enabled, ['looks-good/comment-one-sentence-per-line'])
     })
 
-    // comment-reflow is the one rule a consumer opts into, since it replaces its reporting sibling.
-    it('enables every registered rule except the wrapping fixer', () => {
+    // Both opt in rules replace something a consumer supplies, a sibling rule or a result helper.
+    it('enables every registered rule across the three configs except the two opt in rules', () => {
       // Arrange
       const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
+      const optIn = ['looks-good/comment-reflow', 'looks-good/no-try-catch-handler']
 
       // Act
       const enabled = new Set([
         ...Object.keys(recommended.rules ?? {}),
+        ...Object.keys(parsing.rules ?? {}),
         ...Object.keys(typescript.rules ?? {}),
       ])
 
       // Assert
-      assertEquals(registered.filter((name) => !enabled.has(name)), ['looks-good/comment-reflow'])
+      assertEquals(registered.filter((name) => !enabled.has(name)).sort(), optIn.sort())
     })
   })
 

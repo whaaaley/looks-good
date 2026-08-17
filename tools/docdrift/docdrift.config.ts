@@ -13,5 +13,6 @@ export const nonRuleHeadings = [
   'Rules that were removed',
   'A result helper instead of try/catch',
   'Every rule listed out',
+  'The parsing config',
   'The typescript config',
 ]

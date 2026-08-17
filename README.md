@@ -39,25 +39,36 @@ export default defineConfig([
 ])
 ```
 
-The plugin also ships two configs.
+The plugin ships three configs.
 `recommended` is this project's house style, offered as an example of one set of choices rather than a baseline to adopt.
 Read it, take the parts you agree with, and leave the rest.
+`parsing` is separate because its rules parse the text inside a file, which costs four npm packages.
 `typescript` is separate because its rules read TypeScript syntax nodes the default parser never produces.
 
 ```js
 looksGood.configs.recommended,
+looksGood.configs.parsing,
 ```
 
 Most rules in `recommended` are enabled at `error`.
-Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
-A marker comment and a skipped test are both notes about work still to do, so they do not break a build.
+`no-ignored-tests` is enabled at `warn`, because a skipped test records deferred work rather than a defect.
+A note about work still to do should not break a build.
+
+### The parsing config
+
+`comment-content`, `comment-one-sentence-per-line`, `describe-title-pattern`, `no-emoji`, `no-restricted-characters`, `require-file-calls`, and `test-arrange-act-assert` read the text inside a file rather than estree nodes alone.
+Finding where one sentence ends and the next begins takes `parse-english` and `nlcst-to-string`, telling a trailing code span from an unfinished line takes `mdast-util-from-markdown`, and matching a path pattern takes `minimatch`.
+
+These rules work the moment you enable them, so this config is about what the plugin costs rather than what it can do.
+Installing from JSR pulls those four packages in for you, and taking `recommended` alone leaves them out.
+Skip `parsing` if you would rather your linter dependencies stay at `eslint` and nothing else.
 
 `comment-reflow` rewrites the wrapped sentence that `comment-one-sentence-per-line` only reports.
-Both report the same wrap, so `recommended` enables the reporting one and leaves the fixer off.
+Both report the same wrap, so `parsing` enables the reporting one and leaves the fixer off.
 Turn one off and the other on to rewrite under `--fix` instead.
 
 ```js
-looksGood.configs.recommended,
+looksGood.configs.parsing,
 {
   rules: {
     'looks-good/comment-one-sentence-per-line': 0,
@@ -69,27 +80,14 @@ looksGood.configs.recommended,
 ### A result helper instead of try/catch
 
 This house style goes with a go-style result helper, which keeps the happy path unindented and names the failure at the call site.
-The plugin ships no rule for it, since a shipped `no-restricted-syntax` block would replace rather than merge with one you already set.
-Configure it yourself.
+[no-try-catch-handler](#no-try-catch-handler) enforces it, and it is in no shipped config because it points at a helper you have to write first.
+Write the helper, then enable the rule with the module path it lives at.
 
 ```js
-'no-restricted-syntax': ['error',
-  {
-    selector: '[async=true] > BlockStatement > TryStatement[handler]',
-    message: 'Wrap the call in safeAsync and guard on the returned error. A try with only a finally clause is still allowed.',
-  },
-  {
-    selector: '[async=false] > BlockStatement > TryStatement[handler]',
-    message: 'Wrap the call in safe and guard on the returned error. A try with only a finally clause is still allowed.',
-  },
-]
+'looks-good/no-try-catch-handler': ['error', { module: '~/utils/safe.utils.ts', sync: 'safe', async: 'safeAsync' }],
 ```
 
-The child combinator scopes each selector to the nearest enclosing function, which is what picks the right helper name.
-It therefore misses a `try` nested inside an `if` or a loop, since only a direct function body matches.
-A descendant combinator would catch those, but it matches every async ancestor and so double reports a sync function inside an async one.
-
-The selectors expect a helper of this shape.
+The rule expects a helper of this shape.
 
 ```ts
 type SafeSuccess<T> = {
@@ -135,14 +133,14 @@ export const safeAsync = async <T>(fn: () => Promise<T>): Promise<SafeResult<T>>
 }
 ```
 
-The helper is the one boundary that turns a throw into a returned error, so it holds the `try/catch` the selectors forbid.
+The helper is the one boundary that turns a throw into a returned error, so it holds the `try/catch` the rule forbids.
 Exempt the file that defines it.
 
 ```js
 {
   files: ['src/utils/safe.utils.ts'],
   rules: {
-    'no-restricted-syntax': 0,
+    'looks-good/no-try-catch-handler': 0,
   },
 }
 ```
@@ -173,7 +171,7 @@ export default defineConfig([
 
 ### Every rule listed out
 
-This is what `recommended` enables, written out with its options.
+This is what `recommended` and `parsing` enable together, written out with their options.
 Copy it and cut what your project does not want.
 
 ```js
@@ -249,27 +247,28 @@ It is independent of the plugin, so a consumer can take either one alone.
 | Rule | Description | Config | Fixable |
 | --- | --- | --- | --- |
 | [blank-line-after-block](#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
-| [comment-content](#comment-content) | Forbids comment text a project does not want left in source | recommended | |
-| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | recommended | |
+| [comment-content](#comment-content) | Forbids comment text a project does not want left in source | parsing | |
+| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | parsing | |
 | [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps onto the next line | opt in | yes |
 | [describe-group-order](#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
-| [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | recommended | |
+| [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
 | [max-destructured-parameters](#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
 | [max-single-line-statement-length](#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
-| [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | recommended | |
+| [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | parsing | |
 | [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
-| [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | recommended | |
+| [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | parsing | |
 | [no-single-line-nested-object](#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
+| [no-try-catch-handler](#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |
 | [no-union-in-parameter-type](#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
 | [object-comments-trailing](#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
-| [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | recommended | |
-| [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | recommended | |
+| [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | parsing | |
+| [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | parsing | |
 
 `comment-reflow` and `comment-one-sentence-per-line` both catch a sentence that wraps onto the next line.
 The first rewrites, the second reports.
 Enable one or the other, never both, since both enabled report the same wrapped sentence twice.
-`recommended` enables `comment-one-sentence-per-line`, and `comment-reflow` is the one you opt into.
-The Config column says which config enables each rule, and `opt in` means neither does.
+`parsing` enables `comment-one-sentence-per-line`, and `comment-reflow` is the one you opt into.
+The Config column says which config enables each rule, and `opt in` means none of them does.
 
 ### Rules that were removed
 
@@ -726,6 +725,74 @@ createUser({
 
 Only an outer object passed directly as an argument to a call or a `new` expression is checked, which is where the crowding happens.
 An outer object already spread across several lines is left alone whatever it nests.
+
+### no-try-catch-handler
+
+Reports a `try` statement that has a `catch` clause, in favour of a go-style result helper that returns its failure instead of throwing it.
+A `try` with only a `finally` clause is left alone, since a result helper has no finally channel and cleanup still needs the guarantee.
+
+The rule picks the helper to name by walking out to the nearest enclosing function and reading whether it is async.
+A `try` inside no function at all is treated as async, since a module body can hold a top level await.
+
+This rule is in no shipped config.
+It points at a helper your project has to have written, so enabling it without one would report every `try` and name a function that does not exist there.
+Write the helper, set `module` to the path it lives at, then enable the rule.
+
+Examples of **incorrect** code for this rule:
+
+```ts
+const read = async (id: string): Promise<Row> => {
+  try {
+    return await fetchRow(id)
+  } catch (error) {
+    report(error)
+    throw error
+  }
+}
+```
+
+Examples of **correct** code for this rule:
+
+```ts
+const read = async (id: string): Promise<Row> => {
+  const { data, error } = await safeAsync(() => fetchRow(id))
+
+  if (error) {
+    report(error)
+    throw error
+  }
+
+  return data
+}
+```
+
+A `try` that only guarantees cleanup keeps its `finally`.
+
+```ts
+const read = (path: string): string => {
+  const file = open(path)
+
+  try {
+    return file.read()
+  } finally {
+    file.close()
+  }
+}
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `module` | `''` | The path the helper is imported from, named in the report so a reader knows where to import from. Left empty, the report names the helper alone. |
+| `sync` | `'safe'` | The helper named when the nearest enclosing function is not async. |
+| `async` | `'safeAsync'` | The helper named when the nearest enclosing function is async, or when there is no enclosing function. |
+
+With `module` set to `~/utils/safe.utils.ts`, a `try` in an async function reports as follows.
+
+```
+Wrap the call in safeAsync from ~/utils/safe.utils.ts and guard on the returned error. A try with only a finally clause is still allowed.
+```
 
 ### no-union-in-parameter-type
 

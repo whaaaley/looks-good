@@ -1,12 +1,15 @@
 import eslintRules from './src/eslint-rules.ts'
-import { recommended } from './src/index.ts'
+import { parsing, recommended, typescript } from './src/index.ts'
 
 // This repository lints itself with the configs it ships.
-// eslintRules holds the eslint recommended set, and recommended holds every rule written here.
+// eslintRules holds the eslint recommended set, and the three configs hold every rule written here.
+// This project is TypeScript and already takes the parsing dependencies, so it spreads all three.
 
 // The rules that take patterns report nothing until this project supplies its own.
 const looksGoodRules = [
   recommended,
+  parsing,
+  typescript,
   // comment-reflow rewrites the wrap that comment-one-sentence-per-line only reports.
   {
     rules: {
@@ -44,28 +47,18 @@ const self = [
   },
 ]
 
-// This convention names safe and safeAsync, so it is documented in the README rather than shipped in a config.
-// A shipped block would replace rather than merge with whatever no-restricted-syntax a consumer already set.
-// The child combinator scopes each selector to the nearest enclosing function, which is what picks the right helper name.
-// It therefore misses a try nested inside an if or a loop, since only a direct function body matches.
-// A descendant combinator would catch those, but it matches every async ancestor and so double reports a sync function inside an async one.
+// no-try-catch-handler ships in no config, since only this project knows where its result helper lives.
 const results = [
   {
     rules: {
-      'no-restricted-syntax': ['error', {
-        selector: '[async=true] > BlockStatement > TryStatement[handler]',
-        message: 'Wrap the call in safeAsync and guard on the returned error. A try with only a finally clause is still allowed.',
-      }, {
-        selector: '[async=false] > BlockStatement > TryStatement[handler]',
-        message: 'Wrap the call in safe and guard on the returned error. A try with only a finally clause is still allowed.',
-      }],
+      'looks-good/no-try-catch-handler': ['error', { module: 'src/utils/safe.utils.ts', sync: 'safe', async: 'safeAsync' }],
     },
   },
   // The result helper is the one boundary that turns a throw into a returned error.
   {
     files: ['src/utils/safe.utils.ts'],
     rules: {
-      'no-restricted-syntax': 0,
+      'looks-good/no-try-catch-handler': 0,
     },
   },
 ]
