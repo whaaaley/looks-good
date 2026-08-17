@@ -1,6 +1,7 @@
 import commentContent from './rules/comment-content.ts'
 import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
 import commentReflow from './rules/comment-reflow.ts'
+import noEmoji from './rules/no-emoji.ts'
 import noOptionalChainOnIndex from './rules/no-optional-chain-on-index.ts'
 import type { ESLint, Linter } from 'eslint'
 
@@ -9,6 +10,7 @@ import type { ESLint, Linter } from 'eslint'
 const reporting = {
   'comment-content': commentContent,
   'comment-one-sentence-per-line': commentOneSentencePerLine,
+  'no-emoji': noEmoji,
   'no-optional-chain-on-index': noOptionalChainOnIndex,
 }
 
@@ -40,6 +42,7 @@ export const recommended: Linter.Config = {
     // ---- reporting ----
     'looks-good/comment-content': 'error',
     'looks-good/comment-one-sentence-per-line': 'error',
+    'looks-good/no-emoji': 'error',
     'looks-good/no-optional-chain-on-index': 'error',
 
     // ---- fixing ----

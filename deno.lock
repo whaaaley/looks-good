@@ -11,6 +11,7 @@
     "npm:@types/estree@^1.0.9": "1.0.9",
     "npm:@typescript-eslint/parser@^8.67.0": "8.67.0_eslint@10.8.1_typescript@6.0.3",
     "npm:eslint-plugin-import-x@^4.17.1": "4.17.1_eslint@10.8.1",
+    "npm:eslint-plugin-no-emoji@^2.0.2": "2.0.2_eslint@10.8.1",
     "npm:eslint@*": "10.8.1",
     "npm:eslint@^10.8.1": "10.8.1",
     "npm:globals@^17.11.0": "17.11.0",
@@ -415,6 +416,9 @@
     "deep-is@0.1.4": {
       "integrity": "sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ=="
     },
+    "emoji-regex@10.6.0": {
+      "integrity": "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="
+    },
     "escape-string-regexp@4.0.0": {
       "integrity": "sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA=="
     },
@@ -442,6 +446,13 @@
         "semver",
         "stable-hash-x",
         "unrs-resolver"
+      ]
+    },
+    "eslint-plugin-no-emoji@2.0.2_eslint@10.8.1": {
+      "integrity": "sha512-EwnLPviXnXnP1fK5985o01tCfSp9aR/2b1Ix8ZcCZMsL6tBomNHkdUjX/muFfLy7+PErqj01cCQ+K1+tVqvKqw==",
+      "dependencies": [
+        "emoji-regex",
+        "eslint"
       ]
     },
     "eslint-scope@9.1.2": {
@@ -796,6 +807,7 @@
       "npm:@types/estree@^1.0.9",
       "npm:@typescript-eslint/parser@^8.67.0",
       "npm:eslint-plugin-import-x@^4.17.1",
+      "npm:eslint-plugin-no-emoji@^2.0.2",
       "npm:eslint@^10.8.1",
       "npm:globals@^17.11.0",
       "npm:typescript-eslint@^8.67.0"

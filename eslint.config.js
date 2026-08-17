@@ -84,6 +84,8 @@ const looksGoodConfig = [
         forbidBlockComments: true,
       }],
       'looks-good/comment-one-sentence-per-line': 'error',
+      'looks-good/no-emoji': 'error',
+      'looks-good/no-optional-chain-on-index': 'error',
 
       // ---- fixing, rewrites under --fix ----
       'looks-good/comment-reflow': 'error',
@@ -98,6 +100,8 @@ const testConfig = [
     files: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': 0,
+      // A rule about emoji needs emoji in its own fixtures.
+      'looks-good/no-emoji': 0,
     },
   },
 ]

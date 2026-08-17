@@ -48,6 +48,7 @@
     "@typescript-eslint/parser": "npm:@typescript-eslint/parser@^8.67.0",
     "eslint": "npm:eslint@^10.8.1",
     "eslint-plugin-import-x": "npm:eslint-plugin-import-x@^4.17.1",
+    "eslint-plugin-no-emoji": "npm:eslint-plugin-no-emoji@^2.0.2",
     "globals": "npm:globals@^17.11.0",
     "typescript-eslint": "npm:typescript-eslint@^8.67.0",
     "estree": "npm:@types/estree@^1.0.9"
