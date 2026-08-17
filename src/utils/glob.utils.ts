@@ -1,14 +1,28 @@
-export const escapeRegExp = (source: string): string => {
-  return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+import { relative, resolve, SEPARATOR } from '@std/path'
+import { Minimatch } from 'minimatch'
+
+const compiled = new Map<string, Minimatch>()
+
+// ESLint matches config globs with `dot` on and `matchBase` off, so a bare filename pattern never matches a nested path.
+const matcherFor = (pattern: string): Minimatch => {
+  const cached = compiled.get(pattern)
+  if (cached) return cached
+
+  const matcher = new Minimatch(pattern, { dot: true })
+  compiled.set(pattern, matcher)
+
+  return matcher
 }
 
-// A glob segment is literal apart from `*`, which stands for any run of characters.
-// `**` and `*` both cross directory separators, since a path glob here is matched against a whole path.
-export const globToRegExp = (glob: string): RegExp => {
-  const body = glob
-    .split(/\*+/)
-    .map((part) => escapeRegExp(part))
-    .join('.*')
+// Mirrors `toRelativePath` in @eslint/config-array, which relativizes before matching so leading base-path segments never reach the glob.
+const toRelativePath = (filename: string, basePath: string): string => {
+  if (!basePath) return filename.replaceAll(SEPARATOR, '/')
 
-  return new RegExp(`^${body}$`, 'u')
+  const full = resolve(basePath, filename)
+
+  return relative(basePath, full).replaceAll(SEPARATOR, '/')
+}
+
+export const matchesGlob = (pattern: string, filename: string, basePath?: string): boolean => {
+  return matcherFor(pattern).match(toRelativePath(filename, basePath ?? ''))
 }
