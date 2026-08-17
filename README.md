@@ -39,13 +39,11 @@ export default defineConfig([
 
 ## Rules
 
-🔧 Automatically fixable by the `--fix` CLI option.
-
-| Rule | Description | 🔧 |
-| --- | --- | :-: |
+| Rule | Description | Fixable |
+| --- | --- | --- |
 | [comment-content](#comment-content) | Reports comments matching a pattern you configure | |
 | [comment-one-sentence-per-line](#comment-one-sentence-per-line) | Reports a comment sentence that wraps, a line with two sentences, or a comment past a length | |
-| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps, and splits a line with two sentences | 🔧 |
+| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps, and splits a line with two sentences | yes |
 | [no-optional-chain-on-index](#no-optional-chain-on-index) | Reports `?.` used on an indexed access | |
 
 `comment-reflow` and `comment-one-sentence-per-line` catch the same problems.
