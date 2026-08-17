@@ -1,2 +1,3 @@
 # looks-good
-ESLint plugins for structural conventions.
+
+ESLint rules for conventions nothing else enforces.
