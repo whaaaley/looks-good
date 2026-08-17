@@ -20,8 +20,15 @@ tester.run('no-single-line-nested-object', rule, {
     { code: 'const meta = {\n  docs: { url: link },\n}' },
     // An array argument holding objects is not an argument object nesting one.
     { code: 'run([{ code: 1 }, { code: 2 }])' },
-    // A constructor argument is a new expression, which this rule leaves alone.
-    { code: 'const tester = new RuleTester({ languageOptions: { parser: tsParser } })' },
+    // A construction argument split across lines is the remedy, so it stays valid.
+    { code: 'const tester = new RuleTester({\n  languageOptions: { parser: tsParser },\n})' },
+    // A flat construction argument nests nothing.
+    { code: 'const tester = new RuleTester({ parser: tsParser })' },
+    // minNestedProperties above the nested size leaves the construction alone.
+    {
+      code: 'new Thing({ a: { b: 1 } })',
+      options: [{ minNestedProperties: 2 }],
+    },
     // An empty nested object holds nothing to split out, so the default threshold skips it.
     { code: 'context.report({ data: {}, messageId })' },
     // minNestedProperties above the nested size leaves the call alone.
@@ -39,6 +46,11 @@ tester.run('no-single-line-nested-object', rule, {
     // Depth three reports the level under the argument object, since that is the one crowding the call.
     {
       code: 'run({ a: { b: { c: 1 } } })',
+      errors: [{ messageId: 'nested' }],
+    },
+    // A construction argument crowds the same way a call argument does.
+    {
+      code: 'new Thing({ a: { b: 1 } })',
       errors: [{ messageId: 'nested' }],
     },
   ],

@@ -166,7 +166,7 @@ It is independent of the plugin, so a consumer can take either one alone.
 | [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | recommended | |
 | [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
 | [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | recommended | |
-| [no-single-line-nested-object](#no-single-line-nested-object) | Keeps a nested object out of a call argument written on one line | recommended | |
+| [no-single-line-nested-object](#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
 | [no-union-in-parameter-type](#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
 | [object-comments-trailing](#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
 | [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | recommended | |
@@ -603,14 +603,16 @@ const parsed = parse(input)
 
 ### no-single-line-nested-object
 
-Reports an object nested inside a call argument that is written on one line.
-A call argument holding a nested object carries two levels of structure, and on one line the reader has to count braces to see where each level starts.
+Reports an object nested inside a call or construction argument that is written on one line.
+An argument holding a nested object carries two levels of structure, and on one line the reader has to count braces to see where each level starts.
 Putting the outer object's properties on their own lines gives each level its own line.
 
 Examples of **incorrect** code for this rule:
 
 ```js
 createUser({ name: 'Ada', address: { city: 'London' } })
+
+const tester = new RuleTester({ languageOptions: { parser: tsParser } })
 ```
 
 Examples of **correct** code for this rule:

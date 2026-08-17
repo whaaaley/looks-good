@@ -7,7 +7,9 @@ import rule from './max-destructured-parameters.ts'
 RuleTester.describe = describe as never
 RuleTester.it = it as never
 
-const tester = new RuleTester({ languageOptions: { parser: tsParser } })
+const tester = new RuleTester({
+  languageOptions: { parser: tsParser },
+})
 
 tester.run('max-destructured-parameters', rule, {
   valid: [

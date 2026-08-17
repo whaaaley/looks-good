@@ -20,7 +20,7 @@ const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
     docs: {
-      description: 'Keeps a nested object out of a call argument written on one line',
+      description: 'Keeps a nested object out of a call or construction argument written on one line',
       url: docUrl('no-single-line-nested-object'),
     },
     defaultOptions: [defaults],
@@ -35,7 +35,7 @@ const rule: Rule.RuleModule = {
       },
     ],
     messages: {
-      nested: 'This call nests an object inside an argument written on one line. Put the outer object properties on their own lines.',
+      nested: 'This argument nests an object inside an object written on one line. Put the outer object properties on their own lines.',
     },
   },
 
@@ -53,9 +53,12 @@ const rule: Rule.RuleModule = {
         const outer = property.parent
         if (outer.type !== 'ObjectExpression') return
 
-        // The outer object has to be a direct call argument, which is where the crowding happens.
+        // The outer object has to be a direct call or construction argument, which is where the crowding happens.
         const call = outer.parent
-        if (call.type !== 'CallExpression') return
+        if (call.type !== 'CallExpression' && call.type !== 'NewExpression') {
+          return
+        }
+
         if (!call.arguments.includes(outer)) return
         if (!isSingleLine(outer)) return
 

@@ -7,7 +7,9 @@ import rule from './no-union-in-parameter-type.ts'
 RuleTester.describe = describe as never
 RuleTester.it = it as never
 
-const tester = new RuleTester({ languageOptions: { parser: tsParser } })
+const tester = new RuleTester({
+  languageOptions: { parser: tsParser },
+})
 
 tester.run('no-union-in-parameter-type', rule, {
   valid: [
