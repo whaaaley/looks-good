@@ -1,9 +1,18 @@
 {
   "name": "@whaaaley/looks-good",
   "version": "0.1.0",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
     "./eslint-rules": "./src/eslint-rules.ts"
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "tools/",
+      ".claude/",
+      "eslint.config.js"
+    ]
   },
   "compilerOptions": {
     "noImplicitAny": true,
