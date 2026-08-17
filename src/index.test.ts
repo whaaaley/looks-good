@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test'
 import { assert, assertEquals } from '@std/assert'
+import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
 import { plugin } from './index.ts'
@@ -55,12 +56,23 @@ describe('All Plugin Tests', () => {
       assertEquals(plugin.meta?.name, 'looks-good')
     })
 
-    it('exposes every rule it declares', () => {
+    // Deriving the list from disk means a rule written but never registered fails here.
+    it('registers every rule that exists on disk', async () => {
+      // Arrange
+      const directory = fromFileUrl(new URL('./rules', import.meta.url))
+      const onDisk: string[] = []
+
+      for await (const entry of Deno.readDir(directory)) {
+        if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) continue
+
+        onDisk.push(entry.name.replace(/\.ts$/, ''))
+      }
+
       // Act
-      const names = Object.keys(plugin.rules ?? {})
+      const registered = Object.keys(plugin.rules ?? {})
 
       // Assert
-      assertEquals(names, ['comment-content', 'comment-one-sentence-per-line', 'comment-reflow'])
+      assertEquals(registered.sort(), onDisk.sort())
     })
 
     it('gives every rule a description', () => {

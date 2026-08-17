@@ -1,6 +1,7 @@
 import commentContent from './rules/comment-content.ts'
 import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
 import commentReflow from './rules/comment-reflow.ts'
+import noOptionalChainOnIndex from './rules/no-optional-chain-on-index.ts'
 import type { ESLint, Linter } from 'eslint'
 
 // Rules that report and never rewrite.
@@ -8,6 +9,7 @@ import type { ESLint, Linter } from 'eslint'
 const reporting = {
   'comment-content': commentContent,
   'comment-one-sentence-per-line': commentOneSentencePerLine,
+  'no-optional-chain-on-index': noOptionalChainOnIndex,
 }
 
 // Rules that rewrite under --fix.
@@ -38,6 +40,7 @@ export const recommended: Linter.Config = {
     // ---- reporting ----
     'looks-good/comment-content': 'error',
     'looks-good/comment-one-sentence-per-line': 'error',
+    'looks-good/no-optional-chain-on-index': 'error',
 
     // ---- fixing ----
     'looks-good/comment-reflow': 'error',
