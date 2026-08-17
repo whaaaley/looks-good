@@ -23,6 +23,10 @@ The plugin ships two configs, and they differ only in which comment wrapping rul
 Every other rule is enabled in both.
 Pick `fixing` when you want `--fix` to join a wrapped sentence for you.
 
+Most rules are enabled at `error`.
+Two are enabled at `warn`, `comment-content` and `no-ignored-tests`, because they record deferred work rather than a defect.
+A marker comment and a skipped test are both notes about work still to do, so they do not break a build.
+
 ```js
 // eslint.config.js
 import { defineConfig } from 'eslint/config'
@@ -56,17 +60,53 @@ export default defineConfig([
       }],
       // Swap this for 'looks-good/comment-reflow' to have --fix join a wrapped sentence.
       'looks-good/comment-one-sentence-per-line': 'error',
+      'looks-good/describe-group-order': ['error', {
+        sequence: ['create', 'read', 'update', 'list', '*', 'delete'],
+      }],
+      'looks-good/describe-title-pattern': ['error', {
+        patterns: [
+          { files: '**/*.test.ts', title: 'All * Tests' },
+        ],
+      }],
+      'looks-good/max-timeout-value': ['error', { max: 5000 }],
+      'looks-good/no-database-access-in-tests': 'error',
       'looks-good/no-emoji': 'error',
+      'looks-good/no-ignored-tests': 'warn',
       'looks-good/no-optional-chain-on-index': 'error',
       'looks-good/no-restricted-characters': ['error', {
         restrict: [
           { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.' },
         ],
       }],
+      'looks-good/require-file-calls': ['error', {
+        patterns: [
+          { id: 'router-registers', files: '*.router.ts', require: [{ call: 'router' }], message: 'A router file builds its router with router().' },
+        ],
+      }],
+      'looks-good/test-arrange-act-assert': 'error',
     },
   },
 ])
 ```
+
+## The eslint rule set
+
+`src/eslint-rules.ts` holds the eslint, import, and typescript-eslint rules this project considers correct, separately from the plugin.
+Its default export has a `recommended` property, which is a list of flat configs rather than a single one, so it is spread rather than listed.
+
+```js
+// eslint.config.js
+import eslintRules from '@whaaaley/looks-good/src/eslint-rules.ts'
+import looksGood from '@whaaaley/looks-good'
+
+export default [
+  ...eslintRules.recommended,
+  looksGood.configs.recommended,
+]
+```
+
+It covers `@eslint/js` recommended, the `import-x` rules including a configured `import-x/order`, and the `typescript-eslint` strict set.
+It is independent of the plugin, so a consumer can take either one alone.
 
 ## Rules
 
