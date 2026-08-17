@@ -61,8 +61,11 @@ describe('All Commit Message Tests', () => {
       // Arrange
       const subject = `feat: ${'x'.repeat(80)}`
 
+      // Act
+      const broken = rulesFor(subject)
+
       // Assert
-      assertEquals(rulesFor(subject), ['length'])
+      assertEquals(broken, ['length'])
     })
   })
 

@@ -92,6 +92,7 @@ const looksGoodConfig = [
           { chars: '…', message: 'Write three dots instead.' },
         ],
       }],
+      'looks-good/test-arrange-act-assert': 'error',
 
       // ---- fixing, rewrites under --fix ----
       'looks-good/comment-reflow': 'error',

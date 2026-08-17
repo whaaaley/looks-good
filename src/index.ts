@@ -4,6 +4,7 @@ import commentReflow from './rules/comment-reflow.ts'
 import noEmoji from './rules/no-emoji.ts'
 import noOptionalChainOnIndex from './rules/no-optional-chain-on-index.ts'
 import noRestrictedCharacters from './rules/no-restricted-characters.ts'
+import testArrangeActAssert from './rules/test-arrange-act-assert.ts'
 import type { ESLint, Linter } from 'eslint'
 
 // Rules that report and never rewrite.
@@ -14,6 +15,7 @@ const reporting = {
   'no-emoji': noEmoji,
   'no-optional-chain-on-index': noOptionalChainOnIndex,
   'no-restricted-characters': noRestrictedCharacters,
+  'test-arrange-act-assert': testArrangeActAssert,
 }
 
 // Rules that rewrite under --fix.
@@ -47,6 +49,7 @@ export const recommended: Linter.Config = {
     'looks-good/no-emoji': 'error',
     'looks-good/no-optional-chain-on-index': 'error',
     'looks-good/no-restricted-characters': 'error',
+    'looks-good/test-arrange-act-assert': 'error',
 
     // ---- fixing ----
     'looks-good/comment-reflow': 'error',
