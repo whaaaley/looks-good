@@ -9,6 +9,8 @@ ESLint rules for conventions nothing else enforces.
 - [Result Helper](https://github.com/whaaaley/looks-good/blob/main/docs/result-helper.md) - the `safe` and `safeAsync` source, and enabling `no-try-catch-handler` against it
 - [ESLint Rule Set](https://github.com/whaaaley/looks-good/blob/main/docs/eslint-rules.md) - the curated eslint, import, and typescript-eslint rules shipped as `./eslint-rules`
 
+## Rules
+
 The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
 
 | Rule | Description | Config | Fixable |
@@ -44,6 +46,17 @@ It exports the plugin from `.` and the separate eslint rule set from `./eslint-r
 The plugin is consumed through a flat config.
 It is developed and tested against ESLint 10.8.1, and no earlier version has been tested.
 Legacy `.eslintrc` is not supported.
+
+## Runtimes
+
+Verified on Node 24.19.0, Node 26.7.0, and Bun 1.3.14, with all 431 tests passing under each.
+
+Run `deno task runtimes` to reproduce it.
+The sources are copied to a temporary directory, the dependencies are installed there as npm packages, and the suite runs under each runtime.
+Nothing is written inside the repository, because a `package.json` beside `deno.json` switches Deno to node-modules resolution and breaks `deno check`.
+
+The count covers `src/utils/` and `src/rules/`, which is every rule and every helper.
+It leaves out `src/index.test.ts`, which walks the docs with `Deno.readDir` to check each rule is documented and is a repository check rather than a test of the plugin.
 
 ## Usage
 
@@ -88,7 +101,3 @@ The `post-commit` and `post-rewrite` hooks both run `deno task uncommitted`.
 It reports when the working tree holds 12 or more changed files, or 400 or more changed lines counting insertions and deletions together.
 Either threshold alone trips the warning, and reaching both names them together.
 The warning names what is uncommitted and says to split the remaining work into focused commits before starting anything new.
-
-## License
-
-MIT
