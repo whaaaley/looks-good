@@ -1,14 +1,17 @@
 import eslintRules from './src/eslint-rules.ts'
-import { fixing } from './src/index.ts'
+import { recommended } from './src/index.ts'
 
-// This repository lints itself with the two configs it ships.
-// eslintRules holds the eslint recommended set, and fixing holds every rule written here.
+// This repository lints itself with the configs it ships.
+// eslintRules holds the eslint recommended set, and recommended holds every rule written here.
 
 // The rules that take patterns report nothing until this project supplies its own.
 const looksGoodRules = [
-  fixing,
+  recommended,
+  // comment-reflow rewrites the wrap that comment-one-sentence-per-line only reports.
   {
     rules: {
+      'looks-good/comment-one-sentence-per-line': 0,
+      'looks-good/comment-reflow': 'error',
       'looks-good/comment-content': ['error', {
         forbid: [
           { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },

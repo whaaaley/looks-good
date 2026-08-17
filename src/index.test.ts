@@ -3,7 +3,7 @@ import { assert, assertEquals } from '@std/assert'
 import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
-import { fixing, plugin, recommended, typescript } from './index.ts'
+import { plugin, recommended, typescript } from './index.ts'
 
 const linter = new Linter()
 
@@ -102,16 +102,16 @@ describe('All Plugin Tests', () => {
   describe('shipped configs', () => {
     it('exposes every config on the plugin', () => {
       // Assert
-      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['fixing', 'recommended', 'typescript'])
+      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['recommended', 'typescript'])
     })
 
     // A rule that reads TypeScript nodes can never fire under the default parser.
-    it('keeps the typescript only rules out of recommended and fixing', () => {
+    it('keeps the typescript only rules out of recommended', () => {
       // Arrange
       const tsOnly = Object.keys(typescript.rules ?? {})
 
       // Act
-      const leaked = tsOnly.filter((name) => name in (recommended.rules ?? {}) || name in (fixing.rules ?? {}))
+      const leaked = tsOnly.filter((name) => name in (recommended.rules ?? {}))
 
       // Assert
       assertEquals(leaked, [])
@@ -123,32 +123,30 @@ describe('All Plugin Tests', () => {
     })
 
     // Both enabled would report one wrapped sentence twice, once per rule.
-    it('enables exactly one of the two comment wrapping rules per config', () => {
+    it('enables exactly one of the two comment wrapping rules', () => {
       // Arrange
       const wrapping = ['looks-good/comment-one-sentence-per-line', 'looks-good/comment-reflow']
 
       // Act
       const inRecommended = wrapping.filter((name) => name in (recommended.rules ?? {}))
-      const inFixing = wrapping.filter((name) => name in (fixing.rules ?? {}))
 
       // Assert
       assertEquals(inRecommended, ['looks-good/comment-one-sentence-per-line'])
-      assertEquals(inFixing, ['looks-good/comment-reflow'])
     })
 
-    it('enables every registered rule across all three configs', () => {
+    // comment-reflow is the one rule a consumer opts into, since it replaces its reporting sibling.
+    it('enables every registered rule except the wrapping fixer', () => {
       // Arrange
       const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
 
       // Act
       const enabled = new Set([
         ...Object.keys(recommended.rules ?? {}),
-        ...Object.keys(fixing.rules ?? {}),
         ...Object.keys(typescript.rules ?? {}),
       ])
 
       // Assert
-      assertEquals(registered.filter((name) => !enabled.has(name)), [])
+      assertEquals(registered.filter((name) => !enabled.has(name)), ['looks-good/comment-reflow'])
     })
   })
 

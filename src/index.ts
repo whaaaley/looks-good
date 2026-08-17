@@ -9,6 +9,7 @@ import maxSingleLineStatementLength from './rules/max-single-line-statement-leng
 import noEmoji from './rules/no-emoji.ts'
 import noIgnoredTests from './rules/no-ignored-tests.ts'
 import noRestrictedCharacters from './rules/no-restricted-characters.ts'
+import noSingleLineNestedObject from './rules/no-single-line-nested-object.ts'
 import noUnionInParameterType from './rules/no-union-in-parameter-type.ts'
 import objectCommentsTrailing from './rules/object-comments-trailing.ts'
 import requireFileCalls from './rules/require-file-calls.ts'
@@ -26,6 +27,7 @@ const reporting = {
   'no-emoji': noEmoji,
   'no-ignored-tests': noIgnoredTests,
   'no-restricted-characters': noRestrictedCharacters,
+  'no-single-line-nested-object': noSingleLineNestedObject,
   'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
   'require-file-calls': requireFileCalls,
@@ -68,37 +70,23 @@ const errors = {
   'looks-good/max-single-line-statement-length': 'error',
   'looks-good/no-emoji': 'error',
   'looks-good/no-restricted-characters': 'error',
+  'looks-good/no-single-line-nested-object': 'error',
   'looks-good/object-comments-trailing': 'error',
   'looks-good/require-file-calls': 'error',
   'looks-good/test-arrange-act-assert': 'error',
 } as const
 
-const sharedRules = {
-  ...warnings,
-  ...errors,
-} as const
-
 // A consumer spreads this into a flat config, and every rule reads as looks-good/<name>.
-// comment-one-sentence-per-line reports the wrapped sentence rather than rewriting it.
+// comment-reflow is left off because it and comment-one-sentence-per-line report the same wrap.
+// Turn this one off and that one on to rewrite a wrapped sentence under --fix instead.
 export const recommended: Linter.Config = {
   plugins: {
     'looks-good': plugin,
   },
   rules: {
-    ...sharedRules,
+    ...warnings,
+    ...errors,
     'looks-good/comment-one-sentence-per-line': 'error',
-  },
-}
-
-// The same set, with comment-reflow standing in for comment-one-sentence-per-line.
-// Enabling both would report one wrapped sentence twice.
-export const fixing: Linter.Config = {
-  plugins: {
-    'looks-good': plugin,
-  },
-  rules: {
-    ...sharedRules,
-    'looks-good/comment-reflow': 'error',
   },
 }
 
@@ -116,7 +104,6 @@ export const typescript: Linter.Config = {
 
 plugin.configs = {
   recommended,
-  fixing,
   typescript,
 }
 
