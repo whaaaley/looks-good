@@ -33,6 +33,11 @@ export default defineConfig([
       'looks-good/comment-reflow': 'error',
       'looks-good/no-emoji': 'error',
       'looks-good/no-optional-chain-on-index': 'error',
+      'looks-good/no-restricted-characters': ['error', {
+        restrict: [
+          { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.' },
+        ],
+      }],
     },
   },
 ])
@@ -42,13 +47,15 @@ export default defineConfig([
 
 | Rule | Description | Fixable |
 | --- | --- | --- |
-| [comment-content](#comment-content) | Reports comments matching a pattern you configure | |
-| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | Reports a comment sentence that wraps, a line with two sentences, or a comment past a length | |
-| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps, and splits a line with two sentences | yes |
+| [comment-content](#comment-content) | Forbids comment text a project does not want left in source | |
+| [comment-one-sentence-per-line](#comment-one-sentence-per-line) | A comment sentence fits on one line and a line holds one sentence | |
+| [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps onto the next line | yes |
 | [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | |
-| [no-optional-chain-on-index](#no-optional-chain-on-index) | Reports `?.` used on an indexed access | |
+| [no-optional-chain-on-index](#no-optional-chain-on-index) | Forbids optional chaining on an indexed access | |
+| [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | |
+| [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | |
 
-`comment-reflow` and `comment-one-sentence-per-line` catch the same problems.
+`comment-reflow` and `comment-one-sentence-per-line` both catch a sentence that wraps onto the next line.
 The first rewrites, the second reports.
 Enable one or the other.
 
@@ -83,7 +90,7 @@ const first = items.at(0)
 
 ### comment-one-sentence-per-line
 
-Reports a comment sentence that wraps to the next line, a line holding two sentences, and a comment past `maxLength`.
+Reports a comment sentence that wraps to the next line, and a comment past `maxLength`.
 
 Examples of **incorrect** code for this rule:
 
@@ -91,9 +98,6 @@ Examples of **incorrect** code for this rule:
 // This sentence continues
 // onto the next line.
 const a = 1
-
-// First sentence. Second sentence.
-const b = 2
 ```
 
 Examples of **correct** code for this rule:
@@ -101,10 +105,6 @@ Examples of **correct** code for this rule:
 ```js
 // This sentence fits on one line.
 const a = 1
-
-// First sentence.
-// Second sentence.
-const b = 2
 ```
 
 #### Options
@@ -118,7 +118,7 @@ const b = 2
 
 ### comment-reflow
 
-Joins a comment sentence that wraps to the next line, and splits a line holding two sentences.
+Joins a comment sentence that wraps onto the next line.
 
 Examples of **incorrect** code for this rule:
 
@@ -139,6 +139,7 @@ const a = 1
 
 | Option | Default | Description |
 | --- | --- | --- |
+| `maxLength` | `120` | The longest a joined comment may run. Two lines that would join past it are reported without a fix. |
 | `allowUrls` | `true` | Exempts a line ending in a url. |
 | `allowIdentifiers` | `true` | Exempts a line ending in a symbol. |
 | `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
@@ -196,6 +197,97 @@ if (!first) return ''
 
 const name = first.name
 ```
+
+### no-restricted-characters
+
+Reports characters a project does not want in source.
+
+Examples of **incorrect** code for this rule:
+
+```js
+/* eslint looks-good/no-restricted-characters: ["error", { restrict: [{ chars: "—–", message: "Start a new sentence rather than joining clauses with a dash." }] }] */
+
+// The parser reads the header — then the body.
+const parsed = parse(input)
+```
+
+Examples of **correct** code for this rule:
+
+```js
+/* eslint looks-good/no-restricted-characters: ["error", { restrict: [{ chars: "—–", message: "Start a new sentence rather than joining clauses with a dash." }] }] */
+
+// The parser reads the header.
+// Then it reads the body.
+const parsed = parse(input)
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `restrict` | `[]` | A list of `{ chars, message }`. Every character in `chars` is matched literally, and `message` is reported alongside the character found. |
+| `allow` | `[]` | Characters that are permitted anywhere, even when a restriction lists them. |
+| `strings` | `true` | Reports restricted characters in string literals and template strings. |
+| `comments` | `true` | Reports restricted characters in comments. |
+| `identifiers` | `true` | Reports restricted characters in identifiers. |
+
+### test-arrange-act-assert
+
+Requires every test body to be labelled with `// Arrange`, `// Act`, and `// Assert` comments.
+Act and Assert are required, Arrange is optional, and the labels that are present must appear in that order.
+
+Examples of **incorrect** code for this rule:
+
+```js
+it('adds two numbers', () => {
+  const total = add(1, 2)
+  assertEquals(total, 3)
+})
+
+it('adds two numbers', () => {
+  // Assert
+  const expected = 3
+
+  // Act
+  assertEquals(add(1, 2), expected)
+})
+```
+
+Examples of **correct** code for this rule:
+
+```js
+it('adds two numbers', () => {
+  // Arrange
+  const a = 1
+  const b = 2
+
+  // Act
+  const total = add(a, b)
+
+  // Assert
+  assertEquals(total, 3)
+})
+
+it('adds two numbers', () => {
+  // Act
+  const total = add(1, 2)
+
+  // Assert
+  assertEquals(total, 3)
+})
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `require` | `['Act', 'Assert']` | The labels a test body must carry. |
+| `order` | `['Arrange', 'Act', 'Assert']` | The order the labels that are present must appear in. |
+| `testFunctions` | `['it', 'test']` | The calls whose last function argument is a test body. A call written as `it.only` or `test.skip` counts as its base name. |
+| `allowTitles` | `[]` | Regex source strings. A test whose title matches any of them is exempt. |
+| `minStatements` | `2` | A body with fewer statements than this is exempt, since a one line test needs no structure. |
+
+Only a line comment whose whole text is a label counts, so prose such as `// Act on the parsed input.` is left alone.
 
 ## License
 
