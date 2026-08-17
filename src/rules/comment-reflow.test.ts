@@ -12,6 +12,8 @@ tester.run('comment-reflow', rule, {
   valid: [
     { code: '// A single finished sentence.\nconst a = 1' },
     { code: '// First sentence.\n// Second sentence.\nconst a = 1' },
+    // Two sentences on one line are fine, since the line does not wrap.
+    { code: '// First sentence. Second sentence.\nconst a = 1' },
     { code: 'const a = 1 // A trailing comment.' },
     // Two trailing comments annotate their own lines rather than continuing each other.
     { code: "const a = [\n  'x', // the first\n  'y', // the second\n]" },
@@ -36,15 +38,23 @@ tester.run('comment-reflow', rule, {
     { code: `// ${'x'.repeat(200)}\nconst a = 1` },
   ],
   invalid: [
+    // Joining these would run past the limit, so it reports without rewriting.
+    {
+      code: `// ${'x'.repeat(80)}\n// ${'y'.repeat(80)}.\nconst a = 1`,
+      output: null,
+      errors: [{ messageId: 'tooLongToJoin' }],
+    },
+    // A shorter pair joins as usual.
+    {
+      code: '// A short start\n// and a short end.\nconst a = 1',
+      output: '// A short start and a short end.\nconst a = 1',
+      options: [{ maxLength: 60 }],
+      errors: [{ messageId: 'join' }],
+    },
     {
       code: '// A sentence that runs on\n// and finishes here.\nconst a = 1',
       output: '// A sentence that runs on and finishes here.\nconst a = 1',
       errors: [{ messageId: 'join' }],
-    },
-    {
-      code: '// First sentence. Second sentence.\nconst a = 1',
-      output: '// First sentence.\n// Second sentence.\nconst a = 1',
-      errors: [{ messageId: 'split' }],
     },
     {
       code: '// See https://example.com/path\n// A following note.\nconst a = 1',
@@ -63,12 +73,6 @@ tester.run('comment-reflow', rule, {
       output: '// Arrange the fixture then act on it.\nconst a = 1',
       options: [{ allowLabels: [] }],
       errors: [{ messageId: 'join' }],
-    },
-    // An indented comment keeps its indentation when it splits.
-    {
-      code: 'function a() {\n  // First. Second.\n}',
-      output: 'function a() {\n  // First.\n  // Second.\n}',
-      errors: [{ messageId: 'split' }],
     },
   ],
 })

@@ -40,7 +40,8 @@ const broken = [
   '// and finishes on the next line.',
   'export const a = 1',
   '',
-  '// First sentence. Second sentence.',
+  '// Another sentence that carries',
+  '// on to a second line.',
   'export const b = 2',
 ].join('\n')
 
@@ -115,12 +116,12 @@ describe('All Plugin Tests', () => {
       assertEquals(first.ruleId, 'looks-good/comment-one-sentence-per-line')
     })
 
-    it('reports a wrapped sentence and a doubled line', () => {
+    it('reports each wrapped sentence it holds', () => {
       // Act
       const reported = lint(broken).map((message) => message.messageId)
 
       // Assert
-      assertEquals(reported, ['wrapped', 'twoSentences'])
+      assertEquals(reported, ['wrapped', 'wrapped'])
     })
 
     // Reflow moves text without rewriting it, so it is the rule that carries a fixer.

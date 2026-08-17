@@ -8,9 +8,6 @@ const defaults = {
   allowLabels: ['Arrange', 'Act', 'Assert'],
 }
 
-// A second sentence hides behind the first when a reader scans the line.
-const twoSentences = /^(.*?[.!?])\s+(\S.*[.!?])\s*$/
-
 const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
@@ -32,8 +29,7 @@ const rule: Rule.RuleModule = {
       },
     ],
     messages: {
-      wrapped: 'This sentence continues onto the next comment line. Rewrite it to fit within {{maxLength}} characters, or cut it.',
-      twoSentences: 'This line holds two sentences. Split it into two comment lines, or cut one.',
+      wrapped: 'This sentence continues onto the next comment line. Rewrite it to fit on one line, or cut it.',
       tooLong: 'This comment runs to {{length}} characters, past the {{maxLength}} configured. Shorten the sentence rather than wrapping it.',
     },
   },
@@ -60,16 +56,6 @@ const rule: Rule.RuleModule = {
             return
           }
 
-          const split = twoSentences.exec(text)
-
-          if (split) {
-            context.report({
-              loc: { line: comment.line, column: 0 },
-              messageId: 'twoSentences',
-            })
-
-            return
-          }
 
           const [next] = comments.slice(index + 1)
           if (!next) return
@@ -84,7 +70,6 @@ const rule: Rule.RuleModule = {
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'wrapped',
-            data: { maxLength: String(options.maxLength) },
           })
         })
       },

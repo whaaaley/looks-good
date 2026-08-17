@@ -12,6 +12,8 @@ tester.run('comment-one-sentence-per-line', rule, {
   valid: [
     { code: '// A single finished sentence.\nconst a = 1' },
     { code: '// First sentence.\n// Second sentence.\nconst a = 1' },
+    // Two sentences on one line are fine, since the line does not wrap.
+    { code: '// First sentence. Second sentence.\nconst a = 1' },
     { code: 'const a = 1 // A trailing comment.' },
     // Two trailing comments annotate their own lines rather than continuing each other.
     { code: "const a = [\n  'x', // the first\n  'y', // the second\n]" },
@@ -41,10 +43,6 @@ tester.run('comment-one-sentence-per-line', rule, {
     {
       code: '// A sentence that runs on\n// and finishes here.\nconst a = 1',
       errors: [{ messageId: 'wrapped' }],
-    },
-    {
-      code: '// First sentence. Second sentence.\nconst a = 1',
-      errors: [{ messageId: 'twoSentences' }],
     },
     {
       code: `// ${'x'.repeat(60)}\nconst a = 1`,

@@ -1,36 +1,27 @@
 import { isAdjacent, looksUnfinished, readLineComments, startsWithLabel } from '../utils/comment.utils.ts'
-import type { Rule, SourceCode } from 'eslint'
-import type { Comment } from 'estree'
+import type { Rule } from 'eslint'
 
 const defaults = {
+  maxLength: 120,
   allowUrls: true,
   allowIdentifiers: true,
   allowLabels: ['Arrange', 'Act', 'Assert'],
-}
-
-// A line holding two sentences splits at the boundary between them.
-const twoSentences = /^(.*?[.!?])\s+(\S.*[.!?])\s*$/
-
-const indentOf = (source: SourceCode, comment: Comment): string => {
-  const [line] = source.lines.slice((comment.loc?.start.line ?? 1) - 1)
-  const [indent] = /^\s*/.exec(line ?? '') ?? ['']
-
-  return indent
 }
 
 const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
     docs: {
-      description: 'Joins a wrapped comment sentence and splits a line holding two',
+      description: 'Joins a comment sentence that wraps onto the next line',
     },
-    // Both transformations move text without rewriting it, so both are safe to apply.
+    // Joining moves text without rewriting it, so the fix is safe to apply.
     fixable: 'whitespace',
     schema: [
       {
         type: 'object',
         additionalProperties: false,
         properties: {
+          maxLength: { type: 'integer', minimum: 1 },
           allowUrls: { type: 'boolean' },
           allowIdentifiers: { type: 'boolean' },
           allowLabels: { type: 'array', items: { type: 'string' } },
@@ -39,13 +30,12 @@ const rule: Rule.RuleModule = {
     ],
     messages: {
       join: 'This sentence continues on the next line, so the two lines join into one',
-      split: 'This line holds two sentences, so it splits into two lines',
+      tooLongToJoin: 'This sentence continues on the next line, but joining them would run past {{maxLength}} characters',
     },
   },
 
   create(context): Rule.RuleListener {
     const options = { ...defaults, ...context.options[0] }
-    const source = context.sourceCode
 
     return {
       'Program:exit': (): void => {
@@ -55,23 +45,6 @@ const rule: Rule.RuleModule = {
           const text = comment.text
           if (startsWithLabel(text, options.allowLabels)) return
 
-          const split = twoSentences.exec(text)
-
-          if (split) {
-            const [, first, second] = split
-
-            context.report({
-              loc: { line: comment.line, column: 0 },
-              messageId: 'split',
-              fix: (fixer) => {
-                const indent = indentOf(source, comment.node)
-
-                return fixer.replaceText(comment.node, `// ${first}\n${indent}// ${second}`)
-              },
-            })
-
-            return
-          }
 
           const [next] = comments.slice(index + 1)
           if (!next) return
@@ -83,10 +56,23 @@ const rule: Rule.RuleModule = {
           if (startsWithLabel(next.text, options.allowLabels)) return
           if (!looksUnfinished(text, options)) return
 
+          const joined = `${text} ${next.text}`
+
+          // Joining past the limit trades a wrapped sentence for one the other rule reports.
+          if (joined.length > options.maxLength) {
+            context.report({
+              loc: { line: comment.line, column: 0 },
+              messageId: 'tooLongToJoin',
+              data: { maxLength: String(options.maxLength) },
+            })
+
+            return
+          }
+
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'join',
-            fix: (fixer) => fixer.replaceTextRange([comment.range[0], next.range[1]], `// ${text} ${next.text}`),
+            fix: (fixer) => fixer.replaceTextRange([comment.range[0], next.range[1]], `// ${joined}`),
           })
         })
       },

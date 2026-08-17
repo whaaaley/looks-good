@@ -86,6 +86,12 @@ const looksGoodConfig = [
       'looks-good/comment-one-sentence-per-line': 'error',
       'looks-good/no-emoji': 'error',
       'looks-good/no-optional-chain-on-index': 'error',
+      'looks-good/no-restricted-characters': ['error', {
+        restrict: [
+          { chars: '—–', message: 'Start a new sentence rather than joining clauses with a dash.' },
+          { chars: '…', message: 'Write three dots instead.' },
+        ],
+      }],
 
       // ---- fixing, rewrites under --fix ----
       'looks-good/comment-reflow': 'error',
@@ -95,13 +101,24 @@ const looksGoodConfig = [
 
 // A rule test wires RuleTester's static hooks to node:test, which its types do not model.
 // A lint config array is likewise typed more narrowly than the Linter accepts at runtime.
+// A file that declares which characters are restricted has to contain them.
+const selfConfig = [
+  {
+    files: ['eslint.config.js'],
+    rules: {
+      'looks-good/no-restricted-characters': 0,
+    },
+  },
+]
+
 const testConfig = [
   {
     files: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': 0,
-      // A rule about emoji needs emoji in its own fixtures.
+      // A rule about characters needs those characters in its own fixtures.
       'looks-good/no-emoji': 0,
+      'looks-good/no-restricted-characters': 0,
     },
   },
 ]
@@ -111,6 +128,7 @@ export default [
   ...importConfig,
   ...typeScriptConfig,
   ...looksGoodConfig,
+  ...selfConfig,
   ...testConfig,
   {
     ignores: ['coverage/', 'node_modules/', 'fixtures/'],

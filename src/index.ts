@@ -3,6 +3,7 @@ import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
 import commentReflow from './rules/comment-reflow.ts'
 import noEmoji from './rules/no-emoji.ts'
 import noOptionalChainOnIndex from './rules/no-optional-chain-on-index.ts'
+import noRestrictedCharacters from './rules/no-restricted-characters.ts'
 import type { ESLint, Linter } from 'eslint'
 
 // Rules that report and never rewrite.
@@ -12,6 +13,7 @@ const reporting = {
   'comment-one-sentence-per-line': commentOneSentencePerLine,
   'no-emoji': noEmoji,
   'no-optional-chain-on-index': noOptionalChainOnIndex,
+  'no-restricted-characters': noRestrictedCharacters,
 }
 
 // Rules that rewrite under --fix.
@@ -44,6 +46,7 @@ export const recommended: Linter.Config = {
     'looks-good/comment-one-sentence-per-line': 'error',
     'looks-good/no-emoji': 'error',
     'looks-good/no-optional-chain-on-index': 'error',
+    'looks-good/no-restricted-characters': 'error',
 
     // ---- fixing ----
     'looks-good/comment-reflow': 'error',
