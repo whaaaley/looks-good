@@ -77,6 +77,12 @@ const looksGoodConfig = [
     },
     rules: {
       // ---- reporting, never rewrites ----
+      'looks-good/comment-content': ['error', {
+        forbid: [
+          { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks' },
+        ],
+        forbidBlockComments: true,
+      }],
       'looks-good/comment-one-sentence-per-line': 'error',
 
       // ---- fixing, rewrites under --fix ----

@@ -1,3 +1,4 @@
+import commentContent from './rules/comment-content.ts'
 import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
 import commentReflow from './rules/comment-reflow.ts'
 import type { ESLint, Linter } from 'eslint'
@@ -5,6 +6,7 @@ import type { ESLint, Linter } from 'eslint'
 // Rules that report and never rewrite.
 // A violation here needs a person or an agent to decide what the text should say.
 const reporting = {
+  'comment-content': commentContent,
   'comment-one-sentence-per-line': commentOneSentencePerLine,
 }
 
@@ -34,6 +36,7 @@ export const recommended: Linter.Config = {
   },
   rules: {
     // ---- reporting ----
+    'looks-good/comment-content': 'error',
     'looks-good/comment-one-sentence-per-line': 'error',
 
     // ---- fixing ----

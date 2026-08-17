@@ -7,6 +7,7 @@ export type CommentLine = {
   node: Comment
   range: [number, number]
   trailing: boolean
+  block: boolean
 }
 
 export type ExemptionOptions = {
@@ -49,6 +50,27 @@ export const readLineComments = (context: Rule.RuleContext): CommentLine[] => {
       node: comment,
       range: comment.range,
       trailing: hasCodeBefore(context, comment),
+      block: false,
+    })
+  }
+
+  return collected
+}
+
+// Reads every comment, block ones included, for checks that inspect text rather than flow.
+export const readComments = (context: Rule.RuleContext): CommentLine[] => {
+  const collected: CommentLine[] = []
+
+  for (const comment of context.sourceCode.getAllComments()) {
+    if (!comment.loc || !comment.range) continue
+
+    collected.push({
+      text: comment.value.trim(),
+      line: comment.loc.start.line,
+      node: comment,
+      range: comment.range,
+      trailing: hasCodeBefore(context, comment),
+      block: !isLineComment(comment),
     })
   }
 

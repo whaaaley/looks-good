@@ -9,6 +9,7 @@ const at = (line: number): CommentLine => ({
   node: { type: 'Line', value: 'text' },
   range: [0, 0],
   trailing: false,
+  block: false,
 })
 
 const options = {

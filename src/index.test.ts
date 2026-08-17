@@ -60,7 +60,7 @@ describe('All Plugin Tests', () => {
       const names = Object.keys(plugin.rules ?? {})
 
       // Assert
-      assertEquals(names, ['comment-one-sentence-per-line', 'comment-reflow'])
+      assertEquals(names, ['comment-content', 'comment-one-sentence-per-line', 'comment-reflow'])
     })
 
     it('gives every rule a description', () => {
