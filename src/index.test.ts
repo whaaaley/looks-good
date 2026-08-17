@@ -175,6 +175,5 @@ describe('All Plugin Tests', () => {
       assert(fixed.fixed)
       assertEquals(lint(fixed.output), [])
     })
-
   })
 })

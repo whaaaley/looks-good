@@ -77,9 +77,13 @@ export default defineConfig([
 | [comment-reflow](#comment-reflow) | Joins a comment sentence that wraps onto the next line | yes |
 | [describe-group-order](#describe-group-order) | Requires sibling describe groups to appear in a configured order | |
 | [describe-title-pattern](#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | |
+| [max-timeout-value](#max-timeout-value) | Reports a named constant holding a number above a budget | |
 | [no-emoji](#no-emoji) | Reports emoji in code, comments, and identifiers | |
+| [no-ignored-tests](#no-ignored-tests) | Reports a skipped or ignored test | |
 | [no-optional-chain-on-index](#no-optional-chain-on-index) | Forbids optional chaining on an indexed access | |
 | [no-restricted-characters](#no-restricted-characters) | Reports characters a project does not want in source | |
+| [no-restricted-method-calls](#no-restricted-method-calls) | Reports a method call on an object a project does not want called directly | |
+| [require-file-calls](#require-file-calls) | Requires a file to contain the calls its path or contents call for | |
 | [test-arrange-act-assert](#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | |
 
 `comment-reflow` and `comment-one-sentence-per-line` both catch a sentence that wraps onto the next line.
@@ -265,6 +269,36 @@ A `title` is literal apart from `*`, which stands for any run of characters, and
 So `All * Tests` matches `All Event Tests` and not `Event Tests`, and every other character matches itself rather than as regex.
 Only the outermost describe is checked, so a nested one carries no title requirement of its own.
 
+### max-timeout-value
+
+Reports a named constant holding a number above a budget.
+The motivating case is a spec timeout that waits out a product delay rather than asserting against it.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const TIMEOUT = 30000
+let SUCCESS_TIMEOUT_MS = 15_000
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const TIMEOUT = 5000
+const RETRIES = 20000
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `namePattern` | `'TIMEOUT'` | A substring matched against the declared name without regard to case. |
+| `max` | `5000` | The largest allowed value. The bound is inclusive, so a value equal to it passes. |
+| `message` | | Optional prose appended to the report. |
+
+Only a variable declared with an identifier name and a numeric literal initializer is checked, so a computed value is left alone.
+A number written with underscore separators such as `30_000` is normalized by the parser and reads as `30000`.
+
 ### no-emoji
 
 Reports emoji in code, comments, and identifiers.
@@ -297,6 +331,41 @@ const ship = true
 | `identifiers` | `true` | Reports emoji in identifiers. |
 
 A skin tone modifier, a zero width joiner run, and a regional indicator pair each count as one emoji, so `allow` takes the whole sequence.
+
+### no-ignored-tests
+
+Reports a skipped or ignored test.
+A skipped test proves nothing, and in a security suite it means a gate that does not exist.
+
+Examples of **incorrect** code for this rule:
+
+```js
+it.ignore('rejects an outsider', () => {})
+describe.skip('delete', () => {})
+test.todo('rejects an unsafe scheme', () => {})
+xit('rejects an outsider', () => {})
+```
+
+Examples of **correct** code for this rule:
+
+```js
+it('rejects an outsider', () => {
+  // Act
+  const result = call(outsider)
+
+  // Assert
+  assertForbidden(result)
+})
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `modifiers` | `['ignore', 'skip', 'todo', 'failing']` | The member names that mark a test as not running. |
+| `testFunctions` | `['it', 'test', 'describe']` | The functions these modifiers attach to. |
+
+A bare identifier written as `x` followed by a configured test function name counts too, so `xit`, `xtest`, and `xdescribe` are reported.
 
 ### no-optional-chain-on-index
 
@@ -351,6 +420,121 @@ const parsed = parse(input)
 | `strings` | `true` | Reports restricted characters in string literals and template strings. |
 | `comments` | `true` | Reports restricted characters in comments. |
 | `identifiers` | `true` | Reports restricted characters in identifiers. |
+
+### no-restricted-method-calls
+
+Reports a method call on a receiver you name, such as a test file reaching past its router into the database.
+Nothing in the rule knows what any of these names mean, so the receivers and methods are entirely configuration.
+A call matches when the object of a non-computed member expression is one of `receivers` and the property is one of `methods`.
+A computed access such as `db['insert']()` is not matched, since the property there is an expression rather than a name.
+
+Examples of **incorrect** code for this rule:
+
+```js
+/* eslint looks-good/no-restricted-method-calls: ["error", { restrict: [{ receivers: ["db", "tx"], methods: ["insert", "select"], message: "Call the router rather than reaching past it." }] }] */
+
+const rows = db.select()
+```
+
+Examples of **correct** code for this rule:
+
+```js
+/* eslint looks-good/no-restricted-method-calls: ["error", { restrict: [{ receivers: ["db", "tx"], methods: ["insert", "select"], message: "Call the router rather than reaching past it." }] }] */
+
+const rows = await router.list()
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `restrict` | `[]` | A list of `{ receivers, methods, message, ignoreCase }`. `receivers` are identifier names matched against the object, `methods` are property names matched against the property, and `message` is reported when both match. `ignoreCase` defaults to `true`, since `DB.insert()` is the same mistake as `db.insert()`. |
+| `allow` | `[]` | Receiver names exempt from every restriction, so a specific handle can be permitted. |
+
+### require-file-calls
+
+Reports when a file does not contain the calls its path or contents require.
+This replaces a structural test that asserts a file of some kind must contain some call, where the fix is always to write the missing call.
+There is no call site to disable, so the rule reports at the top of the file and carries the entry `id` in the message.
+
+An entry applies when its `files` glob matches the linted path, or always when it has no `files`.
+`when.references` narrows it further to files that mention an identifier, and `when.found` narrows it to files where a named earlier entry was satisfied.
+Every matcher in `require` must be satisfied and at least one in `requireAny` must be.
+A `when.found` naming an entry that does not exist is reported as a configuration error rather than silently doing nothing.
+
+Examples of **incorrect** code for this rule:
+
+```js
+/* eslint looks-good/require-file-calls: ["error", { patterns: [{ id: "router-registers", files: "*.router.ts", require: [{ call: "router" }], message: "A router file builds its router with router()." }] }] */
+
+// event.router.ts
+export const eventRouter = {}
+```
+
+Examples of **correct** code for this rule:
+
+```js
+/* eslint looks-good/require-file-calls: ["error", { patterns: [{ id: "router-registers", files: "*.router.ts", require: [{ call: "router" }], message: "A router file builds its router with router()." }] }] */
+
+// event.router.ts
+export const eventRouter = router({})
+```
+
+Several requirements configured at once:
+
+```js
+{
+  patterns: [
+    {
+      id: 'router-registers',
+      files: '*.router.ts',
+      require: [{ call: 'router' }],
+      message: 'A router file builds its router with router().',
+    },
+    {
+      id: 'router-guards-procedures',
+      files: '*.router.ts',
+      when: { found: 'router-registers' },
+      requireAny: [{ identifier: 'protectedProcedure' }, { identifier: 'memberProcedure' }],
+      message: 'A router exposes its procedures through a guarded builder.',
+    },
+    {
+      id: 'schema-parses',
+      files: '*.schema.ts',
+      require: [{ call: '*.parse' }],
+      message: 'A schema file parses its input rather than trusting it.',
+    },
+    {
+      id: 'test-drives-router',
+      files: '*.test.ts',
+      require: [{ member: 'caller*' }],
+      message: 'A test file drives the router through a caller.',
+    },
+    {
+      id: 'transaction-passes-tx',
+      when: { references: 'transaction' },
+      require: [{ identifier: 'tx' }],
+      message: 'A file that opens a transaction passes tx into every query it calls.',
+    },
+  ],
+}
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `patterns` | `[]` | A list of `{ id, files, when, require, requireAny, message }`. `id` is a stable handle reported alongside the message, `files` is a glob matched against the linted path, `when` is `{ references }` or `{ found }`, `require` lists matchers that must all be satisfied, `requireAny` lists matchers of which one must be, and `message` is reported verbatim. An empty list leaves every file alone. |
+
+A matcher is one of the following.
+
+| Matcher | Matches |
+| --- | --- |
+| `{ call: 'router' }` | A call whose callee is the named identifier. A trailing `*` such as `create*` matches any callee starting with `create`. |
+| `{ call: '*.parse' }` | A method call on any receiver, so `schema.parse(input)` matches. |
+| `{ member: 'caller*' }` | A member access whose object name matches, so `caller.event.list` matches. |
+| `{ identifier: 'tx' }` | A bare identifier reference anywhere in the file. |
+| `{ literal: 'governance' }` | A string literal whose value equals the string. |
 
 ### test-arrange-act-assert
 
