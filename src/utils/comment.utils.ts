@@ -77,6 +77,13 @@ export const readComments = (context: Rule.RuleContext): CommentLine[] => {
   return collected
 }
 
+// A directive is read by a tool rather than a person, so rewriting one breaks it.
+const directive = /^(eslint|globals?|exported|jshint|jslint|istanbul|c8|v8|deno-lint|deno-fmt|deno-cov|prettier|biome|ts-|@ts-|@type|type-coverage:)/
+
+export const isDirective = (text: string): boolean => {
+  return directive.test(text)
+}
+
 // A bare prefix match would exempt prose such as "Actually this sentence wraps".
 export const startsWithLabel = (text: string, labels: string[]): boolean => {
   return labels.some((label) => text === label || text.startsWith(`${label} `) || text.startsWith(`${label}:`))
@@ -94,4 +101,37 @@ export const looksUnfinished = (text: string, options: ExemptionOptions): boolea
 
 export const isAdjacent = (first: CommentLine, second: CommentLine): boolean => {
   return second.line === first.line + 1
+}
+
+export type WrappedPair = {
+  comment: CommentLine
+  next: CommentLine
+}
+
+// One definition of a wrapped sentence, since the reflow fix is what silences the other report.
+export const findWrappedPairs = (comments: CommentLine[], options: ExemptionOptions): WrappedPair[] => {
+  const pairs: WrappedPair[] = []
+
+  comments.forEach((comment, index) => {
+    const text = comment.text
+    if (startsWithLabel(text, options.allowLabels)) return
+
+    // Joining a directive into the next line changes what the tool reading it sees.
+    if (isDirective(text)) return
+
+    const next = comments[index + 1]
+    if (!next) return
+    if (isDirective(next.text)) return
+    if (!isAdjacent(comment, next)) return
+
+    // Two trailing comments annotate their own lines rather than one continuing the other.
+    if (comment.trailing || next.trailing) return
+
+    if (startsWithLabel(next.text, options.allowLabels)) return
+    if (!looksUnfinished(text, options)) return
+
+    pairs.push({ comment, next })
+  })
+
+  return pairs
 }

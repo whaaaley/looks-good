@@ -1,4 +1,5 @@
 import { isLineComment } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Node } from 'estree'
 
@@ -63,7 +64,9 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Requires test bodies to be labelled with Arrange, Act, and Assert comments',
+      url: docUrl('test-arrange-act-assert'),
     },
+    defaultOptions: [defaults],
     // Where one phase ends and the next begins is a judgement call, so this reports only.
     fixable: undefined,
     schema: [

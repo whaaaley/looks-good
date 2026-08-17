@@ -1,3 +1,4 @@
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 import type { MemberExpression } from 'estree'
 
@@ -6,6 +7,7 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Forbids optional chaining on an indexed access',
+      url: docUrl('no-optional-chain-on-index'),
     },
     // Naming the element is a decision about what to call it, so this reports only.
     fixable: undefined,

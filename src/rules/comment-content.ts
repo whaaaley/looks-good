@@ -1,4 +1,5 @@
 import { readComments } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 
 export type ForbiddenPattern = {
@@ -21,7 +22,9 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Forbids comment text a project does not want left in source',
+      url: docUrl('comment-content'),
     },
+    defaultOptions: [defaults],
     // Deciding what a marker should have said needs a person, so this reports only.
     fixable: undefined,
     schema: [

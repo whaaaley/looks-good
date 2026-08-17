@@ -12,6 +12,12 @@ tester.run('comment-reflow', rule, {
   valid: [
     { code: '// A single finished sentence.\nconst a = 1' },
     { code: '// First sentence.\n// Second sentence.\nconst a = 1' },
+    // A directive is read by a tool, so joining it into the next line would break it.
+    { code: '// eslint-disable-next-line no-console\n// A following note.\nconst a = 1' },
+    { code: '// @ts-expect-error the shape is wrong here\n// A following note.\nconst a = 1' },
+    { code: '// deno-lint-ignore no-explicit-any\n// A following note.\nconst a = 1' },
+    // A comment above a directive is left alone too, since the join would consume it.
+    { code: '// An unfinished thought\n// eslint-disable-next-line no-console\nconst a = 1' },
     // Two sentences on one line are fine, since the line does not wrap.
     { code: '// First sentence. Second sentence.\nconst a = 1' },
     { code: 'const a = 1 // A trailing comment.' },

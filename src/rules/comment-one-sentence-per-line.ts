@@ -1,4 +1,5 @@
-import { isAdjacent, looksUnfinished, readLineComments, startsWithLabel } from '../utils/comment.utils.ts'
+import { findWrappedPairs, isDirective, readLineComments, startsWithLabel } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 
 const defaults = {
@@ -13,7 +14,9 @@ const rule: Rule.RuleModule = {
     type: 'layout',
     docs: {
       description: 'A comment sentence fits on one line and a line holds one sentence',
+      url: docUrl('comment-one-sentence-per-line'),
     },
+    defaultOptions: [defaults],
     // Rewriting prose changes what it says, so this rule reports and never fixes.
     fixable: undefined,
     schema: [
@@ -40,37 +43,34 @@ const rule: Rule.RuleModule = {
     return {
       'Program:exit': (): void => {
         const comments = readLineComments(context)
+        const tooLong = new Set<number>()
 
-        comments.forEach((comment, index) => {
+        for (const comment of comments) {
           const text = comment.text
-          if (startsWithLabel(text, options.allowLabels)) return
+          if (startsWithLabel(text, options.allowLabels)) continue
+          if (isDirective(text)) continue
 
           // A sentence that is merely long cannot be shortened without changing what it says.
-          if (text.length > options.maxLength) {
-            context.report({
-              loc: { line: comment.line, column: 0 },
-              messageId: 'tooLong',
-              data: { length: String(text.length), maxLength: String(options.maxLength) },
-            })
+          if (text.length <= options.maxLength) continue
 
-            return
-          }
+          tooLong.add(comment.line)
 
-          const next = comments[index + 1]
-          if (!next) return
-          if (!isAdjacent(comment, next)) return
+          context.report({
+            loc: { line: comment.line, column: 0 },
+            messageId: 'tooLong',
+            data: { length: String(text.length), maxLength: String(options.maxLength) },
+          })
+        }
 
-          // Two trailing comments annotate their own lines rather than one continuing the other.
-          if (comment.trailing || next.trailing) return
-
-          if (startsWithLabel(next.text, options.allowLabels)) return
-          if (!looksUnfinished(text, options)) return
+        for (const { comment } of findWrappedPairs(comments, options)) {
+          // A line already reported as too long is not reported again for wrapping.
+          if (tooLong.has(comment.line)) continue
 
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'wrapped',
           })
-        })
+        }
       },
     }
   },

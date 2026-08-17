@@ -1,4 +1,5 @@
 import { readComments } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 import type { Literal, TemplateElement } from 'estree'
 
@@ -38,7 +39,9 @@ const rule: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description: 'Reports emoji in code, comments, and identifiers',
+      url: docUrl('no-emoji'),
     },
+    defaultOptions: [defaults],
     // Removing an emoji can change what a string says, so this reports only.
     fixable: undefined,
     schema: [

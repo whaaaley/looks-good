@@ -76,14 +76,13 @@ const looksGoodConfig = [
       'looks-good': looksGood,
     },
     rules: {
-      // ---- reporting, never rewrites ----
+      // Reporting rules, which never rewrite.
       'looks-good/comment-content': ['error', {
         forbid: [
           { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks' },
         ],
         forbidBlockComments: true,
       }],
-      'looks-good/comment-one-sentence-per-line': 'error',
       'looks-good/no-emoji': 'error',
       'looks-good/no-optional-chain-on-index': 'error',
       'looks-good/no-restricted-characters': ['error', {
@@ -94,7 +93,7 @@ const looksGoodConfig = [
       }],
       'looks-good/test-arrange-act-assert': 'error',
 
-      // ---- fixing, rewrites under --fix ----
+      // Fixing. This stands in for comment-one-sentence-per-line, which reports the same wrap.
       'looks-good/comment-reflow': 'error',
     },
   },

@@ -3,7 +3,7 @@ import { assert, assertEquals } from '@std/assert'
 import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
-import { plugin } from './index.ts'
+import { fixing, plugin, recommended } from './index.ts'
 
 const linter = new Linter()
 
@@ -84,6 +84,48 @@ describe('All Plugin Tests', () => {
 
       // Assert
       assertEquals(undocumented, [])
+    })
+
+    it('gives every rule a documentation url', () => {
+      // Act
+      const unlinked = Object.values(plugin.rules ?? {}).filter((rule) => {
+        return !('meta' in rule) || !rule.meta?.docs?.url
+      })
+
+      // Assert
+      assertEquals(unlinked, [])
+    })
+  })
+
+  describe('shipped configs', () => {
+    it('exposes both configs on the plugin', () => {
+      // Assert
+      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['fixing', 'recommended'])
+    })
+
+    // Both enabled would report one wrapped sentence twice, once per rule.
+    it('enables exactly one of the two comment wrapping rules per config', () => {
+      // Arrange
+      const wrapping = ['looks-good/comment-one-sentence-per-line', 'looks-good/comment-reflow']
+
+      // Act
+      const inRecommended = wrapping.filter((name) => name in (recommended.rules ?? {}))
+      const inFixing = wrapping.filter((name) => name in (fixing.rules ?? {}))
+
+      // Assert
+      assertEquals(inRecommended, ['looks-good/comment-one-sentence-per-line'])
+      assertEquals(inFixing, ['looks-good/comment-reflow'])
+    })
+
+    it('enables every registered rule across the two configs', () => {
+      // Arrange
+      const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
+
+      // Act
+      const enabled = new Set([...Object.keys(recommended.rules ?? {}), ...Object.keys(fixing.rules ?? {})])
+
+      // Assert
+      assertEquals(registered.filter((name) => !enabled.has(name)), [])
     })
   })
 

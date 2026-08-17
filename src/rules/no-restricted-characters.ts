@@ -1,4 +1,5 @@
 import { readComments } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 import type { Literal, TemplateElement } from 'estree'
 
@@ -42,7 +43,9 @@ const rule: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description: 'Reports characters a project does not want in source',
+      url: docUrl('no-restricted-characters'),
     },
+    defaultOptions: [defaults],
     // A replacement depends on what the character was standing in for.
     fixable: undefined,
     schema: [

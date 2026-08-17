@@ -1,4 +1,5 @@
-import { isAdjacent, looksUnfinished, readLineComments, startsWithLabel } from '../utils/comment.utils.ts'
+import { findWrappedPairs, readLineComments } from '../utils/comment.utils.ts'
+import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 
 const defaults = {
@@ -13,7 +14,9 @@ const rule: Rule.RuleModule = {
     type: 'layout',
     docs: {
       description: 'Joins a comment sentence that wraps onto the next line',
+      url: docUrl('comment-reflow'),
     },
+    defaultOptions: [defaults],
     // Joining moves text without rewriting it, so the fix is safe to apply.
     fixable: 'whitespace',
     schema: [
@@ -39,23 +42,8 @@ const rule: Rule.RuleModule = {
 
     return {
       'Program:exit': (): void => {
-        const comments = readLineComments(context)
-
-        comments.forEach((comment, index) => {
-          const text = comment.text
-          if (startsWithLabel(text, options.allowLabels)) return
-
-          const next = comments[index + 1]
-          if (!next) return
-          if (!isAdjacent(comment, next)) return
-
-          // Two trailing comments annotate their own lines rather than one continuing the other.
-          if (comment.trailing || next.trailing) return
-
-          if (startsWithLabel(next.text, options.allowLabels)) return
-          if (!looksUnfinished(text, options)) return
-
-          const joined = `${text} ${next.text}`
+        for (const { comment, next } of findWrappedPairs(readLineComments(context), options)) {
+          const joined = `${comment.text} ${next.text}`
 
           // Joining past the limit trades a wrapped sentence for one the other rule reports.
           if (joined.length > options.maxLength) {
@@ -65,7 +53,7 @@ const rule: Rule.RuleModule = {
               data: { maxLength: String(options.maxLength) },
             })
 
-            return
+            continue
           }
 
           context.report({
@@ -73,7 +61,7 @@ const rule: Rule.RuleModule = {
             messageId: 'join',
             fix: (fixer) => fixer.replaceTextRange([comment.range[0], next.range[1]], `// ${joined}`),
           })
-        })
+        }
       },
     }
   },
