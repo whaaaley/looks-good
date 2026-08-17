@@ -2,9 +2,21 @@ import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
 import commentReflow from './rules/comment-reflow.ts'
 import type { ESLint, Linter } from 'eslint'
 
-const rules = {
+// Rules that report and never rewrite.
+// A violation here needs a person or an agent to decide what the text should say.
+const reporting = {
   'comment-one-sentence-per-line': commentOneSentencePerLine,
+}
+
+// Rules that rewrite under --fix.
+// A violation here moves text without changing what it says.
+const fixing = {
   'comment-reflow': commentReflow,
+}
+
+const rules = {
+  ...reporting,
+  ...fixing,
 }
 
 export const plugin: ESLint.Plugin = {
@@ -21,7 +33,11 @@ export const recommended: Linter.Config = {
     'looks-good': plugin,
   },
   rules: {
+    // ---- reporting ----
     'looks-good/comment-one-sentence-per-line': 'error',
+
+    // ---- fixing ----
+    'looks-good/comment-reflow': 'error',
   },
 }
 

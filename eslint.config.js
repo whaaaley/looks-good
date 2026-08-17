@@ -76,7 +76,11 @@ const looksGoodConfig = [
       'looks-good': looksGood,
     },
     rules: {
+      // ---- reporting, never rewrites ----
       'looks-good/comment-one-sentence-per-line': 'error',
+
+      // ---- fixing, rewrites under --fix ----
+      'looks-good/comment-reflow': 'error',
     },
   },
 ]
