@@ -8,6 +8,13 @@ export type Announcement = {
   lines: string[]
 }
 
+// The headline is read by the coding agent, so it opens with the instruction and leaves the evidence to the clause after it.
+const directive: Record<string, string> = {
+  notice: 'Commit the finished work before making further edits.',
+  warning: 'Commit the finished work now, before writing anything new.',
+  urgent: 'Stop editing and commit the finished work before touching another file.',
+}
+
 const guidance: Record<string, string[]> = {
   notice: [
     'Split the finished part of this work into its own commit before going further.',
@@ -82,7 +89,7 @@ export const decide = (changes: Changes, lastAnnounced: string): Decision => {
     return { announcement: null, nextAnnounced }
   }
 
-  const headline = `${reached.name}: ${describe(reached, changes)} are uncommitted.`
+  const headline = `${directive[reached.name] ?? ''} ${describe(reached, changes)} are uncommitted.`.trim()
 
   const announcement = {
     tier: reached.name,

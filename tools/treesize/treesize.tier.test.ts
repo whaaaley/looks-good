@@ -112,7 +112,7 @@ describe('All Treesize Tier Tests', () => {
       const headline = headlineOf(12, 0, '')
 
       // Assert
-      assertEquals(headline, 'notice: 12 files are uncommitted.')
+      assertEquals(headline, 'Commit the finished work before making further edits. 12 files are uncommitted.')
     })
 
     it('stays silent on a second edit inside the same tier', () => {
@@ -176,7 +176,7 @@ describe('All Treesize Tier Tests', () => {
       const headline = headlineOf(12, 10, '')
 
       // Assert
-      assertEquals(headline, 'notice: 12 files are uncommitted.')
+      assertEquals(headline, 'Commit the finished work before making further edits. 12 files are uncommitted.')
     })
 
     it('names lines alone when only the line count trips', () => {
@@ -184,7 +184,7 @@ describe('All Treesize Tier Tests', () => {
       const headline = headlineOf(2, 400, '')
 
       // Assert
-      assertEquals(headline, 'notice: 400 changed lines are uncommitted.')
+      assertEquals(headline, 'Commit the finished work before making further edits. 400 changed lines are uncommitted.')
     })
 
     it('names both when both trip', () => {
@@ -192,7 +192,22 @@ describe('All Treesize Tier Tests', () => {
       const headline = headlineOf(12, 400, '')
 
       // Assert
-      assertEquals(headline, 'notice: 12 files and 400 changed lines are uncommitted.')
+      assertEquals(
+        headline,
+        'Commit the finished work before making further edits. 12 files and 400 changed lines are uncommitted.',
+      )
+    })
+
+    it('opens every tier headline with its instruction', () => {
+      // Act
+      const notice = headlineOf(12, 0, '')
+      const warning = headlineOf(25, 0, '')
+      const urgent = headlineOf(40, 0, '')
+
+      // Assert
+      assertEquals(notice.startsWith('Commit the finished work before making further edits.'), true)
+      assertEquals(warning.startsWith('Commit the finished work now, before writing anything new.'), true)
+      assertEquals(urgent.startsWith('Stop editing and commit the finished work before touching another file.'), true)
     })
 
     it('gives each tier its own guidance', () => {

@@ -119,9 +119,14 @@ const main = async (): Promise<void> => {
 
   const message = announcement.lines.join('\n')
 
-  // systemMessage on stdout is the documented way a PostToolUse hook surfaces a warning.
-  // stderr carries the same text for anyone reading the hook directly.
-  console.log(JSON.stringify({ systemMessage: message }))
+  // additionalContext under hookSpecificOutput is the documented PostToolUse field that reaches the model.
+  // systemMessage rides along as the short notice for the human, who does not need the full instruction.
+  const output = {
+    systemMessage: `Uncommitted tree reached the ${announcement.tier} tier.`,
+    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: message },
+  }
+
+  console.log(JSON.stringify(output))
   console.error(message)
 }
 

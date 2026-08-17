@@ -34,8 +34,11 @@ Reason: the parser falls back to a blank state, which announces the current tier
 Rule: expect the hook to exit 0 and print nothing when git is missing, the directory is not a repository, or the payload is malformed
 Reason: a warning that broke the edit it followed would cost more than the advice is worth
 
-Rule: expect the message on stdout as a `systemMessage` JSON field, with the same text repeated on stderr
-Reason: `systemMessage` is the documented way a `PostToolUse` hook surfaces text, and stderr keeps the tool readable when run by hand
+Rule: expect the full message on stdout under `hookSpecificOutput.additionalContext` with `hookEventName` set to `PostToolUse`, a one-line `systemMessage` beside it, and the full message repeated on stderr
+Reason: `additionalContext` is the documented `PostToolUse` field that reaches the model this advice is written for, `systemMessage` is only shown to the user, and stderr keeps the tool readable when run by hand
+
+Rule: write each tier headline as an instruction first and the file and line counts second
+Reason: the reader is a coding agent that acts on the directive, so a status line like `notice: 13 files are uncommitted.` buries the only part it needs to act on
 
 Rule: keep `--quiet` on the `deno task` invocation in the hook command
 Reason: `deno task` otherwise echoes the command to stdout, which would corrupt the JSON the hook is expected to emit
