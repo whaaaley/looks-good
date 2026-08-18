@@ -30,6 +30,7 @@
  */
 
 import denoConfig from '../deno.json' with { type: 'json' }
+import arrayBracketHug from './rules/array-bracket-hug.ts'
 import blankLineAfterBlock from './rules/blank-line-after-block.ts'
 import commentContent from './rules/comment-content.ts'
 import commentWrap from './rules/comment-wrap.ts'
@@ -84,6 +85,7 @@ const reporting = {
 // Rules that rewrite under --fix.
 // A violation here moves text, or swaps one character for the spelling a project asked for.
 const fixable = {
+  'array-bracket-hug': arrayBracketHug,
   'blank-line-after-block': blankLineAfterBlock,
   'comment-wrap': commentWrap,
   'import-group-order': importGroupOrder,
@@ -131,6 +133,7 @@ const warnings = {
 
 // Rules that report a defect, where the fix is to change the code.
 const errors = {
+  'looks-good/array-bracket-hug': 'error',
   'looks-good/blank-line-after-block': 'error',
   'looks-good/describe-group-order': 'error',
   'looks-good/max-comment-length': 'error',

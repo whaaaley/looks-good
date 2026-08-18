@@ -4,6 +4,33 @@ Every rule the plugin registers, with its options and examples.
 Each rule reads as `looks-good/<name>` in a flat config.
 Which config enables a rule, and what enabling it costs, is in [Configs](configs.md).
 
+### array-bracket-hug
+
+Reports a multiline array whose elements are all object literals when its brackets sit on their own lines.
+The compact chain opens with `[{`, joins elements with `}, {`, and closes with `}]`, so the array reads as one run of objects instead of brackets floating alone.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const schema = [
+  {
+    type: 'object',
+  },
+]
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const schema = [{
+  type: 'object',
+}]
+```
+
+The rule fires only when every element is an object literal, so scalar lists, mixed arrays, and single-line arrays are left as written.
+A trailing comma folds into the closing `}]` and is removed by the fix.
+A comment sitting between a bracket and an element is reported but never deleted, so that fix is left to a person.
+
 ### blank-line-after-block
 
 Reports a statement that sits directly under the closing brace of an `if`, a loop, a `try`, or a `switch`.

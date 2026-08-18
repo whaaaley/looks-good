@@ -109,6 +109,7 @@ export default defineConfig([
     files: ['**/*.ts'],
     plugins: { 'looks-good': looksGood },
     rules: {
+      'looks-good/array-bracket-hug': 'error',
       'looks-good/blank-line-after-block': 'error',
       'looks-good/comment-content': ['warn', {
         forbid: [
