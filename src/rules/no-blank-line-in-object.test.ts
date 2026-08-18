@@ -33,6 +33,8 @@ tester.run('no-blank-line-in-object', rule, {
     { code: 'const meta = {\n  cases: [\n    1,\n\n    2,\n  ],\n}' },
     // A spread member is a member like any other when it sits against its neighbour.
     { code: 'const meta = {\n  ...base,\n  b: 2,\n}' },
+    // A blank line inside a multi-line block comment is the comment's own formatting, not a gap between members.
+    { code: 'const meta = {\n  a: 1,\n  /* x\n\n  y */\n  b: 2,\n}' },
     // The blank line blank-line-after-block requires after a nested brace is inside the value, so it is left alone.
     { code: 'const listeners = {\n  Program: () => {\n    if (a) {\n      run()\n    }\n\n    after()\n  },\n  CallExpression: () => {\n    run()\n  },\n}' },
   ],
@@ -89,6 +91,12 @@ tester.run('no-blank-line-in-object', rule, {
     {
       code: 'const meta = {\n  docs: {\n    a: 1,\n\n    b: 2,\n  },\n}',
       output: 'const meta = {\n  docs: {\n    a: 1,\n    b: 2,\n  },\n}',
+      errors: [{ messageId: 'gap' }],
+    },
+    // A gap around a block comment closes while the blank line inside the comment stays.
+    {
+      code: 'const meta = {\n  a: 1,\n\n  /* x\n\n  y */\n\n  b: 2,\n}',
+      output: 'const meta = {\n  a: 1,\n  /* x\n\n  y */\n  b: 2,\n}',
       errors: [{ messageId: 'gap' }],
     },
     // A gap before a spread member reads the same as one before a property.

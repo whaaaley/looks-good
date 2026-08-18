@@ -38,10 +38,17 @@ const rule: Rule.RuleModule = {
           // Scanning all the way to the property itself catches a blank line on either side of a comment.
           const start = sourceCode.getIndexFromLoc({ line: preceding.end.line, column: preceding.end.column })
           const end = sourceCode.getIndexFromLoc({ line: propertyLocation.start.line, column: 0 })
-          if (end <= start) continue
 
           const between = sourceCode.getText().slice(start, end)
-          const closed = between.replace(blankLineRunPattern, '\n')
+          const comments = sourceCode.getCommentsBefore(property)
+
+          // A blank line inside a block comment is its own formatting, so only runs outside every comment close.
+          const closed = between.replace(blankLineRunPattern, (run: string, offset: number): string => {
+            const position = start + offset
+            const isInsideComment = comments.some((comment) => comment.range !== undefined && comment.range[0] <= position && position < comment.range[1])
+
+            return isInsideComment ? run : '\n'
+          })
           if (closed === between) continue
 
           context.report({
