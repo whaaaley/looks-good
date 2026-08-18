@@ -13,7 +13,7 @@ const tester = new RuleTester()
 const inFunction = (body: string): string => `const read = () => {\n  ${body}\n}`
 const inLoop = (body: string): string => `for (const item of items) {\n  ${body}\n}`
 
-const wide = 'forbidden.length === 0 && invalid.length === 0 && !options.forbidBlockComments'
+const wide = 'forbidden.length === 0 && invalid.length === 0 && !options.forbidBlockComments && annotations.every((entry) => entry.ok)'
 
 tester.run('max-single-line-statement-length', rule, {
   valid: [
@@ -33,7 +33,7 @@ tester.run('max-single-line-statement-length', rule, {
     // A wider limit accepts a line the default would report.
     {
       code: inFunction(`if (${wide}) return {}`),
-      options: [{ maxLength: 120 }],
+      options: [{ maxLength: 200 }],
     },
   ],
   invalid: [
@@ -72,6 +72,12 @@ tester.run('max-single-line-statement-length', rule, {
       code: inFunction(`if (${wide}) return {}\n  // annotates the close`),
       errors: [{ messageId: 'tooLong' }],
       output: inFunction(`if (${wide}) {\n    return {}\n  }\n  // annotates the close`),
+    },
+    // An else if is left to its own report, so its wide line surfaces exactly once.
+    {
+      code: inFunction(`if (first) {\n    return ''\n  } else if (${wide}) return {}`),
+      errors: [{ messageId: 'tooLong' }],
+      output: inFunction(`if (first) {\n    return ''\n  } else if (${wide}) {\n    return {}\n  }`),
     },
     // A braceless else body on the same line as its else gets the same braces.
     {

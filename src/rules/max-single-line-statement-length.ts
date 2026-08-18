@@ -10,7 +10,7 @@ type Options = {
 }
 
 const defaults: Options = {
-  maxLength: 80,
+  maxLength: 120,
 }
 
 type Trailing = {
@@ -83,11 +83,12 @@ const rule: Rule.RuleModule = {
           const text = sourceCode.getText(body)
           const trailing = trailingComment(sourceCode, body)
 
-          if (!trailing) {
+          // A range-less body cannot anchor the wider comment-carrying rewrite.
+          if (!trailing || !body.range) {
             return fixer.replaceText(body, `{\n${indent}  ${text}\n${indent}}`)
           }
 
-          const [start = 0] = body.range ?? []
+          const [start] = body.range
 
           // A comment left outside the replaced range would survive after the closing brace,
           // where it reads as a header for the next statement, so the fix carries it inside.

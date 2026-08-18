@@ -378,7 +378,7 @@ if (!parsed) {
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `maxLength` | `80` | The longest the line may run before the body has to move into braces. The bound is inclusive, so a line exactly this long passes. |
+| `maxLength` | `120` | The longest the line may run before the body has to move into braces. The bound is inclusive, so a line exactly this long passes. |
 
 A body already written in braces is left alone whatever its width, and a body already on its own line is not the form this rule governs.
 The fix wraps the body in braces on its own line, indented one step past the `if`.
