@@ -34,29 +34,29 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
-    return {
-      ObjectExpression: (node: ObjectExpression & Rule.NodeParentExtension): void => {
-        if (node.properties.length < options.minNestedProperties) return
+    const check = (node: ObjectExpression & Rule.NodeParentExtension): void => {
+      if (node.properties.length < options.minNestedProperties) return
 
-        const property = node.parent
-        if (property.type !== 'Property') return
-        if (property.value !== node) return
+      const property = node.parent
+      if (property.type !== 'Property') return
+      if (property.value !== node) return
 
-        const outer = property.parent
-        if (outer.type !== 'ObjectExpression') return
+      const outer = property.parent
+      if (outer.type !== 'ObjectExpression') return
 
-        const call = outer.parent
-        if (call.type !== 'CallExpression' && call.type !== 'NewExpression') {
-          return
-        }
+      const call = outer.parent
+      if (call.type !== 'CallExpression' && call.type !== 'NewExpression') {
+        return
+      }
 
-        // An outer object in the callee position is not a crowded argument.
-        if (!call.arguments.includes(outer)) return
-        if (!isSingleLine(outer)) return
+      // An outer object in the callee position is not a crowded argument.
+      if (!call.arguments.includes(outer)) return
+      if (!isSingleLine(outer)) return
 
-        context.report({ node, messageId: 'nested' })
-      },
+      context.report({ node, messageId: 'nested' })
     }
+
+    return { ObjectExpression: check }
   },
 }
 
