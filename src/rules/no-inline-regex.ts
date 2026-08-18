@@ -14,7 +14,6 @@ const defaults: Options = {
 const statementOf = (node: Node & Rule.NodeParentExtension): Node | null => {
   const declarator = node.parent
   if (declarator.type !== 'VariableDeclarator') return null
-  if (declarator.init !== node) return null
 
   const declaration = declarator.parent
   if (declaration.type !== 'VariableDeclaration') return null
@@ -60,11 +59,9 @@ const holdsRegex = (node: Node): boolean => {
 }
 
 // A type declaration parses as an unknown node type under the default parser, so the names are compared as strings.
-const isTypeDeclaration = (node: Node): boolean => {
-  const names: string[] = ['TSTypeAliasDeclaration', 'TSInterfaceDeclaration']
+const typeDeclarationNames = new Set(['TSTypeAliasDeclaration', 'TSInterfaceDeclaration'])
 
-  return names.includes(node.type)
-}
+const isTypeDeclaration = (node: Node): boolean => typeDeclarationNames.has(node.type)
 
 // A pattern opens the file when every statement above it is an import, a type, or another pattern.
 const opensTheFile = (program: Program, statement: Node): boolean => {
@@ -79,6 +76,7 @@ const opensTheFile = (program: Program, statement: Node): boolean => {
     return false
   }
 
+  // statementOf only returns statements sitting in the program body, so the loop always finds the statement above.
   return false
 }
 

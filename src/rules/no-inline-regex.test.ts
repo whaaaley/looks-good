@@ -162,6 +162,11 @@ typedTester.run('no-inline-regex', rule, {
     },
   ],
   invalid: [
+    // A namespace export is not module level, since the const reads through the namespace rather than the file.
+    {
+      code: 'namespace N { export const trailing = /\\s+$/u }',
+      errors: [{ messageId: 'inline' }],
+    },
     // A type below a function does not rescue the pattern under it.
     {
       code: 'const read = () => 1\ntype Mode = "a"\nconst trailing = /\\s+$/u',
