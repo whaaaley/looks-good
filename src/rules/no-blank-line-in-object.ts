@@ -3,6 +3,9 @@ import { locationOf, readerLocationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { ObjectExpression } from 'estree'
 
+// This carries the `g` flag, so only replace may consume it, since test or exec would leak lastIndex across calls.
+export const blankLineRun = /\n\s*\n/g
+
 const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
@@ -42,7 +45,7 @@ const rule: Rule.RuleModule = {
               const end = sourceCode.getIndexFromLoc({ line: following.start.line, column: 0 })
               const between = sourceCode.getText().slice(start, end)
 
-              return fixer.replaceTextRange([start, end], between.replace(/\n\s*\n/g, '\n'))
+              return fixer.replaceTextRange([start, end], between.replace(blankLineRun, '\n'))
             },
           })
         })

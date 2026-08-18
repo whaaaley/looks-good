@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
+import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule from './no-blank-line-in-object.ts'
+import rule, { blankLineRun } from './no-blank-line-in-object.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -79,4 +80,48 @@ tester.run('no-blank-line-in-object', rule, {
       errors: [{ messageId: 'gap' }],
     },
   ],
+})
+
+describe('All No Blank Line In Object Pattern Tests', () => {
+  describe('blankLineRun', () => {
+    it('closes a single blank line', () => {
+      // Act
+      const closed = ',\n\n  '.replace(blankLineRun, '\n')
+
+      // Assert
+      assertEquals(closed, ',\n  ')
+    })
+
+    it('closes a run of several blank lines', () => {
+      // Act
+      const closed = ',\n\n\n\n  '.replace(blankLineRun, '\n')
+
+      // Assert
+      assertEquals(closed, ',\n  ')
+    })
+
+    it('leaves text with no blank line alone', () => {
+      // Act
+      const closed = ',\n  '.replace(blankLineRun, '\n')
+
+      // Assert
+      assertEquals(closed, ',\n  ')
+    })
+
+    it('closes every gap in one pass', () => {
+      // Act
+      const closed = 'a\n\nb\n\nc'.replace(blankLineRun, '\n')
+
+      // Assert
+      assertEquals(closed, 'a\nb\nc')
+    })
+
+    it('leaves an empty string alone', () => {
+      // Act
+      const closed = ''.replace(blankLineRun, '\n')
+
+      // Assert
+      assertEquals(closed, '')
+    })
+  })
 })

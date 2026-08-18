@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
+import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule from './describe-group-order.ts'
+import rule, { insensitiveWordFlags, sensitiveWordFlags, wholeWordPatternFor } from './describe-group-order.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -308,4 +309,112 @@ tester.run('describe-group-order', rule, {
       errors: [{ messageId: 'order', data: { title: 'create', previous: 'delete', expected: crudlOrder }, line: 3 }],
     },
   ],
+})
+
+describe('All Describe Group Order Pattern Tests', () => {
+  describe('wholeWordPatternFor', () => {
+    it('matches the name as a whole word', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('create an event')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not match the name inside a longer word', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('recreates an event')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('does not match the name joined by an underscore', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('bulk_create')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('does not match the name joined by a digit', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('create2')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('matches the name against a differing case when told to ignore case', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', true)
+
+      // Act
+      const matched = pattern.test('Create an event')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not match a differing case when told to respect case', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('Create an event')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('does not match the name joined by a letter outside ascii', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('create', false)
+
+      // Act
+      const matched = pattern.test('écreate')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('treats regular expression syntax in the name as literal text', () => {
+      // Arrange
+      const pattern = wholeWordPatternFor('add(a, b)', false)
+
+      // Act
+      const matched = pattern.test('add(a, b) returns a sum')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('carries the insensitive flags when told to ignore case', () => {
+      // Act
+      const flags = wholeWordPatternFor('create', true).flags
+
+      // Assert
+      assertEquals(flags, insensitiveWordFlags)
+    })
+
+    it('carries the sensitive flags when told to respect case', () => {
+      // Act
+      const flags = wholeWordPatternFor('create', false).flags
+
+      // Assert
+      assertEquals(flags, sensitiveWordFlags)
+    })
+  })
 })

@@ -5,6 +5,9 @@ import { calleeName, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Program } from 'estree'
 
+export const wildcardSource = '.*'
+export const titleFlags = 'u'
+
 export type TitlePattern = {
   files: string
   title: string
@@ -24,13 +27,13 @@ const defaults: Options = {
 }
 
 // A title pattern is literal apart from `*`, so `All * Tests` matches `All Event Tests` and nothing shorter.
-const titleToRegExp = (pattern: string): RegExp => {
+export const titlePatternFor = (pattern: string): RegExp => {
   const body = pattern
     .split('*')
     .map((part) => RegExp.escape(part))
-    .join('.*')
+    .join(wildcardSource)
 
-  return new RegExp(`^${body}$`, 'u')
+  return new RegExp(`^${body}$`, titleFlags)
 }
 
 // A call sits at the top level when nothing between it and the program is a function.
@@ -92,7 +95,7 @@ const rule: Rule.RuleModule = {
     const invalid: string[] = []
 
     for (const source of options.allowTitles) {
-      const expression = compilePattern({ source, flags: 'u' })
+      const expression = compilePattern({ source, flags: titleFlags })
 
       if (!expression) {
         invalid.push(source)
@@ -123,7 +126,7 @@ const rule: Rule.RuleModule = {
       return { 'Program:exit': reportInvalid }
     }
 
-    const expected = titleToRegExp(matched.title)
+    const expected = titlePatternFor(matched.title)
     const message = matched.message ? ` ${matched.message}` : ''
     const [testFunction = 'describe'] = options.testFunctions
 

@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
+import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule from './max-single-line-statement-length.ts'
+import rule, { leadingWhitespace } from './max-single-line-statement-length.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -76,4 +77,40 @@ tester.run('max-single-line-statement-length', rule, {
       output: inFunction("if (!first) {\n    return ''\n  }"),
     },
   ],
+})
+
+describe('All Max Single Line Statement Length Pattern Tests', () => {
+  describe('leadingWhitespace', () => {
+    it('captures the indent of an indented line', () => {
+      // Act
+      const [indent = ''] = '    if (ready) return'.match(leadingWhitespace) ?? []
+
+      // Assert
+      assertEquals(indent, '    ')
+    })
+
+    it('captures an empty indent for a line starting at the margin', () => {
+      // Act
+      const [indent = ''] = 'if (ready) return'.match(leadingWhitespace) ?? []
+
+      // Assert
+      assertEquals(indent, '')
+    })
+
+    it('captures a tab indent', () => {
+      // Act
+      const [indent = ''] = '\t\tif (ready) return'.match(leadingWhitespace) ?? []
+
+      // Assert
+      assertEquals(indent, '\t\t')
+    })
+
+    it('captures an empty indent for an empty line', () => {
+      // Act
+      const [indent = ''] = ''.match(leadingWhitespace) ?? []
+
+      // Assert
+      assertEquals(indent, '')
+    })
+  })
 })

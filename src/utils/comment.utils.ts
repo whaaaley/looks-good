@@ -18,10 +18,12 @@ export type ExemptionOptions = {
 }
 
 // A url has no natural break, so wrapping one is worse than running long.
-const trailingUrl = /https?:\/\/\S+$/
+export const trailingUrl = /https?:\/\/\S+$/
 
 // A line closing on a symbol like `discord.js` reads as finished, not as a fragment.
-const trailingIdentifier = /[\w$)\]]\.[\w$]+$/
+export const trailingIdentifier = /[\w$)\]]\.[\w$]+$/
+
+export const whitespace = /\s/
 
 export const isLineComment = (comment: { type: string }): boolean => {
   return comment.type === 'Line'
@@ -101,7 +103,7 @@ const directivePrefixes = ['ts-', '@ts-', '@type', 'type-coverage:']
 export const isDirective = (text: string): boolean => {
   if (directivePrefixes.some((prefix) => text.startsWith(prefix))) return true
 
-  const [first = ''] = text.split(/\s/)
+  const [first = ''] = text.split(whitespace)
 
   return directives.some((name) => first === name || first.startsWith(`${name}-`))
 }
@@ -131,7 +133,7 @@ export type WrappedPair = {
   next: CommentLine
 }
 
-// One definition of a wrapped sentence, since the reflow fix is what silences the other report.
+// One definition of a wrapped sentence, shared by both of the remedies onWrap selects between.
 export const findWrappedPairs = (comments: CommentLine[], options: ExemptionOptions): WrappedPair[] => {
   const pairs: WrappedPair[] = []
 

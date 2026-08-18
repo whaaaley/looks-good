@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
-import { isAdjacent, isDirective, isLineComment, looksUnfinished, startsWithLabel } from './comment.utils.ts'
+import { isAdjacent, isDirective, isLineComment, looksUnfinished, startsWithLabel, trailingIdentifier, trailingUrl, whitespace } from './comment.utils.ts'
 import type { CommentLine } from './comment.utils.ts'
 
 const at = (line: number): CommentLine => ({
@@ -231,6 +231,63 @@ describe('All Comment Utility Tests', () => {
 
       // Assert
       assertEquals(recognised, false)
+    })
+  })
+  describe('patterns', () => {
+    it('matches a line closing on a url', () => {
+      // Act
+      const matched = trailingUrl.test('See https://example.com/docs')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not match a url with prose after it', () => {
+      // Act
+      const matched = trailingUrl.test('See https://example.com/docs for more')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('matches a line closing on a dotted identifier', () => {
+      // Act
+      const matched = trailingIdentifier.test('Handled by discord.js')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not match a line closing on a period', () => {
+      // Act
+      const matched = trailingIdentifier.test('A whole sentence.')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('does not match an empty line', () => {
+      // Act
+      const matched = trailingIdentifier.test('')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('splits a line on its first space', () => {
+      // Act
+      const [first = ''] = 'ts-expect-error a reason'.split(whitespace)
+
+      // Assert
+      assertEquals(first, 'ts-expect-error')
+    })
+
+    it('splits a line on a tab as well as a space', () => {
+      // Act
+      const [first = ''] = 'eslint-disable\tno-console'.split(whitespace)
+
+      // Assert
+      assertEquals(first, 'eslint-disable')
     })
   })
 })

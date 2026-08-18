@@ -3,6 +3,13 @@ import { calleeName, readBody, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Node } from 'estree'
 
+// A word character here is any letter, digit, or underscore, so a needle sitting inside a longer word is not a match.
+const wordCharacterSource = '\\p{L}\\p{N}_'
+export const wordPrefixSource = `(?<![${wordCharacterSource}])`
+export const wordSuffixSource = `(?![${wordCharacterSource}])`
+export const sensitiveWordFlags = 'u'
+export const insensitiveWordFlags = 'iu'
+
 type Match = 'word' | 'exact'
 type Depth = 'top' | 'any'
 
@@ -42,13 +49,18 @@ const readChildCall = (statement: Node, testFunctions: string[]): CallExpression
   return call
 }
 
+export const wholeWordPatternFor = (name: string, ignoreCase: boolean): RegExp => {
+  const flags = ignoreCase ? insensitiveWordFlags : sensitiveWordFlags
+
+  return new RegExp(`${wordPrefixSource}${RegExp.escape(name)}${wordSuffixSource}`, flags)
+}
+
 // The needles come from the configured sequence, so each whole word pattern is built once per rule run.
 const compileWholeWords = (names: string[], ignoreCase: boolean): Map<string, RegExp> => {
-  const flags = ignoreCase ? 'iu' : 'u'
   const compiled = new Map<string, RegExp>()
 
   for (const name of names) {
-    compiled.set(name, new RegExp(`(?<![\\p{L}\\p{N}_])${RegExp.escape(name)}(?![\\p{L}\\p{N}_])`, flags))
+    compiled.set(name, wholeWordPatternFor(name, ignoreCase))
   }
 
   return compiled

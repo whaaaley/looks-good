@@ -1,7 +1,8 @@
 import process from 'node:process'
 import { describe, it } from 'node:test'
+import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule from './describe-title-pattern.ts'
+import rule, { titleFlags, titlePatternFor } from './describe-title-pattern.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -240,4 +241,106 @@ tester.run('describe-title-pattern', rule, {
       errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
     },
   ],
+})
+
+describe('All Describe Title Pattern Tests', () => {
+  describe('titlePatternFor', () => {
+    it('matches a title filling the wildcard', () => {
+      // Arrange
+      const expected = titlePatternFor('All * Tests')
+
+      // Act
+      const matched = expected.test('All Event Tests')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not match a title missing the wildcard text', () => {
+      // Arrange
+      const expected = titlePatternFor('All * Tests')
+
+      // Act
+      const matched = expected.test('All Tests')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('does not match a title with text past the pattern', () => {
+      // Arrange
+      const expected = titlePatternFor('All * Tests')
+
+      // Act
+      const matched = expected.test('All Event Tests Extra')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+
+    it('treats regular expression syntax in the pattern as literal text', () => {
+      // Arrange
+      const expected = titlePatternFor('add(a, b) [unit]')
+
+      // Act
+      const matched = expected.test('add(a, b) [unit]')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('matches a unicode title through the wildcard', () => {
+      // Arrange
+      const expected = titlePatternFor('All * Tests')
+
+      // Act
+      const matched = expected.test('All Événement Tests')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('matches only an empty title when the pattern is empty', () => {
+      // Arrange
+      const expected = titlePatternFor('')
+
+      // Act
+      const matched = expected.test('')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('spans several wildcards in one pattern', () => {
+      // Arrange
+      const expected = titlePatternFor('All * * Tests')
+
+      // Act
+      const matched = expected.test('All Event Queries Tests')
+
+      // Assert
+      assertEquals(matched, true)
+    })
+
+    it('does not span a newline through a wildcard', () => {
+      // Arrange
+      const expected = titlePatternFor('All * Tests')
+
+      // Act
+      const matched = expected.test('All Event\nQueries Tests')
+
+      // Assert
+      assertEquals(matched, false)
+    })
+  })
+
+  describe('titleFlags', () => {
+    it('compiles the pattern in unicode mode', () => {
+      // Act
+      const flags = titlePatternFor('All * Tests').flags
+
+      // Assert
+      assertEquals(flags, titleFlags)
+    })
+  })
 })
