@@ -72,6 +72,20 @@ tester.run('no-test-before-group', rule, {
         '})',
       ].join('\n'),
     },
+    // Pins the ExpressionStatement guard: a declaration is not a bare call, so its inner test is never loose.
+    {
+      code: [
+        "const x = it('a', () => {})",
+        "describe('b', () => {})",
+      ].join('\n'),
+    },
+    // Pins the CallExpression guard: an assignment expression is not a call, so its inner test is never loose.
+    {
+      code: [
+        "flag = it('a', () => {})",
+        "describe('b', () => {})",
+      ].join('\n'),
+    },
     // The test function is renamed away from the default, so `it` is not a test here.
     {
       code: [
