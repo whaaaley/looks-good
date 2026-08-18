@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
-import { isAdjacent, isDirective, isLineComment, looksUnfinished, startsWithLabel, trailingIdentifier, trailingUrl, whitespace } from './comment.utils.ts'
+import { isAdjacent, isDirective, isLineComment, looksUnfinished, startsWithLabel, trailingIdentifierPattern, trailingUrlPattern, whitespacePattern } from './comment.utils.ts'
 import type { CommentLine } from './comment.utils.ts'
 
 const at = (line: number): CommentLine => ({
@@ -236,7 +236,7 @@ describe('All Comment Utility Tests', () => {
   describe('patterns', () => {
     it('matches a line closing on a url', () => {
       // Act
-      const matched = trailingUrl.test('See https://example.com/docs')
+      const matched = trailingUrlPattern.test('See https://example.com/docs')
 
       // Assert
       assertEquals(matched, true)
@@ -244,7 +244,7 @@ describe('All Comment Utility Tests', () => {
 
     it('does not match a url with prose after it', () => {
       // Act
-      const matched = trailingUrl.test('See https://example.com/docs for more')
+      const matched = trailingUrlPattern.test('See https://example.com/docs for more')
 
       // Assert
       assertEquals(matched, false)
@@ -252,7 +252,7 @@ describe('All Comment Utility Tests', () => {
 
     it('matches a line closing on a dotted identifier', () => {
       // Act
-      const matched = trailingIdentifier.test('Handled by discord.js')
+      const matched = trailingIdentifierPattern.test('Handled by discord.js')
 
       // Assert
       assertEquals(matched, true)
@@ -260,7 +260,7 @@ describe('All Comment Utility Tests', () => {
 
     it('does not match a line closing on a period', () => {
       // Act
-      const matched = trailingIdentifier.test('A whole sentence.')
+      const matched = trailingIdentifierPattern.test('A whole sentence.')
 
       // Assert
       assertEquals(matched, false)
@@ -268,7 +268,7 @@ describe('All Comment Utility Tests', () => {
 
     it('does not match an empty line', () => {
       // Act
-      const matched = trailingIdentifier.test('')
+      const matched = trailingIdentifierPattern.test('')
 
       // Assert
       assertEquals(matched, false)
@@ -276,7 +276,7 @@ describe('All Comment Utility Tests', () => {
 
     it('splits a line on its first space', () => {
       // Act
-      const [first = ''] = 'ts-expect-error a reason'.split(whitespace)
+      const [first = ''] = 'ts-expect-error a reason'.split(whitespacePattern)
 
       // Assert
       assertEquals(first, 'ts-expect-error')
@@ -284,7 +284,7 @@ describe('All Comment Utility Tests', () => {
 
     it('splits a line on a tab as well as a space', () => {
       // Act
-      const [first = ''] = 'eslint-disable\tno-console'.split(whitespace)
+      const [first = ''] = 'eslint-disable\tno-console'.split(whitespacePattern)
 
       // Assert
       assertEquals(first, 'eslint-disable')

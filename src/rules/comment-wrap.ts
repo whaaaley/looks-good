@@ -1,4 +1,4 @@
-import { findWrappedPairs, isDirective, readLineComments, startsWithLabel } from '../utils/comment.utils.ts'
+import { findWrappedPairs, readLineComments } from '../utils/comment.utils.ts'
 import { docUrl } from '../utils/docs.utils.ts'
 import type { CommentLine } from '../utils/comment.utils.ts'
 import type { Rule } from 'eslint'
@@ -43,7 +43,6 @@ const rule: Rule.RuleModule = {
     ],
     messages: {
       wrapped: 'This sentence continues onto the next comment line. Rewrite it to fit on one line, or cut it.',
-      tooLong: 'This comment runs to {{length}} characters, past the {{maxLength}} configured. Shorten the sentence rather than wrapping it.',
       join: 'This sentence continues on the next line, so the two lines join into one',
       tooLongToJoin: 'This sentence continues on the next line, but joining them would run past {{maxLength}} characters',
     },
@@ -51,35 +50,8 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
-    // Both modes measure length the same way, so onWrap selects only the remedy for a wrapped pair.
-    const reportTooLong = (comments: CommentLine[]): Set<number> => {
-      const tooLong = new Set<number>()
-
-      for (const comment of comments) {
-        const text = comment.text
-        if (startsWithLabel(text, options.allowLabels)) continue
-        if (isDirective(text)) continue
-
-        // A sentence that is merely long cannot be shortened without changing what it says.
-        if (text.length <= options.maxLength) continue
-
-        tooLong.add(comment.line)
-
-        context.report({
-          loc: { line: comment.line, column: 0 },
-          messageId: 'tooLong',
-          data: { length: String(text.length), maxLength: String(options.maxLength) },
-        })
-      }
-
-      return tooLong
-    }
-
-    const reportMode = (comments: CommentLine[], tooLong: Set<number>): void => {
+    const reportMode = (comments: CommentLine[]): void => {
       for (const { comment } of findWrappedPairs(comments, options)) {
-        // A line already reported as too long is not reported again for wrapping.
-        if (tooLong.has(comment.line)) continue
-
         context.report({
           loc: { line: comment.line, column: 0 },
           messageId: 'wrapped',
@@ -87,15 +59,15 @@ const rule: Rule.RuleModule = {
       }
     }
 
-    const joinMode = (comments: CommentLine[], tooLong: Set<number>): void => {
+    const joinMode = (comments: CommentLine[]): void => {
       for (const { comment, next } of findWrappedPairs(comments, options)) {
-        // Joining would lengthen a line already reported as too long, so that report stands alone.
-        if (tooLong.has(comment.line)) continue
-
         const joined = `${comment.text} ${next.text}`
 
-        // Joining past the limit trades a wrapped sentence for one report mode would flag.
-        if (joined.length > options.maxLength) {
+        // The joined line keeps the first comment's indentation plus its own comment marker.
+        const column = comment.node.loc?.start.column ?? 0
+
+        // Joining past the limit would trade a wrapped sentence for a line max-comment-length flags.
+        if (column + 3 + joined.length > options.maxLength) {
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'tooLongToJoin',
@@ -117,16 +89,13 @@ const rule: Rule.RuleModule = {
       'Program:exit': (): void => {
         const comments = readLineComments(context)
 
-        // A long standalone line is flagged in both modes, with no fix since joining cannot shorten it.
-        const tooLong = reportTooLong(comments)
-
         if (options.onWrap === 'join') {
-          joinMode(comments, tooLong)
+          joinMode(comments)
 
           return
         }
 
-        reportMode(comments, tooLong)
+        reportMode(comments)
       },
     }
   },

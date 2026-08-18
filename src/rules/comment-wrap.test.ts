@@ -40,6 +40,9 @@ tester.run('comment-wrap', rule, {
     // A comment with no neighbour cannot be wrapping onto anything.
     { code: '// An unfinished thought\nconst a = 1' },
     { code: '// An unfinished thought\nconst a = 1', options: [join] },
+    // A long standalone line is max-comment-length's business, not a wrap.
+    { code: `// ${'x'.repeat(200)}.\nconst a = 1` },
+    { code: `// ${'x'.repeat(200)}.\nconst a = 1`, options: [join] },
     // A blank line between them means the second is a new comment rather than a continuation.
     { code: '// An unfinished thought\n\n// A separate note.\nconst a = 1' },
     { code: '// An unfinished thought\n\n// A separate note.\nconst a = 1', options: [join] },
@@ -67,44 +70,12 @@ tester.run('comment-wrap', rule, {
       code: '// Arrange\n// Act\nconst a = 1',
       options: [{ ...join, allowLabels: ['Arrange', 'Act', 'Assert'] }],
     },
-    // A line inside the limit is left alone by the length check in both modes.
-    {
-      code: `// ${'x'.repeat(40)}\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-    },
-    {
-      code: `// ${'x'.repeat(40)}\nconst a = 1`,
-      options: [{ ...join, maxLength: 50 }],
-    },
-    // A label is exempt from the length check in both modes.
-    {
-      code: `// Arrange ${'x'.repeat(200)}\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-    },
-    {
-      code: `// Arrange ${'x'.repeat(200)}\nconst a = 1`,
-      options: [{ ...join, maxLength: 50 }],
-    },
-    // A directive is exempt from the length check in both modes.
-    {
-      code: `// @ts-expect-error ${'x'.repeat(200)}\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-    },
-    {
-      code: `// @ts-expect-error ${'x'.repeat(200)}\nconst a = 1`,
-      options: [{ ...join, maxLength: 50 }],
-    },
   ],
   invalid: [
     // Report mode cases, preserved from comment-one-sentence-per-line.
     {
       code: '// A sentence that runs on\n// and finishes here.\nconst a = 1',
       errors: [{ messageId: 'wrapped' }],
-    },
-    {
-      code: `// ${'x'.repeat(60)}\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-      errors: [{ messageId: 'tooLong' }],
     },
     {
       code: '// See https://example.com/path\n// A following note.\nconst a = 1',
@@ -121,12 +92,25 @@ tester.run('comment-wrap', rule, {
       options: [{ allowLabels: [] }],
       errors: [{ messageId: 'wrapped' }],
     },
+    // A wrapped pair with a long line still reports the wrap, since length is the other rule's report.
+    {
+      code: `// ${'x'.repeat(60)}\n// and finishes here.\nconst a = 1`,
+      options: [{ maxLength: 200 }],
+      errors: [{ messageId: 'wrapped' }],
+    },
     // Join mode cases, preserved from comment-reflow.
     // Joining these would run past the limit, so it reports without rewriting.
     {
       code: `// ${'x'.repeat(80)}\n// ${'y'.repeat(80)}.\nconst a = 1`,
       output: null,
       options: [join],
+      errors: [{ messageId: 'tooLongToJoin' }],
+    },
+    // The guard measures the whole joined line, indentation and marker included.
+    {
+      code: `const run = () => {\n  // ${'x'.repeat(58)}\n  // and finishes here.\n}`,
+      output: null,
+      options: [{ ...join, maxLength: 80 }],
       errors: [{ messageId: 'tooLongToJoin' }],
     },
     // A shorter pair joins as usual.
@@ -159,45 +143,6 @@ tester.run('comment-wrap', rule, {
       output: '// Arrange the fixture then act on it.\nconst a = 1',
       options: [{ ...join, allowLabels: [] }],
       errors: [{ messageId: 'join' }],
-    },
-    // maxLength means the same thing in both modes, so join mode reports a long standalone line too.
-    {
-      code: `// ${'x'.repeat(60)}\nconst a = 1`,
-      output: null,
-      options: [{ ...join, maxLength: 50 }],
-      errors: [{ messageId: 'tooLong' }],
-    },
-    // There is nothing to join on a standalone line, so the report carries no fix.
-    {
-      code: `// ${'x'.repeat(60)}.\nconst a = 1`,
-      output: null,
-      options: [{ ...join, maxLength: 50 }],
-      errors: [{ messageId: 'tooLong' }],
-    },
-    // A pair whose first line is too long yields the length report alone, in both modes.
-    {
-      code: `// ${'x'.repeat(60)}\n// and finishes here.\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-      errors: [{ messageId: 'tooLong' }],
-    },
-    {
-      code: `// ${'x'.repeat(60)}\n// and finishes here.\nconst a = 1`,
-      output: null,
-      options: [{ ...join, maxLength: 50 }],
-      errors: [{ messageId: 'tooLong' }],
-    },
-    // A pair whose second line is too long is reported for the wrap and for that line's length.
-    {
-      code: `// A sentence that runs on\n// ${'x'.repeat(60)}.\nconst a = 1`,
-      options: [{ maxLength: 50 }],
-      errors: [{ messageId: 'wrapped', line: 1 }, { messageId: 'tooLong', line: 2 }],
-    },
-    // Joining that pair would run past the limit, so tooLongToJoin stands beside the length report.
-    {
-      code: `// A sentence that runs on\n// ${'x'.repeat(60)}.\nconst a = 1`,
-      output: null,
-      options: [{ ...join, maxLength: 50 }],
-      errors: [{ messageId: 'tooLongToJoin', line: 1 }, { messageId: 'tooLong', line: 2 }],
     },
   ],
 })

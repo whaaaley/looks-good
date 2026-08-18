@@ -17,13 +17,10 @@ export type ExemptionOptions = {
   allowLabels: string[]
 }
 
-// A url has no natural break, so wrapping one is worse than running long.
-export const trailingUrl = /https?:\/\/\S+$/
-
-// A line closing on a symbol like `discord.js` reads as finished, not as a fragment.
-export const trailingIdentifier = /[\w$)\]]\.[\w$]+$/
-
-export const whitespace = /\s/
+export const urlPattern = /https?:\/\/\S+/ // A url has no natural break, so it exempts the line it sits on.
+export const trailingUrlPattern = /https?:\/\/\S+$/ // A url has no natural break, so wrapping one is worse.
+export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Closing on a symbol like `discord.js` reads as finished.
+export const whitespacePattern = /\s/ // Matches one whitespace character.
 
 export const isLineComment = (comment: { type: string }): boolean => {
   return comment.type === 'Line'
@@ -103,7 +100,7 @@ const directivePrefixes = ['ts-', '@ts-', '@type', 'type-coverage:']
 export const isDirective = (text: string): boolean => {
   if (directivePrefixes.some((prefix) => text.startsWith(prefix))) return true
 
-  const [first = ''] = text.split(whitespace)
+  const [first = ''] = text.split(whitespacePattern)
 
   return directives.some((name) => first === name || first.startsWith(`${name}-`))
 }
@@ -115,11 +112,13 @@ export const startsWithLabel = (text: string, labels: string[]): boolean => {
 
 // A comment carries on to the next line when it does not close a sentence itself.
 export const looksUnfinished = (text: string, options: ExemptionOptions): boolean => {
+  const { allowUrls, allowIdentifiers } = options
+
   if (text.length === 0) return false
   if (endsSentence(text)) return false
-  if (options.allowUrls && trailingUrl.test(text)) return false
-  if (options.allowIdentifiers && trailingIdentifier.test(text)) return false
-  if (options.allowIdentifiers && endsWithCode(text)) return false
+  if (allowUrls && trailingUrlPattern.test(text)) return false
+  if (allowIdentifiers && trailingIdentifierPattern.test(text)) return false
+  if (allowIdentifiers && endsWithCode(text)) return false
 
   return true
 }
