@@ -68,10 +68,10 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 
 | Rule | Description | Config | Fixable |
 | --- | --- | --- | --- |
-| [array-bracket-hug](docs/rules.md#array-bracket-hug) | An array of object literals hugs its brackets into a compact chain | recommended | yes |
+| [array-bracket-hug](docs/rules.md#array-bracket-hug) | An array of multiline object literals hugs its brackets, opening `[{` and closing `}]` | recommended | yes |
 | [blank-line-after-block](docs/rules.md#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
 | [comment-content](docs/rules.md#comment-content) | Forbids comment text a project does not want left in source | parsing | |
-| [comment-wrap](docs/rules.md#comment-wrap) | A comment sentence fits on one line and a line holds one sentence | parsing | yes |
+| [comment-wrap](docs/rules.md#comment-wrap) | A comment sentence fits on one line, joined onto it under `--fix` | parsing | yes |
 | [describe-group-order](docs/rules.md#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
 | [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
 | [import-group-order](docs/rules.md#import-group-order) | Enforces a group order and an alphabetical order among the imports of a file | opt in | yes |
@@ -79,12 +79,12 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [max-destructured-parameters](docs/rules.md#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
 | [max-single-line-statement-length](docs/rules.md#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
 | [no-blank-line-in-object](docs/rules.md#no-blank-line-in-object) | Keeps a blank line out from between the properties of an object literal | recommended | yes |
-| [no-emoji](docs/rules.md#no-emoji) | Reports emoji in code, comments, and identifiers | parsing | |
+| [no-emoji](docs/rules.md#no-emoji) | Reports emoji in strings and comments | parsing | |
 | [no-id-only-mutation-scope](docs/rules.md#no-id-only-mutation-scope) | Reports a mutation scoped only by id in a file that scopes other queries by tenant | parsing | |
 | [no-ignored-tests](docs/rules.md#no-ignored-tests) | Reports a skipped or ignored test | recommended | |
 | [no-inline-regex](docs/rules.md#no-inline-regex) | Keeps a regular expression as the initializer of a module-level const | opt in | |
 | [no-nullable-unique-column](docs/rules.md#no-nullable-unique-column) | Reports a Drizzle unique constraint that covers a column a row may leave null | parsing | |
-| [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source | parsing | yes |
+| [no-restricted-characters](docs/rules.md#no-restricted-characters) | Reports characters a project does not want in source, rewriting them in comments when a replacement is named | parsing | yes |
 | [no-single-line-nested-object](docs/rules.md#no-single-line-nested-object) | Keeps a nested object out of a call or construction argument written on one line | recommended | |
 | [no-test-before-group](docs/rules.md#no-test-before-group) | Reports a test written above the first group in the same body | recommended | |
 | [no-try-catch-handler](docs/rules.md#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |

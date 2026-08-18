@@ -36,6 +36,7 @@ A comment inside an element rides along with its object and does not opt the arr
 
 Reports a statement that sits directly under the closing brace of an `if`, a loop other than do-while, a `try`, or a `switch`.
 A closing brace ends a paragraph, so the next statement starts a new one and needs a blank line between them.
+A statement on the same line as the closing brace is reported too, and the fix separates it with a full blank line.
 A braceless guard such as `if (!first) return` is left alone.
 A do-while closes on its condition rather than a brace, so it is left alone too.
 
@@ -131,8 +132,8 @@ Examples of code `--fix` rewrites, joining the two lines into one:
 const a = 1
 ```
 
-Report mode attaches no fix, since deciding what a sentence should say instead is the user's call.
-Join mode is the fixable one, so it is what `--fix` acts on.
+Every report carries the join fix, unless the joined line would run past `maxLength`, which reports without one.
+Only line comments are checked, since a block comment carries its own wrapping.
 
 How long a comment line may run is [max-comment-length](#max-comment-length)'s business, so a long line that wraps nothing is not reported here.
 `maxLength` only guards the join, so `--fix` never produces a line that rule would flag.
@@ -141,7 +142,7 @@ How long a comment line may run is [max-comment-length](#max-comment-length)'s b
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `maxLength` | `120` | The longest a joined line may run, indentation and marker included. Under `'join'`, two lines that would join past it are reported without a fix. |
+| `maxLength` | `120` | The longest a joined line may run, indentation and marker included. Two lines that would join past it are reported without a fix. |
 | `allowUrls` | `true` | Exempts a line ending in a url. |
 | `allowIdentifiers` | `true` | Exempts a line ending in a symbol such as `` `comment.utils` `` or `discord.js`. |
 | `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
@@ -317,7 +318,8 @@ const parse = (input) => input.trim() // A short sentence ends inside the line.
 | `maxLength` | `120` | The longest a line holding a comment may run. The bound is inclusive, so a line exactly this long passes. |
 
 A trailing comment counts the whole line, code included, since the reader scrolls the whole line either way.
-A line whose comment carries a url is exempt, because a url has no natural break to shorten at.
+A comment carrying a url anywhere in it is exempt as a whole, every line of it, because a url has no natural break to shorten at.
+A multi-line block comment is otherwise checked line by line, and each long line is reported once.
 A directive such as `eslint-disable-next-line` is exempt too, since its length is not the writer's to shorten.
 
 ### max-destructured-parameters
@@ -569,7 +571,7 @@ export const slugify = (value) => {
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `position` | `'module'` | `module` accepts a pattern const anywhere at the top level of the file. `top` additionally requires the pattern consts be grouped in an unbroken run at the head of the file. |
+| `position` | `'module'` | `module` accepts a pattern const anywhere at the top level of the file. `top` additionally requires the pattern consts be grouped in an unbroken run at the head of the file, and a pattern declared below other code gets its own separately worded report. |
 
 A const holding a collection of patterns, such as an array or an object of them, counts as a pattern declaration under `top`, so it does not break the opening run for the ones beside it.
 
@@ -1056,6 +1058,10 @@ Declare the foreign key in the config array to bring it into scope.
 
 Requires every test body to be labelled with `// Arrange`, `// Act`, and `// Assert` comments.
 Act and Assert are required, Arrange is optional, and the labels that are present must appear in that order.
+A label repeated in one body is reported as a duplicate, since each phase is labelled once.
+A test with an empty body is not checked, since a pending placeholder has no phases to label.
+A label listed in `require` but absent from `order` must be present and may sit anywhere.
+An `allowTitles` entry that does not compile as a regular expression is reported once at the top of the file as a configuration error.
 
 Examples of **incorrect** code for this rule:
 
@@ -1110,6 +1116,9 @@ it('adds two numbers', () => {
 Only a line comment whose whole text is a label counts, so prose such as `// Act on the parsed input.` is left alone.
 
 ## Rules That Were Removed
+
+`no-union-in-parameter-type` was retired.
+It read TypeScript syntax nodes that only appear under a TypeScript parser, and as the plugin's lone such rule it could sit enabled yet inert whenever the parser wiring did not reach it.
 
 `max-timeout-value`, `no-optional-chain-on-index`, and `no-database-access-in-tests` were removed.
 Each of them matched a syntax shape that ESLint core's `no-restricted-syntax` already expresses, so they carried a rule implementation for no added reach.

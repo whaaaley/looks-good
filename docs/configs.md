@@ -1,6 +1,6 @@
 # Configs
 
-The plugin ships three configs on `looksGood.configs`.
+The plugin ships two configs on `looksGood.configs`.
 Some rules are in none of them and are enabled by hand.
 
 `recommended` is this project's house style, offered as an example of one set of choices rather than a baseline to adopt.
@@ -14,6 +14,7 @@ looksGood.configs.parsing,
 Most rules in `recommended` are enabled at `error`.
 `no-ignored-tests` is enabled at `warn`, because a skipped test records deferred work rather than a defect.
 A note about work still to do should not break a build.
+`comment-content` in `parsing` is a `warn` for the same reason, since forbidden comment text is a cleanup note rather than broken code.
 
 ## parsing
 
@@ -27,41 +28,7 @@ These rules work the moment you enable them, so this config is about what the pl
 Installing from JSR pulls those four packages in for you, and taking `recommended` alone leaves them out.
 Skip `parsing` if you would rather your linter dependencies stay at `eslint` and nothing else.
 
-`comment-wrap` reports a wrapped sentence by default and leaves rewriting it to you.
-`--fix` joins the two lines back into one.
-
-```js
-looksGood.configs.parsing,
-{
-  rules: {
-    'looks-good/comment-wrap': 'error',
-  },
-}
-```
-
-## typescript
-
-`no-union-in-parameter-type` reads a node the default `espree` parser never produces, so it cannot fire on plain JavaScript.
-It lives in the `typescript` config rather than in `recommended`, so a JavaScript only project is never handed a rule that silently does nothing.
-
-The config sets no parser of its own, since doing so would override the parser you chose.
-Spread it inside a config block where you have already set `@typescript-eslint/parser`.
-
-```js
-// eslint.config.js
-import { defineConfig } from 'eslint/config'
-import tsParser from '@typescript-eslint/parser'
-import looksGood from '@whaaaley/looks-good'
-
-export default defineConfig([
-  looksGood.configs.recommended,
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: { parser: tsParser },
-    ...looksGood.configs.typescript,
-  },
-])
-```
+`comment-wrap` reports every wrapped sentence and `--fix` joins the two lines back into one.
 
 ## Rules No Config Enables
 
