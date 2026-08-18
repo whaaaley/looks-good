@@ -45,6 +45,19 @@ const chainBase = (node: CallExpression): CallExpression => {
   return chainBase(callee.object)
 }
 
+// The `.on(...)` link of a builder chain, wherever it sits, so `index().on(a).where(b)` still yields its columns.
+const onLink = (node: CallExpression): CallExpression | undefined => {
+  const { callee } = node
+  if (callee.type !== 'MemberExpression') return undefined
+  if (callee.property.type === 'Identifier' && callee.property.name === 'on') {
+    return node
+  }
+
+  if (callee.object.type !== 'CallExpression') return undefined
+
+  return onLink(callee.object)
+}
+
 const propertyNamed = (object: ObjectExpression, name: string): Property | undefined => {
   for (const property of object.properties) {
     if (property.type !== 'Property') continue
@@ -62,6 +75,11 @@ const propertyNamed = (object: ObjectExpression, name: string): Property | undef
 
 // A column reads as `table.collectiveId`, so the property name is the identity the rule compares on.
 const columnName = (node: Node): string => {
+  // A modifier like `.desc()` wraps the column, so the name sits on the callee's object.
+  if (node.type === 'CallExpression' && node.callee.type === 'MemberExpression') {
+    return columnName(node.callee.object)
+  }
+
   if (node.type !== 'MemberExpression') return ''
   if (node.property.type !== 'Identifier') return ''
 
@@ -153,8 +171,9 @@ const rule: Rule.RuleModule = {
         const builds = indexNames.has(base) || uniqueNames.has(base) || base === 'primaryKey'
         if (!builds) continue
 
-        if (entry.callee.type === 'MemberExpression' && entry.callee.property.type === 'Identifier' && entry.callee.property.name === 'on') {
-          covering.push(columnsOf(entry.arguments))
+        const onCall = onLink(entry)
+        if (onCall) {
+          covering.push(columnsOf(onCall.arguments))
           continue
         }
 
@@ -209,6 +228,10 @@ const rule: Rule.RuleModule = {
         const entries = config.body.elements
         const covering = collectCovering(entries, columns)
 
+        // The suggestion names columns through the config arrow's own parameter.
+        const [param] = config.params
+        const tableParam = param && param.type === 'Identifier' ? param.name : 'table'
+
         for (const key of collectForeignKeys(entries)) {
           const covered = covering.some((candidate) => coversPrefix(candidate, key.columns))
           if (covered) continue
@@ -218,7 +241,7 @@ const rule: Rule.RuleModule = {
             messageId: 'missing',
             data: {
               columns: key.columns.join(', '),
-              suggestion: key.columns.map((name) => `table.${name}`).join(', '),
+              suggestion: key.columns.map((name) => `${tableParam}.${name}`).join(', '),
             },
           })
         }

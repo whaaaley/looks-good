@@ -38,6 +38,30 @@ tester.run('require-foreign-key-index', rule, {
       code: indexed,
       filename,
     },
+    // A partial index chains .where after .on and still covers the column.
+    {
+      code: `
+export const membership = governanceSchema.table('membership', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  index().on(table.collectiveId).where(sql\`deleted_at is null\`),
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+    },
+    // A column modifier like .desc() still names the column it wraps.
+    {
+      code: `
+export const membership = governanceSchema.table('membership', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  index().on(table.collectiveId.desc()),
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+    },
     // A uniqueIndex covers it just as well.
     {
       code: `
@@ -120,6 +144,18 @@ export const collective = governanceSchema.table('collective', {
       code: unindexed,
       filename,
       errors: [{ messageId: 'missing' }],
+    },
+    // The suggestion names columns through the config arrow's own parameter.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, (t) => [
+  foreignKey({ columns: [t.collectiveId], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+      errors: [{ messageId: 'missing', data: { columns: 'collectiveId', suggestion: 't.collectiveId' } }],
     },
     // An index on a different column does not cover this foreign key.
     {
