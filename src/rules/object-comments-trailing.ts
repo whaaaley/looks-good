@@ -30,10 +30,6 @@ const rule: Rule.RuleModule = {
     const check = (node: ObjectExpression): void => {
       const comments = sourceCode.getCommentsInside(node)
 
-      // Behaviorally redundant with the empty report loop.
-      // Kept to skip building the occupied Set for comment-free objects.
-      if (comments.length === 0) return
-
       const opening = locationOf(node)
       if (!opening) return
 
