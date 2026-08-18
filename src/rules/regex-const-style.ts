@@ -47,7 +47,9 @@ const rule: Rule.RuleModule = {
       if (!after) return false
       if (after.type !== 'Line' && after.type !== 'Block') return false
 
-      return after.loc?.start.line === node.parent.loc?.end.line
+      if (!after.loc) return false
+
+      return after.loc.start.line === sourceCode.getLoc(node.parent).end.line
     }
 
     // An exported declaration starts at its export keyword, which is where a leading comment sits above.
@@ -65,41 +67,40 @@ const rule: Rule.RuleModule = {
       const before = sourceCode.getTokenBefore(statement, { includeComments: true })
       if (!before) return false
       if (before.type !== 'Line' && before.type !== 'Block') return false
-      if (!before.loc || !statement.loc) return false
-      if (before.loc.end.line !== statement.loc.start.line - 1) return false
+      if (!before.loc) return false
+      if (before.loc.end.line !== sourceCode.getLoc(statement).start.line - 1) return false
 
       // A comment trailing the previous statement describes that statement, so only an own-line comment counts.
       const beforeComment = sourceCode.getTokenBefore(before)
-      if (!beforeComment || !beforeComment.loc) return true
+      if (!beforeComment) return true
 
-      return beforeComment.loc.end.line < before.loc.start.line
+      return sourceCode.getLoc(beforeComment).end.line < before.loc.start.line
     }
 
-    return {
-      VariableDeclarator: (node: VariableDeclarator & Rule.NodeParentExtension): void => {
-        if (!node.init || node.init.type !== 'Literal') return
-        if (!('regex' in node.init)) return
-        if (node.id.type !== 'Identifier') return
+    const check = (node: VariableDeclarator & Rule.NodeParentExtension): void => {
+      if (!node.init || !('regex' in node.init)) return
+      if (node.id.type !== 'Identifier') return
 
-        const { name } = node.id
+      const { name } = node.id
 
-        // A bare lowercase suffix is the generic name, which already says what it holds.
-        if (!name.endsWith(options.suffix) && name !== lowerFirst(options.suffix)) {
-          context.report({
-            node: node.id,
-            messageId: 'suffix',
-            data: { name, suffix: options.suffix },
-          })
-        }
+      // A bare lowercase suffix is the generic name, which already says what it holds.
+      if (!name.endsWith(options.suffix) && name !== lowerFirst(options.suffix)) {
+        context.report({
+          node: node.id,
+          messageId: 'suffix',
+          data: { name, suffix: options.suffix },
+        })
+      }
 
-        if (options.requireComment && !hasTrailingComment(node) && !hasLeadingComment(node)) {
-          context.report({
-            node: node.id,
-            messageId: 'comment',
-          })
-        }
-      },
+      if (options.requireComment && !hasTrailingComment(node) && !hasLeadingComment(node)) {
+        context.report({
+          node: node.id,
+          messageId: 'comment',
+        })
+      }
     }
+
+    return { VariableDeclarator: check }
   },
 }
 

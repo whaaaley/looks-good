@@ -27,6 +27,8 @@ tester.run('regex-const-style', rule, {
     // A regex too wide for a shared line keeps its explanation directly above instead.
     { code: '// Matches a url scheme.\nconst urlPattern = /https?:/' },
     { code: '// Matches a url scheme.\nexport const urlPattern = /https?:/' },
+    // A destructured binding has no single name to suffix, so the rule leaves it alone.
+    { code: 'const { source } = /x/ // Matches x.' },
     // A configured suffix replaces the default.
     {
       code: 'const urlRegex = /https?:/ // Matches a url scheme.',
@@ -56,6 +58,21 @@ tester.run('regex-const-style', rule, {
     // A blank line between the comment and the declaration orphans the explanation.
     {
       code: '// Matches a url scheme.\n\nconst urlPattern = /https?:/',
+      errors: [{ messageId: 'comment' }],
+    },
+    // A closing brace after the declaration is a punctuator, not a comment.
+    {
+      code: '{ const urlPattern = /https?:/ }',
+      errors: [{ messageId: 'comment' }],
+    },
+    // A comment on the line below trails nothing on the declaration's line.
+    {
+      code: 'const urlPattern = /https?:/\n// Matches a url scheme.',
+      errors: [{ messageId: 'comment' }],
+    },
+    // A bare identifier statement on the previous line is not a comment.
+    {
+      code: 'bar\nconst urlPattern = /https?:/',
       errors: [{ messageId: 'comment' }],
     },
     // Both defects on one declaration yield both reports.
