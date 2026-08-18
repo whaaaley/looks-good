@@ -59,7 +59,8 @@ const rule: Rule.RuleModule = {
 
     const joinMode = (comments: CommentLine[]): void => {
       for (const { comment, next } of findWrappedPairs(comments, options)) {
-        const joined = `${comment.text} ${next.text}`
+        // An empty line contributes no text, so joining it must not leave a trailing space.
+        const joined = [comment.text, next.text].filter(Boolean).join(' ')
 
         // The joined line keeps the first comment's indentation plus its own comment marker.
         const column = comment.node.loc?.start.column ?? 0

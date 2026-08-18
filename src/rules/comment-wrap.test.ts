@@ -113,6 +113,13 @@ tester.run('comment-wrap', rule, {
       options: [{ ...join, maxLength: 80 }],
       errors: [{ messageId: 'tooLongToJoin' }],
     },
+    // An empty continuation line joins without leaving a trailing space.
+    {
+      code: '// A short start\n//\nconst a = 1',
+      output: '// A short start\nconst a = 1',
+      options: [join],
+      errors: [{ messageId: 'join' }],
+    },
     // A shorter pair joins as usual.
     {
       code: '// A short start\n// and a short end.\nconst a = 1',
