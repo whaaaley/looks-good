@@ -52,9 +52,11 @@ const rule: Rule.RuleModule = {
         // An empty line contributes no text, so joining it must not leave a trailing space.
         const joined = [comment.text, next.text].filter(Boolean).join(' ')
 
+        const replacement = `// ${joined}`
+
         // Joining past the limit would trade a wrapped sentence for a line max-comment-length flags.
         // The joined line keeps the first comment's indentation plus its own comment marker.
-        if (comment.column + 3 + joined.length > options.maxLength) {
+        if (comment.column + replacement.length > options.maxLength) {
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'tooLongToJoin',
@@ -67,7 +69,7 @@ const rule: Rule.RuleModule = {
         context.report({
           loc: { line: comment.line, column: 0 },
           messageId: 'join',
-          fix: (fixer) => fixer.replaceTextRange([comment.range[0], next.range[1]], `// ${joined}`),
+          fix: (fixer) => fixer.replaceTextRange([comment.range[0], next.range[1]], replacement),
         })
       }
     }

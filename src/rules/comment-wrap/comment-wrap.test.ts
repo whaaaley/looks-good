@@ -19,6 +19,12 @@ tester.run('comment-wrap', rule, {
     { code: '// deno-lint-ignore no-explicit-any\n// A following note.\nconst a = 1' },
     // A comment above a directive is left alone too, since the join would consume it.
     { code: '// An unfinished thought\n// eslint-disable-next-line no-console\nconst a = 1' },
+    // A block comment never joins onto a line comment, so the block marker survives.
+    { code: '/* An unfinished thought */\n// A note.\nconst a = 1' },
+    // A label on the first line alone still blocks the join.
+    { code: '// Arrange\n// then act on it.\nconst a = 1' },
+    // A label on the second line alone blocks the join too.
+    { code: '// An unfinished thought\n// Arrange\nconst a = 1' },
     // Two sentences on one line are fine, since the line does not wrap.
     { code: '// First sentence. Second sentence.\nconst a = 1' },
     { code: 'const a = 1 // A trailing comment.' },

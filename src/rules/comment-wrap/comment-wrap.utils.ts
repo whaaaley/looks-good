@@ -41,16 +41,18 @@ export type WrappedPair = {
   next: CommentLine
 }
 
+// A label marks structure rather than prose, and a directive instructs a tool that expects its own line.
+const structural = (text: string, labels: string[]): boolean => {
+  return startsWithLabel(text, labels) || isDirective(text)
+}
+
 // A pair joins when neither side is structural and the first line reads unfinished.
 const pairJoins = (pair: WrappedPair, options: ExemptionOptions): boolean => {
   const { comment, next } = pair
 
-  // A label is a structural marker rather than prose, so it neither wraps nor absorbs the line below it.
-  if (startsWithLabel(comment.text, options.allowLabels)) return false
-  if (startsWithLabel(next.text, options.allowLabels)) return false
-
-  // A directive is an instruction to a tool that expects it on its own line, so joining either side would break it.
-  if (isDirective(comment.text) || isDirective(next.text)) return false
+  // A structural line neither wraps nor absorbs its neighbour, so either side blocks the join.
+  if (structural(comment.text, options.allowLabels)) return false
+  if (structural(next.text, options.allowLabels)) return false
 
   // Two trailing comments annotate their own code lines rather than one continuing the other.
   if (comment.trailing || next.trailing) return false
@@ -67,7 +69,8 @@ export const findWrappedPairs = (comments: CommentLine[], options: ExemptionOpti
     const next = comments[index + 1]
     if (!next || next.line !== comment.line + 1) continue
 
-    if (pairJoins({ comment, next }, options)) pairs.push({ comment, next })
+    const pair: WrappedPair = { comment, next }
+    if (pairJoins(pair, options)) pairs.push(pair)
   }
 
   return pairs
