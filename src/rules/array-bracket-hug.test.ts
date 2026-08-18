@@ -22,6 +22,8 @@ tester.run('array-bracket-hug', rule, {
     { code: 'const e = []' },
     // A hole is not an object literal, so the array is left as written.
     { code: 'const h = [\n  ,\n  { a: 1 },\n]' },
+    // A hole disqualifies the array even when its neighbor is a multiline object.
+    { code: 'const h = [\n  ,\n  {\n    a: 1,\n  },\n]' },
     // A list of single-line objects reads as a list, not a chain.
     { code: 'const l = [\n  { a: 1 },\n  { b: 2 },\n]' },
     // A comment between the brackets anchors the expanded form, so the whole array is left as written.

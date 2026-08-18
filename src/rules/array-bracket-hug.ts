@@ -57,80 +57,76 @@ const rule: Rule.RuleModule = {
       return false
     }
 
-    return {
-      ArrayExpression: (node: ArrayExpression & Rule.NodeParentExtension): void => {
-        const location = locationOf(node)
-        if (!location) return
-        if (location.start.line === location.end.line) return
+    const check = (node: ArrayExpression): void => {
+      const elements = objectElements(node)
+      const [first] = elements
+      if (!first) return
+      if (hasGapComment(node, elements)) return
 
-        const elements = objectElements(node)
-        const [first] = elements
-        if (!first) return
-        if (hasGapComment(node, elements)) return
+      const opening = sourceCode.getFirstToken(node)
+      const closing = sourceCode.getLastToken(node)
+      if (!opening || !closing) return
 
-        const opening = sourceCode.getFirstToken(node)
-        const closing = sourceCode.getLastToken(node)
-        if (!opening || !closing) return
+      const firstToken = sourceCode.getFirstToken(first)
+      const firstLocation = locationOf(first)
+      if (!firstToken || !firstLocation) return
 
-        const firstToken = sourceCode.getFirstToken(first)
-        const firstLocation = locationOf(first)
-        if (!firstToken || !firstLocation) return
-
-        if (opening.loc.end.line !== firstLocation.start.line) {
-          const [, from = 0] = opening.range
-          const [to = 0] = firstToken.range
-
-          context.report({
-            loc: opening.loc.start,
-            messageId: 'hugOpen',
-            fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ''),
-          })
-        }
-
-        elements.forEach((element, index) => {
-          const next = elements[index + 1]
-          if (!next) return
-
-          const elementLocation = locationOf(element)
-          const nextLocation = locationOf(next)
-          if (!elementLocation || !nextLocation) return
-          if (elementLocation.end.line === nextLocation.start.line) return
-
-          const elementToken = sourceCode.getLastToken(element)
-          const nextToken = sourceCode.getFirstToken(next)
-          if (!elementToken || !nextToken) return
-
-          const [, from = 0] = elementToken.range
-          const [to = 0] = nextToken.range
-
-          context.report({
-            loc: nextToken.loc.start,
-            messageId: 'hugSeam',
-            fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ', '),
-          })
-        })
-
-        const last = elements[elements.length - 1]
-        if (!last) return
-
-        const lastLocation = locationOf(last)
-        if (!lastLocation) return
-        if (lastLocation.end.line === closing.loc.start.line) return
-
-        const lastToken = sourceCode.getLastToken(last)
-        if (!lastToken) return
-
-        // A trailing comma folds into the closing }] and is removed with the line break.
-        const [, from = 0] = lastToken.range
-        const [to = 0] = closing.range
+      if (opening.loc.end.line !== firstLocation.start.line) {
+        const [, from = 0] = opening.range
+        const [to = 0] = firstToken.range
 
         context.report({
-          loc: closing.loc.start,
-          messageId: 'hugClose',
+          loc: opening.loc.start,
+          messageId: 'hugOpen',
           fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ''),
         })
-      },
+      }
+
+      elements.forEach((element, index) => {
+        const next = elements[index + 1]
+        if (!next) return
+
+        const elementLocation = locationOf(element)
+        const nextLocation = locationOf(next)
+        if (!elementLocation || !nextLocation) return
+        if (elementLocation.end.line === nextLocation.start.line) return
+
+        const elementToken = sourceCode.getLastToken(element)
+        const nextToken = sourceCode.getFirstToken(next)
+        if (!elementToken || !nextToken) return
+
+        const [, from = 0] = elementToken.range
+        const [to = 0] = nextToken.range
+
+        context.report({
+          loc: nextToken.loc.start,
+          messageId: 'hugSeam',
+          fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ', '),
+        })
+      })
+
+      const last = elements[elements.length - 1]
+      if (!last) return
+
+      const lastLocation = locationOf(last)
+      if (!lastLocation) return
+      if (lastLocation.end.line === closing.loc.start.line) return
+
+      const lastToken = sourceCode.getLastToken(last)
+      if (!lastToken) return
+
+      // Swallowing the trailing comma is intentional: the compact chain closes }] with no comma before it.
+      const [, from = 0] = lastToken.range
+      const [to = 0] = closing.range
+
+      context.report({
+        loc: closing.loc.start,
+        messageId: 'hugClose',
+        fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ''),
+      })
     }
+
+    return { ArrayExpression: check }
   },
 }
 
