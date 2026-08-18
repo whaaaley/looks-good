@@ -50,6 +50,11 @@ tester.run('comment-content', rule, {
       code: '/** A documented export. */\nexport const a = 1',
       options: [{ forbidBlockComments: true }],
     },
+    // A line comment is not a block comment, so forbidding block comments leaves it alone.
+    {
+      code: '// A line comment.\nconst a = 1',
+      options: [{ forbidBlockComments: true }],
+    },
     // A directive only works as a block comment, so forbidding block comments leaves it alone.
     {
       code: '/* global foo */\nconst a = foo',
