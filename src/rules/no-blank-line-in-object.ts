@@ -24,34 +24,32 @@ const rule: Rule.RuleModule = {
 
     return {
       ObjectExpression: (node: ObjectExpression): void => {
-        node.properties.forEach((property, index) => {
-          if (index === 0) return
-
+        for (const [index, property] of node.properties.entries()) {
+          // Measuring from the previous property's last line leaves a blank line inside its value alone.
           const preceding = locationOf(node.properties[index - 1])
-          if (!preceding) return
+          if (!preceding) continue
 
           const following = readerLocationOf(sourceCode, property)
-          if (!following) return
+          if (!following) continue
 
           const propertyLocation = locationOf(property)
-          if (!propertyLocation) return
+          if (!propertyLocation) continue
 
-          // Measuring from the previous property's last line leaves a blank line inside its value alone.
           // Scanning all the way to the property itself catches a blank line on either side of a comment.
           const start = sourceCode.getIndexFromLoc({ line: preceding.end.line, column: preceding.end.column })
           const end = sourceCode.getIndexFromLoc({ line: propertyLocation.start.line, column: 0 })
-          if (end <= start) return
+          if (end <= start) continue
 
           const between = sourceCode.getText().slice(start, end)
           const closed = between.replace(blankLineRunPattern, '\n')
-          if (closed === between) return
+          if (closed === between) continue
 
           context.report({
             loc: following,
             messageId: 'gap',
             fix: (fixer): Rule.Fix => fixer.replaceTextRange([start, end], closed),
           })
-        })
+        }
       },
     }
   },
