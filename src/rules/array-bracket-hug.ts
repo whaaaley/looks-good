@@ -1,5 +1,5 @@
 import { docUrl } from '../utils/docs.utils.ts'
-import { locationOf } from '../utils/location.utils.ts'
+import { isSingleLine, locationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
 import type { ArrayExpression, Expression } from 'estree'
 
@@ -28,8 +28,7 @@ const rule: Rule.RuleModule = {
       for (const element of node.elements) {
         if (!element || element.type !== 'ObjectExpression') return []
 
-        const location = locationOf(element)
-        if (!location || location.start.line === location.end.line) return []
+        if (isSingleLine(element)) return []
 
         elements.push(element)
       }
@@ -43,11 +42,11 @@ const rule: Rule.RuleModule = {
       for (const comment of sourceCode.getCommentsInside(node)) {
         if (!comment.range) return true
 
-        const [commentStart = 0, commentEnd = 0] = comment.range
+        const [commentStart, commentEnd] = comment.range
         const isInsideElement = elements.some((element) => {
           if (!element.range) return false
 
-          const [elementStart = 0, elementEnd = 0] = element.range
+          const [elementStart, elementEnd] = element.range
           return elementStart <= commentStart && commentEnd <= elementEnd
         })
 
@@ -72,8 +71,8 @@ const rule: Rule.RuleModule = {
       if (!firstToken || !firstLocation) return
 
       if (opening.loc.end.line !== firstLocation.start.line) {
-        const [, from = 0] = opening.range
-        const [to = 0] = firstToken.range
+        const [, from] = opening.range
+        const [to] = firstToken.range
 
         context.report({
           loc: opening.loc.start,
@@ -95,8 +94,8 @@ const rule: Rule.RuleModule = {
         const nextToken = sourceCode.getFirstToken(next)
         if (!elementToken || !nextToken) return
 
-        const [, from = 0] = elementToken.range
-        const [to = 0] = nextToken.range
+        const [, from] = elementToken.range
+        const [to] = nextToken.range
 
         context.report({
           loc: nextToken.loc.start,
@@ -116,8 +115,8 @@ const rule: Rule.RuleModule = {
       if (!lastToken) return
 
       // Swallowing the trailing comma is intentional: the compact chain closes }] with no comma before it.
-      const [, from = 0] = lastToken.range
-      const [to = 0] = closing.range
+      const [, from] = lastToken.range
+      const [to] = closing.range
 
       context.report({
         loc: closing.loc.start,
