@@ -34,9 +34,10 @@ A comment inside an element rides along with its object and does not opt the arr
 
 ### blank-line-after-block
 
-Reports a statement that sits directly under the closing brace of an `if`, a loop, a `try`, or a `switch`.
+Reports a statement that sits directly under the closing brace of an `if`, a loop other than do-while, a `try`, or a `switch`.
 A closing brace ends a paragraph, so the next statement starts a new one and needs a blank line between them.
 A braceless guard such as `if (!first) return` ends in its own statement rather than a brace, so it is left alone.
+A do-while closes on its condition rather than a brace, so it is left alone too.
 
 Examples of **incorrect** code for this rule:
 

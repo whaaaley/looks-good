@@ -10,7 +10,6 @@ const blockOwners = new Set([
   'ForInStatement',
   'ForOfStatement',
   'WhileStatement',
-  'DoWhileStatement',
   'TryStatement',
   'SwitchStatement',
 ])
