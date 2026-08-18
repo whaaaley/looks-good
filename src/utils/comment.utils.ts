@@ -107,20 +107,22 @@ export const startsWithLabel = (text: string, labels: string[]): boolean => {
 
 // A comment carries on to the next line when it does not close a sentence itself.
 export const looksUnfinished = (text: string, options: ExemptionOptions): boolean => {
-  const { allowUrls, allowIdentifiers } = options
-
   if (text.length === 0) return false
   if (endsSentence(text)) return false
-  // A line closing on a url or a symbol like `discord.js` reads as finished without a period.
-  if (allowUrls && trailingUrlPattern.test(text)) return false
-  if (allowIdentifiers && trailingIdentifierPattern.test(text)) return false
-  if (allowIdentifiers && endsWithCode(text)) return false
+
+  // A line closing on a url reads as finished without a period.
+  if (options.allowUrls && trailingUrlPattern.test(text)) return false
+
+  // A line closing on a symbol like `discord.js`, or on code, reads as finished too.
+  if (options.allowIdentifiers && trailingIdentifierPattern.test(text)) {
+    return false
+  }
+
+  if (options.allowIdentifiers && endsWithCode(text)) {
+    return false
+  }
 
   return true
-}
-
-export const isAdjacent = (first: CommentLine, second: CommentLine): boolean => {
-  return second.line === first.line + 1
 }
 
 export type WrappedPair = {
@@ -128,30 +130,31 @@ export type WrappedPair = {
   next: CommentLine
 }
 
-// One definition of a wrapped sentence, shared by both of the remedies onWrap selects between.
+// One definition of a wrapped sentence, feeding the join and its too-long report alike.
 export const findWrappedPairs = (comments: CommentLine[], options: ExemptionOptions): WrappedPair[] => {
   const pairs: WrappedPair[] = []
 
-  comments.forEach((comment, index) => {
-    const text = comment.text
-    if (startsWithLabel(text, options.allowLabels)) return
+  for (const [index, comment] of comments.entries()) {
+    const { text } = comment
 
-    // Joining a directive into the next line changes what the tool reading it sees.
-    if (isDirective(text)) return
-
+    // A pair is two comments on adjacent lines, so a comment with no direct neighbour below cannot wrap.
     const next = comments[index + 1]
-    if (!next) return
-    if (isDirective(next.text)) return
-    if (!isAdjacent(comment, next)) return
+    if (!next || next.line !== comment.line + 1) continue
 
-    // Two trailing comments annotate their own lines rather than one continuing the other.
-    if (comment.trailing || next.trailing) return
+    // A label is a structural marker rather than prose, so it neither wraps nor absorbs the line below it.
+    if (startsWithLabel(text, options.allowLabels)) continue
+    if (startsWithLabel(next.text, options.allowLabels)) continue
 
-    if (startsWithLabel(next.text, options.allowLabels)) return
-    if (!looksUnfinished(text, options)) return
+    // A directive is an instruction to a tool that expects it on its own line, so joining either side would break it.
+    if (isDirective(text) || isDirective(next.text)) continue
+
+    // Two trailing comments annotate their own code lines rather than one continuing the other.
+    if (comment.trailing || next.trailing) continue
+
+    if (!looksUnfinished(text, options)) continue
 
     pairs.push({ comment, next })
-  })
+  }
 
   return pairs
 }

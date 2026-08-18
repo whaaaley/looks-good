@@ -1,17 +1,6 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
-import { isAdjacent, isDirective, looksUnfinished, startsWithLabel, trailingIdentifierPattern, trailingUrlPattern, whitespacePattern } from './comment.utils.ts'
-import type { CommentLine } from './comment.utils.ts'
-
-const at = (line: number): CommentLine => ({
-  text: 'text',
-  line,
-  node: { type: 'Line', value: 'text' },
-  range: [0, 0],
-  trailing: false,
-  block: false,
-})
-
+import { isDirective, looksUnfinished, startsWithLabel, trailingIdentifierPattern, trailingUrlPattern, whitespacePattern } from './comment.utils.ts'
 const options = {
   allowUrls: true,
   allowIdentifiers: true,
@@ -160,24 +149,6 @@ describe('All Comment Utility Tests', () => {
 
       // Assert
       assertEquals(labelled, false)
-    })
-  })
-
-  describe('adjacency', () => {
-    it('reads consecutive lines as adjacent', () => {
-      // Act
-      const adjacent = isAdjacent(at(4), at(5))
-
-      // Assert
-      assertEquals(adjacent, true)
-    })
-
-    it('reads a gap between lines as not adjacent', () => {
-      // Act
-      const adjacent = isAdjacent(at(4), at(6))
-
-      // Assert
-      assertEquals(adjacent, false)
     })
   })
 
