@@ -5,7 +5,7 @@ ESLint rules for conventions nothing else enforces.
 ## Docs
 
 - [Rules](https://github.com/whaaaley/looks-good/blob/main/docs/rules.md) - every rule, its options, and examples of what it reports
-- [Configs](https://github.com/whaaaley/looks-good/blob/main/docs/configs.md) - what each of the three configs enables, what it costs to install, and the rules none of them turn on
+- [Configs](https://github.com/whaaaley/looks-good/blob/main/docs/configs.md) - what each config enables, what it costs, and the rules none of them turn on
 - [Result Helper](https://github.com/whaaaley/looks-good/blob/main/docs/result-helper.md) - the `safe` and `safeAsync` source, and enabling `no-try-catch-handler` against it
 - [ESLint Rule Set](https://github.com/whaaaley/looks-good/blob/main/docs/eslint-rules.md) - the curated eslint, import, and typescript-eslint rules shipped as `./eslint-rules`
 - [Tools](https://github.com/whaaaley/looks-good/blob/main/docs/tools.md) - the git hooks and the repo-local tooling this repository is developed with, which the published plugin does not include
@@ -67,7 +67,7 @@ Some rules are in no config, because each one waits on something your project su
 
 ## Rules
 
-The rules are written to the ESLint rule interface, and ESLint is the host they are developed and tested against.
+The rules are written to the ESLint rule interface, and ESLint is the host they are tested against.
 
 | Rule | Description | Config | Fixable |
 | --- | --- | --- | --- |
