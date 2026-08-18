@@ -15,26 +15,20 @@ export const calleeName = (node: CallExpression): string => {
 // The title is the first argument, and only when it is a plain string.
 export const readTitle = (node: CallExpression): string => {
   const [first] = node.arguments
-  if (!first) return ''
-  if (first.type !== 'Literal') return ''
-  if (typeof first.value !== 'string') return ''
+  if (!first || first.type !== 'Literal' || typeof first.value !== 'string') {
+    return ''
+  }
 
   return first.value
 }
 
 // The body is the block of the last function argument, which is where a call does its work.
 export const readBody = (node: CallExpression): Node | null => {
-  for (let index = node.arguments.length - 1; index >= 0; index -= 1) {
-    const argument = node.arguments[index]
-    if (!argument) continue
-    if (argument.type !== 'FunctionExpression' && argument.type !== 'ArrowFunctionExpression') {
-      continue
-    }
+  const found = node.arguments.findLast((argument) => {
+    return argument.type === 'FunctionExpression' || argument.type === 'ArrowFunctionExpression'
+  })
 
-    if (argument.body.type !== 'BlockStatement') return null
+  if (!found || found.body.type !== 'BlockStatement') return null
 
-    return argument.body
-  }
-
-  return null
+  return found.body
 }

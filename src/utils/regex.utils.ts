@@ -7,9 +7,7 @@ export type PatternSource = {
 
 // A pattern comes from user configuration, so a typo in it is a configuration problem rather than a crash.
 export const compilePattern = (pattern: PatternSource): RegExp | null => {
-  const { source, flags } = pattern
-
-  const { data, error } = safe(() => new RegExp(source, flags))
+  const { data, error } = safe(() => new RegExp(pattern.source, pattern.flags))
 
   if (error) return null
 
