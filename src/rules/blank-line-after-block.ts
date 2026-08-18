@@ -31,35 +31,40 @@ const rule: Rule.RuleModule = {
     const { sourceCode } = context
 
     const endsWithBrace = (statement: Node): boolean => {
-      return sourceCode.getLastToken(statement)?.value === '}'
+      const token = sourceCode.getLastToken(statement)
+      if (!token) return false
+
+      return token.value === '}'
     }
 
     const check = (body: Node[]): void => {
-      body.forEach((statement, index) => {
-        if (!blockOwners.has(statement.type)) return
+      for (const [index, statement] of body.entries()) {
+        if (!blockOwners.has(statement.type)) continue
 
         // A braceless guard ends in its own statement, so there is no brace to separate.
-        if (!endsWithBrace(statement)) return
+        if (!endsWithBrace(statement)) continue
 
         const next = body[index + 1]
-        if (!next) return
+        if (!next) continue
 
         const preceding = locationOf(statement)
-        if (!preceding) return
+        if (!preceding) continue
 
         const following = readerLocationOf(sourceCode, next)
-        if (!following) return
+        if (!following) continue
 
-        if (following.start.line > preceding.end.line + 1) return
+        if (following.start.line > preceding.end.line + 1) continue
+
+        const sameLine = following.start.line === preceding.end.line
 
         context.report({
           node: next,
           messageId: 'touching',
           fix: (fixer): Rule.Fix => {
-            return fixer.insertTextAfter(statement, '\n')
+            return fixer.insertTextAfter(statement, sameLine ? '\n\n' : '\n')
           },
         })
-      })
+      }
     }
 
     return {

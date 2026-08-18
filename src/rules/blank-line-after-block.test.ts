@@ -24,9 +24,12 @@ tester.run('blank-line-after-block', rule, {
     // A statement that owns no block is not this rule.
     { code: 'const a = 1\nconst b = 2' },
     { code: 'read()\nwrite()' },
-    // A braceless guard has no closing brace, so consecutive guards stay together.
+    // Consecutive braceless guards stay together.
     { code: 'const run = () => {\n  if (!a) return 1\n  if (!b) return 2\n\n  return 3\n}' },
     { code: 'for (const item of items) read(item)\nwrite()' },
+    // A statement outside the owner set ends in a brace without owning a paragraph.
+    { code: 'const a = () => {\n  read()\n}\nb()' },
+    { code: 'class A {\n  m() {}\n}\nb()' },
   ],
   invalid: [
     // The shape that prompted this rule.
@@ -58,6 +61,12 @@ tester.run('blank-line-after-block', rule, {
       code: 'const run = () => {\n  if (a) {\n    read()\n  }\n  write()\n}',
       errors: [{ messageId: 'touching' }],
       output: 'const run = () => {\n  if (a) {\n    read()\n  }\n\n  write()\n}',
+    },
+    // A one-line block followed on the same line still gets a blank line, not just a break.
+    {
+      code: 'if (a) { read() } write()',
+      errors: [{ messageId: 'touching' }],
+      output: 'if (a) { read() }\n\n write()',
     },
     // Two touching blocks are two reports.
     {
