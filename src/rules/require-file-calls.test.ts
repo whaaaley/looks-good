@@ -285,6 +285,20 @@ tester.run('require-file-calls', rule, {
       options: [{ patterns: [{ id: 'names-app', require: [{ literal: 'governance' }], message: 'Name the app.' }] }],
       errors: [{ messageId: 'missing' }],
     },
+    // A starless call matcher is exact, so a longer name does not prefix-match it.
+    {
+      code: 'routerTwo({})',
+      filename: 'event.router.ts',
+      options: [{ patterns: routerEntry }],
+      errors: [{ messageId: 'missing', data: { id: 'router-registers', message: 'A router file builds its router with router().' } }],
+    },
+    // A computed method call has no property name to match, so a wildcard method matcher reports instead of crashing.
+    {
+      code: "schema['parse'](input)",
+      filename: 'event.schema.ts',
+      options: [{ patterns: [{ id: 'schema-parses', files: '*.schema.ts', require: [{ call: '*.pars*' }], message: 'A schema file parses its input with parse().' }] }],
+      errors: [{ messageId: 'missing', data: { id: 'schema-parses', message: 'A schema file parses its input with parse().' } }],
+    },
     // An entry with no files glob reports on any file that fails it.
     {
       code: 'export const helper = 1',

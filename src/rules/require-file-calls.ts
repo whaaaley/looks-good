@@ -144,8 +144,7 @@ const rule: Rule.RuleModule = {
     const dangling: Dangling[] = []
     for (const entry of options.patterns) {
       const when = entry.when ?? {}
-      if (when.found === undefined) continue
-      if (known.has(when.found)) continue
+      if (when.found === undefined || known.has(when.found)) continue
 
       dangling.push({ id: entry.id, found: when.found })
     }
