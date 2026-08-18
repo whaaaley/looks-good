@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
-import { isAdjacent, isDirective, isLineComment, looksUnfinished, startsWithLabel, trailingIdentifierPattern, trailingUrlPattern, whitespacePattern } from './comment.utils.ts'
+import { isAdjacent, isDirective, looksUnfinished, startsWithLabel, trailingIdentifierPattern, trailingUrlPattern, whitespacePattern } from './comment.utils.ts'
 import type { CommentLine } from './comment.utils.ts'
 
 const at = (line: number): CommentLine => ({
@@ -216,23 +216,6 @@ describe('All Comment Utility Tests', () => {
     })
   })
 
-  describe('comment kinds', () => {
-    it('recognises a line comment', () => {
-      // Act
-      const recognised = isLineComment({ type: 'Line' })
-
-      // Assert
-      assertEquals(recognised, true)
-    })
-
-    it('does not recognise a block comment', () => {
-      // Act
-      const recognised = isLineComment({ type: 'Block' })
-
-      // Assert
-      assertEquals(recognised, false)
-    })
-  })
   describe('patterns', () => {
     it('matches a line closing on a url', () => {
       // Act

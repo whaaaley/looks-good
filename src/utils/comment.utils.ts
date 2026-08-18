@@ -21,10 +21,6 @@ export const trailingUrlPattern = /https?:\/\/\S+$/ // Matches a url closing the
 export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Matches a dotted symbol like `discord.js` at the end.
 export const whitespacePattern = /\s/ // Matches one whitespace character.
 
-export const isLineComment = (comment: { type: string }): boolean => {
-  return comment.type === 'Line'
-}
-
 // A comment with code before it annotates that line rather than continuing the one above.
 const hasCodeBefore = (context: Rule.RuleContext, comment: Comment): boolean => {
   const before = context.sourceCode.getTokenBefore(comment, { includeComments: false })
@@ -38,7 +34,7 @@ export const readLineComments = (context: Rule.RuleContext): CommentLine[] => {
   const collected: CommentLine[] = []
 
   for (const comment of comments) {
-    if (!isLineComment(comment)) continue
+    if (comment.type !== 'Line') continue
     if (!comment.loc || !comment.range) continue
 
     collected.push({
@@ -67,7 +63,7 @@ export const readComments = (context: Rule.RuleContext): CommentLine[] => {
       node: comment,
       range: comment.range,
       trailing: hasCodeBefore(context, comment),
-      block: !isLineComment(comment),
+      block: comment.type !== 'Line',
     })
   }
 

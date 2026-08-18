@@ -1,7 +1,7 @@
-import { isLineComment } from '../utils/comment.utils.ts'
-import { docUrl } from '../utils/docs.utils.ts'
-import { compilePattern } from '../utils/regex.utils.ts'
-import { calleeName, readBody, readTitle } from '../utils/test.utils.ts'
+import { docUrl } from '../../utils/docs.utils.ts'
+import { compilePattern } from '../../utils/regex.utils.ts'
+import { calleeName, readBody, readTitle } from '../../utils/test.utils.ts'
+import { isLineComment } from './test-arrange-act-assert.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Program } from 'estree'
 

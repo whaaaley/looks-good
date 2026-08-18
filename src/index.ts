@@ -29,7 +29,7 @@ import objectCommentsTrailing from './rules/object-comments-trailing.ts'
 import regexConstStyle from './rules/regex-const-style.ts'
 import requireFileCalls from './rules/require-file-calls.ts'
 import requireForeignKeyIndex from './rules/require-foreign-key-index.ts'
-import testArrangeActAssert from './rules/test-arrange-act-assert.ts'
+import testArrangeActAssert from './rules/test-arrange-act-assert/test-arrange-act-assert.ts'
 import type { ESLint, Linter } from 'eslint'
 
 // Rules that report and never rewrite.
