@@ -77,7 +77,7 @@ A pattern that is not a valid regular expression is reported once at the top of 
 
 ### comment-wrap
 
-Reports a comment sentence that wraps to the next line, and a comment past `maxLength`.
+Reports a comment sentence that wraps to the next line.
 `onWrap` selects the remedy for a wrapped sentence, leaving everything else the same in both modes.
 
 Examples of **incorrect** code for this rule:
@@ -105,15 +105,15 @@ const a = 1
 Report mode attaches no fix, since deciding what a sentence should say instead is a person's call.
 Join mode is the fixable one, so it is what `--fix` acts on.
 
-A comment line past `maxLength` is reported in both modes, and that report never carries a fix, because joining a line cannot shorten it.
-It also suppresses the wrap report for the same line, so an over-length line yields one message rather than two.
+How long a comment line may run is [max-comment-length](#max-comment-length)'s business, so a long line that wraps nothing is not reported here.
+`maxLength` only guards the join, so `--fix` never produces a line that rule would flag.
 
 #### Options
 
 | Option | Default | Description |
 | --- | --- | --- |
 | `onWrap` | `'report'` | What to do with a sentence that wraps. `'report'` asks for a rewrite, and `'join'` joins the two lines under `--fix`. |
-| `maxLength` | `120` | The longest a comment may run. Under `'join'`, two lines that would join past it are reported without a fix. |
+| `maxLength` | `120` | The longest a joined line may run, indentation and marker included. Under `'join'`, two lines that would join past it are reported without a fix. |
 | `allowUrls` | `true` | Exempts a line ending in a url. |
 | `allowIdentifiers` | `true` | Exempts a line ending in a symbol such as `` `comment.utils` `` or `discord.js`. |
 | `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
@@ -261,6 +261,34 @@ A project that separates its groups with blank lines has no setting to ask for t
 The default `groups` names all eight groups, where the original defaults to `builtin`, `external`, `parent`, `sibling`, and `index`, leaving `internal`, `object`, and `type` unranked.
 A project migrating with default options therefore sees its type imports move to the bottom of the list on the first `--fix`.
 Pass the original's five explicitly to keep the previous placement.
+
+### max-comment-length
+
+Reports a line holding a comment that runs past `maxLength`.
+A long comment line forces a horizontal scroll to finish the sentence, and the end of a line nobody scans that far into is where meaning gets lost.
+Code lines without a comment are outside this rule, so a project can bound its comments without bounding its code.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const parse = (input) => input.trim() // This trailing sentence keeps going and going until the whole line runs far past the width anyone reads comfortably.
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const parse = (input) => input.trim() // A short sentence ends inside the line.
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `maxLength` | `120` | The longest a line holding a comment may run. The bound is inclusive, so a line exactly this long passes. |
+
+A trailing comment counts the whole line, code included, since the reader scrolls the whole line either way.
+A line whose comment carries a url is exempt, because a url has no natural break to shorten at.
+A directive such as `eslint-disable-next-line` is exempt too, since its length is not the writer's to shorten.
 
 ### max-destructured-parameters
 
@@ -842,6 +870,33 @@ This rule takes no options.
 
 A comment that sits inside one of the properties belongs to whatever nests there, so it is checked against that inner object rather than this one.
 A comment sharing a line with the opening brace counts as trailing that line.
+
+### regex-const-style
+
+Reports a constant holding a regular expression literal whose name lacks the configured suffix, and one with no comment stating what it matches.
+A regex does not read as prose, so the name is what a call site scans, and the suffix marks it as a pattern at the import and the use alike.
+
+Examples of **incorrect** code for this rule:
+
+```js
+const url = /https?:\/\/\S+/
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const urlPattern = /https?:\/\/\S+/ // Matches a url anywhere in the text.
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `suffix` | `'Pattern'` | The suffix a regex constant's name has to end with. The bare lowercase suffix alone also passes, since it already says what it holds. |
+| `requireComment` | `true` | Whether the declaration needs a comment stating what the pattern matches, trailing on the line or directly above it. |
+
+A dynamic `new RegExp(...)` is not the static literal this rule governs.
+The comment may sit directly above the declaration instead of trailing it, since a wide regex leaves no room on its own line.
 
 ### require-file-calls
 

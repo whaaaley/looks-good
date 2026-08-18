@@ -77,6 +77,7 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [describe-group-order](docs/rules.md#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
 | [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
 | [import-group-order](docs/rules.md#import-group-order) | Enforces a group order and an alphabetical order among the imports of a file | opt in | yes |
+| [max-comment-length](docs/rules.md#max-comment-length) | Limits how long a line holding a comment may run | recommended | |
 | [max-destructured-parameters](docs/rules.md#max-destructured-parameters) | Limits how many bindings a function parameter may destructure | recommended | |
 | [max-single-line-statement-length](docs/rules.md#max-single-line-statement-length) | Keeps a single line if body on one line only while that line stays short | recommended | yes |
 | [no-blank-line-in-object](docs/rules.md#no-blank-line-in-object) | Keeps a blank line out from between the properties of an object literal | recommended | yes |
@@ -91,6 +92,7 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [no-try-catch-handler](docs/rules.md#no-try-catch-handler) | Reports a try statement with a catch clause in favour of a result helper | opt in | |
 | [no-union-in-parameter-type](docs/rules.md#no-union-in-parameter-type) | Forbids an inline union type in a function parameter annotation | typescript | |
 | [object-comments-trailing](docs/rules.md#object-comments-trailing) | Keeps a comment inside an object literal on the line it describes | recommended | |
+| [regex-const-style](docs/rules.md#regex-const-style) | Names a regex constant with a suffix and requires a comment saying what it matches | recommended | |
 | [require-file-calls](docs/rules.md#require-file-calls) | Requires a file to contain the calls its path or contents call for | parsing | |
 | [require-foreign-key-index](docs/rules.md#require-foreign-key-index) | Requires a Drizzle foreign key to have an index covering its referencing columns | opt in | |
 | [test-arrange-act-assert](docs/rules.md#test-arrange-act-assert) | Requires test bodies to be labelled with Arrange, Act, and Assert comments | parsing | |

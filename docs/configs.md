@@ -126,6 +126,7 @@ export default defineConfig([
           { files: '**/*.test.ts', title: 'All * Tests' },
         ],
       }],
+      'looks-good/max-comment-length': ['error', { maxLength: 120 }],
       'looks-good/max-destructured-parameters': ['error', { max: 0 }],
       'looks-good/max-single-line-statement-length': ['error', { maxLength: 80 }],
       'looks-good/no-blank-line-in-object': 'error',
@@ -145,6 +146,7 @@ export default defineConfig([
       'looks-good/no-single-line-nested-object': 'error',
       'looks-good/no-test-before-group': 'error',
       'looks-good/object-comments-trailing': 'error',
+      'looks-good/regex-const-style': ['error', { suffix: 'Pattern', requireComment: true }],
       'looks-good/require-file-calls': ['error', {
         patterns: [
           { id: 'router-registers', files: '*.router.ts', require: [{ call: 'router' }], message: 'A router file builds its router with router().' },
