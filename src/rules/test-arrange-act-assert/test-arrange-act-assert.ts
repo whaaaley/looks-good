@@ -91,9 +91,7 @@ const rule: Rule.RuleModule = {
 
       // An empty body has no phases to label, so a pending test placeholder passes.
       const body = readBody(node)
-      if (!body || body.type !== 'BlockStatement' || body.body.length === 0) {
-        return
-      }
+      if (!body || body.body.length === 0) return
 
       const placed: Placed[] = []
       const seen = new Set<string>()

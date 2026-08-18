@@ -1,4 +1,4 @@
-import type { CallExpression, Node } from 'estree'
+import type { BlockStatement, CallExpression } from 'estree'
 
 // A call written as `describe.only` or `it.skip` is still that test function.
 export const calleeName = (node: CallExpression): string => {
@@ -23,7 +23,7 @@ export const readTitle = (node: CallExpression): string => {
 }
 
 // The body is the block of the last function argument, which is where a call does its work.
-export const readBody = (node: CallExpression): Node | null => {
+export const readBody = (node: CallExpression): BlockStatement | null => {
   const found = node.arguments.findLast((argument) => {
     return argument.type === 'FunctionExpression' || argument.type === 'ArrowFunctionExpression'
   })
