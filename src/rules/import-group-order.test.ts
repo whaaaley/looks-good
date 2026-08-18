@@ -19,7 +19,7 @@ const tester = new RuleTester({
 const options = [{
   newlinesBetween: 'never',
   alphabetize: { order: 'asc', caseInsensitive: true, orderImportKind: 'asc' },
-  groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+  groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
 }]
 
 tester.run('import-group-order', rule, {
@@ -121,6 +121,34 @@ tester.run('import-group-order', rule, {
       output: "import b from './b.ts'\nimport i from '.'\n",
       options,
       errors: [{ messageId: 'order' }],
+    },
+    // A './index' specifier is index rather than sibling, so it sorts below a sibling it would alphabetize above.
+    {
+      code: "import i from './index'\nimport z from './z.ts'",
+      output: "import z from './z.ts'\nimport i from './index'\n",
+      options,
+      errors: [{ messageId: 'order' }],
+    },
+    // A comment on the line after an import stays behind when the import above it moves.
+    {
+      code: "import b from './b.ts'\nimport { z } from 'zod'\n// note",
+      output: "import { z } from 'zod'\nimport b from './b.ts'\n// note",
+      options,
+      errors: [{ messageId: 'order' }],
+    },
+    // A block comment ending on the import's own line spans lines, so it does not travel with the import.
+    {
+      code: "/* a\nb */ import b from './b.ts'\nimport { z } from 'zod'",
+      output: "/* a\nb */import { z } from 'zod'\n import b from './b.ts'\n",
+      options,
+      errors: [{ messageId: 'order' }],
+    },
+    // A gap holding a comment line still reports, but the fix is withheld since the text is not ours to remove.
+    {
+      code: "import { a } from 'aaa'\n\n// note\nimport b from './b.ts'",
+      output: null,
+      options,
+      errors: [{ messageId: 'gap' }],
     },
     // A deeper parent path sorts below a sibling, which the depth tiebreak settles.
     {
