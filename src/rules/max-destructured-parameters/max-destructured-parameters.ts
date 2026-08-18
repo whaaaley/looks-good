@@ -1,6 +1,7 @@
-import { docUrl } from '../utils/docs.utils.ts'
+import { docUrl } from '../../utils/docs.utils.ts'
+import { countBindings, isDestructured } from './max-destructured-parameters.utils.ts'
 import type { Rule } from 'eslint'
-import type { ArrowFunctionExpression, FunctionDeclaration, FunctionExpression, Pattern } from 'estree'
+import type { ArrowFunctionExpression, FunctionDeclaration, FunctionExpression } from 'estree'
 
 type Options = {
   max: number
@@ -11,47 +12,6 @@ const defaults: Options = {
 }
 
 type FunctionNode = ArrowFunctionExpression | FunctionDeclaration | FunctionExpression
-
-// A binding is a name the pattern introduces, so a nested pattern counts its leaves rather than itself.
-const countBindings = (pattern: Pattern): number => {
-  if (pattern.type === 'ObjectPattern') {
-    let total = 0
-    for (const property of pattern.properties) {
-      if (property.type === 'RestElement') {
-        total += countBindings(property.argument)
-        continue
-      }
-
-      total += countBindings(property.value)
-    }
-
-    return total
-  }
-
-  if (pattern.type === 'ArrayPattern') {
-    let total = 0
-    for (const element of pattern.elements) {
-      if (!element) continue
-      total += countBindings(element)
-    }
-
-    return total
-  }
-
-  if (pattern.type === 'AssignmentPattern') return countBindings(pattern.left)
-  if (pattern.type === 'RestElement') return countBindings(pattern.argument)
-
-  return 1
-}
-
-const isDestructured = (pattern: Pattern): boolean => {
-  if (pattern.type === 'ObjectPattern') return true
-  if (pattern.type === 'ArrayPattern') return true
-  if (pattern.type === 'AssignmentPattern') return isDestructured(pattern.left)
-  if (pattern.type === 'RestElement') return isDestructured(pattern.argument)
-
-  return false
-}
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -81,6 +41,7 @@ const rule: Rule.RuleModule = {
       for (const parameter of node.params) {
         if (!isDestructured(parameter)) continue
 
+        // The bound is inclusive, so a pattern reports only once its bindings go above the max.
         const count = countBindings(parameter)
         if (count <= options.max) continue
 

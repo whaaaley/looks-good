@@ -64,6 +64,12 @@ describe('All Plugin Tests', () => {
       const onDisk: string[] = []
 
       for await (const entry of Deno.readDir(directory)) {
+        // A rule migrated to its own directory keeps the directory's name.
+        if (entry.isDirectory) {
+          onDisk.push(entry.name)
+          continue
+        }
+
         if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) {
           continue
         }
