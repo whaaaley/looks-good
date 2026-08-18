@@ -8,7 +8,8 @@ export type Announcement = {
   lines: string[]
 }
 
-// The headline is read by the coding agent, so it opens with the instruction and leaves the evidence to the clause after it.
+// The headline is read by the coding agent, so it opens with the instruction.
+// The evidence is left to the clause after it.
 const directive: Record<string, string> = {
   notice: 'Commit the finished work before making further edits.',
   warning: 'Commit the finished work now, before writing anything new.',

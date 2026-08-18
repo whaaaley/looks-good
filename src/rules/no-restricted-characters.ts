@@ -110,7 +110,8 @@ const rule: Rule.RuleModule = {
       return findings
     }
 
-    // Only a comment is rewritten, since renaming an identifier breaks its references and a string may be a pattern or a fixture asserting on the character itself.
+    // Only a comment is rewritten, since renaming an identifier breaks its references.
+    // A string may be a pattern or a fixture asserting on the character itself.
     const fixComment = (range: [number, number], match: TextMatch): Rule.Fix | undefined => {
       const { replacement } = match
       if (replacement === undefined) return undefined

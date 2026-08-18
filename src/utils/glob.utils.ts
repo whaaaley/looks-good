@@ -14,7 +14,8 @@ const matcherFor = (pattern: string): Minimatch => {
   return matcher
 }
 
-// Mirrors `toRelativePath` in @eslint/config-array, which relativizes before matching so leading base-path segments never reach the glob.
+// Mirrors `toRelativePath` in @eslint/config-array, which relativizes before matching.
+// Leading base-path segments never reach the glob.
 const toRelativePath = (filename: string, basePath: string): string => {
   if (!basePath) return filename.replaceAll(SEPARATOR, '/')
 
