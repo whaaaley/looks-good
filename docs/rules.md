@@ -36,7 +36,7 @@ A comment inside an element rides along with its object and does not opt the arr
 
 Reports a statement that sits directly under the closing brace of an `if`, a loop other than do-while, a `try`, or a `switch`.
 A closing brace ends a paragraph, so the next statement starts a new one and needs a blank line between them.
-A braceless guard such as `if (!first) return` ends in its own statement rather than a brace, so it is left alone.
+A braceless guard such as `if (!first) return` is left alone.
 A do-while closes on its condition rather than a brace, so it is left alone too.
 
 Examples of **incorrect** code for this rule:
@@ -239,6 +239,8 @@ describe('All Event Tests', () => {
 A `title` is literal apart from `*`, which stands for any run of characters, and the whole string is anchored.
 So `All * Tests` matches `All Event Tests` and not `Event Tests`, and every other character matches itself rather than as regex.
 Only the outermost describe is checked, so a nested one carries no title requirement of its own.
+An `allowTitles` entry that fails to compile as a regular expression is reported against the Program node as a configuration error under the messageId `invalidPattern`, the run does not crash, and the report appears even in files matched by no `files` glob.
+A top level describe whose title is not a string literal, such as a template literal or an identifier, is treated as having the empty title `''` and reported as a mismatch against the configured pattern.
 
 ### import-group-order
 
@@ -379,6 +381,8 @@ if (!parsed) {
 
 A body already written in braces is left alone whatever its width, and a body already on its own line is not the form this rule governs.
 The fix wraps the body in braces on its own line, indented one step past the `if`.
+A braceless `else` body sitting on the same line as its `else` keyword is checked and fixed the same way as the consequent, and an `else if` is left to its own report.
+When a line or block comment trails the body on the same line, the fix carries the comment inside the inserted braces alongside the body, so it does not end up stranded after the closing brace, while a comment on the following line is left where it is.
 
 ### no-blank-line-in-object
 
@@ -416,13 +420,14 @@ const listeners = {
 Only the gap between one member and the next is reported, so padding after the opening brace or before the closing brace is left alone.
 A blank line inside a property's value belongs to whatever is written there, so a function body assigned to a property keeps its own spacing.
 This leaves the rule and `blank-line-after-block` on separate ground, and a blank line that rule requires after a nested closing brace is never reported here.
+When a blank line sits above a leading comment attached to a property, the report is placed at the comment rather than the property, since the comment is the line the reader sees first.
 The fix deletes the blank lines between the two members.
 
 This rule takes no options.
 
 ### no-emoji
 
-Reports emoji in code, comments, and identifiers.
+Reports emoji in strings and comments.
 
 Examples of **incorrect** code for this rule:
 
@@ -449,7 +454,6 @@ const ship = true
 | `allow` | `[]` | Emoji that are permitted anywhere. |
 | `strings` | `true` | Reports emoji in string literals and template strings. |
 | `comments` | `true` | Reports emoji in comments. |
-| `identifiers` | `true` | Reports emoji in identifiers. |
 
 A skin tone modifier, a zero width joiner run, and a regional indicator pair each count as one emoji, so `allow` takes the whole sequence.
 
@@ -533,7 +537,8 @@ it('rejects an outsider', () => {
 | `modifiers` | `['ignore', 'skip', 'todo', 'failing']` | The member names that mark a test as not running. |
 | `testFunctions` | `['it', 'test', 'describe']` | The functions these modifiers attach to. |
 
-A bare identifier written as `x` followed by a configured test function name counts too, so `xit`, `xtest`, and `xdescribe` are reported.
+A bare identifier written as `x` followed by a configured test function name counts too, but only while `skip` is among the configured `modifiers`.
+The prefix form is shorthand for skipping, so removing `skip` from `modifiers`, for example `modifiers: ['ignore']`, also stops `xit`, `xtest`, and `xdescribe` from being reported.
 
 ### no-inline-regex
 
@@ -653,6 +658,7 @@ Reports characters a project does not want in source.
 
 A restriction that names a `replacement` is fixable, and the fix applies in comments only.
 An identifier is left alone because renaming it breaks its references, and a string is left alone because it may be a pattern or a fixture asserting on the character itself.
+A restriction without a `replacement` stays report-only everywhere.
 
 Examples of **incorrect** code for this rule:
 
@@ -863,7 +869,7 @@ const config = {
 
 This rule takes no options.
 
-A comment that sits inside one of the properties belongs to whatever nests there, so it is checked against that inner object rather than this one.
+A comment that sits inside one of the properties belongs to whatever nests there, so it is skipped by this object's check, and when the value is itself an object literal that inner object's own visit checks it.
 A comment sharing a line with the opening brace counts as trailing that line.
 
 ### regex-const-style
@@ -901,7 +907,7 @@ There is no call site to disable, so the rule reports at the top of the file and
 
 An entry applies when its `files` glob matches the linted path, or always when it has no `files`.
 `when.references` narrows it further to files that mention an identifier, and `when.found` narrows it to files where a named earlier entry was satisfied.
-Every matcher in `require` must be satisfied and at least one in `requireAny` must be.
+Every matcher in `require` must be satisfied, and when `requireAny` is non-empty at least one of its matchers must be, while an absent or empty `requireAny` is not checked.
 A `when.found` naming an entry that does not exist is reported as a configuration error rather than silently doing nothing.
 
 Examples of **incorrect** code for this rule:
