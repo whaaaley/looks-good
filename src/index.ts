@@ -36,6 +36,7 @@ import commentWrap from './rules/comment-wrap.ts'
 import describeGroupOrder from './rules/describe-group-order.ts'
 import describeTitlePattern from './rules/describe-title-pattern.ts'
 import importGroupOrder from './rules/import-group-order.ts'
+import maxCommentLength from './rules/max-comment-length.ts'
 import maxDestructuredParameters from './rules/max-destructured-parameters.ts'
 import maxSingleLineStatementLength from './rules/max-single-line-statement-length.ts'
 import noBlankLineInObject from './rules/no-blank-line-in-object.ts'
@@ -50,6 +51,7 @@ import noTestBeforeGroup from './rules/no-test-before-group.ts'
 import noTryCatchHandler from './rules/no-try-catch-handler.ts'
 import noUnionInParameterType from './rules/no-union-in-parameter-type.ts'
 import objectCommentsTrailing from './rules/object-comments-trailing.ts'
+import regexConstStyle from './rules/regex-const-style.ts'
 import requireFileCalls from './rules/require-file-calls.ts'
 import requireForeignKeyIndex from './rules/require-foreign-key-index.ts'
 import testArrangeActAssert from './rules/test-arrange-act-assert.ts'
@@ -61,6 +63,7 @@ const reporting = {
   'comment-content': commentContent,
   'describe-group-order': describeGroupOrder,
   'describe-title-pattern': describeTitlePattern,
+  'max-comment-length': maxCommentLength,
   'max-destructured-parameters': maxDestructuredParameters,
   'no-emoji': noEmoji,
   'no-id-only-mutation-scope': noIdOnlyMutationScope,
@@ -72,6 +75,7 @@ const reporting = {
   'no-try-catch-handler': noTryCatchHandler,
   'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
+  'regex-const-style': regexConstStyle,
   'require-file-calls': requireFileCalls,
   'require-foreign-key-index': requireForeignKeyIndex,
   'test-arrange-act-assert': testArrangeActAssert,
@@ -129,12 +133,14 @@ const warnings = {
 const errors = {
   'looks-good/blank-line-after-block': 'error',
   'looks-good/describe-group-order': 'error',
+  'looks-good/max-comment-length': 'error',
   'looks-good/max-destructured-parameters': 'error',
   'looks-good/max-single-line-statement-length': 'error',
   'looks-good/no-blank-line-in-object': 'error',
   'looks-good/no-single-line-nested-object': 'error',
   'looks-good/no-test-before-group': 'error',
   'looks-good/object-comments-trailing': 'error',
+  'looks-good/regex-const-style': 'error',
 } as const
 
 /**
