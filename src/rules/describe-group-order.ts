@@ -5,8 +5,8 @@ import type { CallExpression, Node } from 'estree'
 
 // A word character here is any letter, digit, or underscore, so a needle sitting inside a longer word is not a match.
 const wordCharacterSource = '\\p{L}\\p{N}_'
-export const wordPrefixSource = `(?<![${wordCharacterSource}])`
-export const wordSuffixSource = `(?![${wordCharacterSource}])`
+const wordPrefixSource = `(?<![${wordCharacterSource}])`
+const wordSuffixSource = `(?![${wordCharacterSource}])`
 export const sensitiveWordFlags = 'u'
 export const insensitiveWordFlags = 'iu'
 
@@ -61,15 +61,10 @@ export const wholeWordPatternFor = (name: string, ignoreCase: boolean): RegExp =
   return new RegExp(`${wordPrefixSource}${RegExp.escape(name)}${wordSuffixSource}`, flags)
 }
 
-// Maps each name to the pattern that matches it as a whole word.
-const compileWholeWords = (names: string[], ignoreCase: boolean): Map<string, RegExp> => {
-  const compiled = new Map<string, RegExp>()
-
-  for (const name of names) {
-    compiled.set(name, wholeWordPatternFor(name, ignoreCase))
-  }
-
-  return compiled
+// A sequence entry carries its pattern when word matching applies; exact matching and the wildcard carry none.
+type SequenceEntry = {
+  name: string
+  pattern: RegExp | null
 }
 
 const rule: Rule.RuleModule = {
@@ -95,40 +90,34 @@ const rule: Rule.RuleModule = {
     }],
     messages: {
       order: "The '{{title}}' group belongs before '{{previous}}'. Move it above so these groups read {{expected}}.",
-      missing: "No group here covers '{{name}}'. Add a '{{name}}' group so this file reads {{expected}}.",
+      missing: "No group here covers '{{name}}'. Add a '{{name}}' group so these groups read {{expected}}.",
     },
   },
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
     if (options.sequence.length === 0) return {}
 
-    const named = options.sequence.filter((name) => name !== wildcard)
     const wildcardRank = options.sequence.indexOf(wildcard)
     const expected = options.sequence.join(', then ')
     // The needles come from the configured sequence, so each whole word pattern is built once per rule run.
-    const wholeWords = compileWholeWords(named, options.ignoreCase)
+    const entries: SequenceEntry[] = options.sequence.map((name) => ({
+      name,
+      pattern: name !== wildcard && options.match === 'word' ? wholeWordPatternFor(name, options.ignoreCase) : null,
+    }))
+    const named = entries.filter((entry) => entry.name !== wildcard)
 
-    const matchesName = (title: string, name: string): boolean => {
-      if (options.match === 'exact') {
-        if (!options.ignoreCase) return title === name
+    const matchesEntry = (title: string, entry: SequenceEntry): boolean => {
+      if (entry.pattern) return entry.pattern.test(title)
+      if (!options.ignoreCase) return title === entry.name
 
-        return title.toLowerCase() === name.toLowerCase()
-      }
-
-      const pattern = wholeWords.get(name)
-      if (!pattern) return false
-
-      return pattern.test(title)
+      return title.toLowerCase() === entry.name.toLowerCase()
     }
 
     // A title matching no name sits in the wildcard slot, and is otherwise unranked.
     const rankOf = (title: string): number => {
-      for (const [index, name] of options.sequence.entries()) {
-        if (name === wildcard) continue
-        if (matchesName(title, name)) return index
-      }
+      const index = entries.findIndex((entry) => entry.name !== wildcard && matchesEntry(title, entry))
 
-      return wildcardRank
+      return index === -1 ? wildcardRank : index
     }
 
     const checkSiblings = (groups: Group[], report: Node): void => {
@@ -154,27 +143,25 @@ const rule: Rule.RuleModule = {
       if (!options.requireAll) return
 
       // A set where no group is named at all is a set of wrappers, and has no sequence to complete.
-      const isNamed = (group: Group): boolean => named.some((name) => matchesName(group.title, name))
+      const isNamed = (group: Group): boolean => named.some((entry) => matchesEntry(group.title, entry))
       if (!groups.some(isNamed)) return
 
-      for (const name of named) {
-        if (groups.some((group) => matchesName(group.title, name))) continue
+      for (const entry of named) {
+        if (groups.some((group) => matchesEntry(group.title, entry))) continue
 
         context.report({
           node: report,
           messageId: 'missing',
-          data: { name, expected },
+          data: { name: entry.name, expected },
         })
       }
     }
 
-    const readGroups = (call: CallExpression): Group[] => {
-      const body = readBody(call)
-      if (!body) return []
-
+    // Both sibling sets collect their child groups the same way, a group body and the file's top level alike.
+    const collectGroups = (statements: Node[]): Group[] => {
       const groups: Group[] = []
 
-      for (const statement of body.body) {
+      for (const statement of statements) {
         const child = readChildCall(statement, options.testFunctions)
         if (!child) continue
 
@@ -182,6 +169,13 @@ const rule: Rule.RuleModule = {
       }
 
       return groups
+    }
+
+    const readGroups = (call: CallExpression): Group[] => {
+      const body = readBody(call)
+      if (!body) return []
+
+      return collectGroups(body.body)
     }
 
     // A describe nested inside another describe is a sibling set of its own only when depth allows it.
@@ -193,35 +187,21 @@ const rule: Rule.RuleModule = {
           return true
         }
 
-        current = current.type === 'Program' ? null : current.parent
+        current = current.parent
       }
 
       return false
     }
 
     return {
-      Program: (node): void => {
-        const groups: Group[] = []
-
-        for (const statement of context.sourceCode.ast.body) {
-          const child = readChildCall(statement, options.testFunctions)
-          if (!child) continue
-
-          groups.push({ title: readTitle(child), node: child })
-        }
-
-        if (groups.length === 0) return
-
-        checkSiblings(groups, node)
+      'Program:exit': (node): void => {
+        checkSiblings(collectGroups(context.sourceCode.ast.body), node)
       },
       CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
         if (!options.testFunctions.includes(calleeName(node))) return
         if (options.depth === 'top' && isNested(node)) return
 
-        const groups = readGroups(node)
-        if (groups.length === 0) return
-
-        checkSiblings(groups, node)
+        checkSiblings(readGroups(node), node)
       },
     }
   },

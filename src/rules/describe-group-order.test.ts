@@ -188,6 +188,11 @@ tester.run('describe-group-order', rule, {
       ].join('\n'),
       options: [{ sequence: crudl }],
     },
+    // A group with no callback body has no children to order.
+    {
+      code: "describe('todo')",
+      options: [{ sequence: crudl }],
+    },
     // A call that is not a group function is left alone.
     {
       code: [
