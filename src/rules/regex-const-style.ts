@@ -20,7 +20,7 @@ const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'A constant holding a regular expression literal is named with the configured suffix and explained on its line',
+      description: 'A constant holding a regular expression literal is named with the configured suffix and explained on or above its line',
       url: docUrl('regex-const-style'),
     },
     defaultOptions: [defaults],
