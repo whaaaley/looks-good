@@ -27,43 +27,47 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const { sourceCode } = context
 
-    return {
-      ObjectExpression: (node: ObjectExpression): void => {
-        const comments = sourceCode.getCommentsInside(node)
-        if (comments.length === 0) return
+    const check = (node: ObjectExpression): void => {
+      const comments = sourceCode.getCommentsInside(node)
 
-        const opening = locationOf(node)
-        if (!opening) return
+      // Behaviorally redundant with the empty report loop.
+      // Kept to skip building the occupied Set for comment-free objects.
+      if (comments.length === 0) return
 
-        // A property line holds the code a trailing comment would describe.
-        const occupied = new Set<number>([opening.start.line])
+      const opening = locationOf(node)
+      if (!opening) return
 
-        for (const property of node.properties) {
-          const location = locationOf(property)
-          if (!location) continue
+      // The opening-brace line is seeded so a comment trailing the brace itself counts as trailing.
+      const occupied = new Set<number>([opening.start.line])
 
-          // A multi-line property's closing line carries code too, so a comment there trails the property.
-          occupied.add(location.start.line)
-          occupied.add(location.end.line)
+      // A property line holds the code a trailing comment would describe.
+      for (const property of node.properties) {
+        const location = locationOf(property)
+        if (!location) continue
+
+        // A multi-line property's closing line carries code too, so a comment there trails the property.
+        occupied.add(location.start.line)
+        occupied.add(location.end.line)
+      }
+
+      for (const comment of comments) {
+        const range = comment.range
+        const location = locationOf(comment)
+        if (!location || !range) continue
+
+        // A comment sharing a line with a property trails it, which is the form this rule wants.
+        if (occupied.has(location.start.line)) continue
+
+        // A comment inside a property belongs to whatever nests there, not to this object.
+        if (node.properties.some((property) => encloses(property, range))) {
+          continue
         }
 
-        for (const comment of comments) {
-          const range = comment.range
-          const location = locationOf(comment)
-          if (!location || !range) continue
-
-          // A comment sharing a line with a property trails it, which is the form this rule wants.
-          if (occupied.has(location.start.line)) continue
-
-          // A comment inside a property belongs to whatever nests there, not to this object.
-          if (node.properties.some((property) => encloses(property, range))) {
-            continue
-          }
-
-          context.report({ loc: location, messageId: 'ownLine' })
-        }
-      },
+        context.report({ loc: location, messageId: 'ownLine' })
+      }
     }
+
+    return { ObjectExpression: check }
   },
 }
 
