@@ -31,6 +31,10 @@ tester.run('no-ignored-tests', rule, {
     { code: 'xmlParse(input)' },
     // A computed member read is not the modifier form.
     { code: "it[name]('creates a task', () => {})" },
+    // Even a computed key naming a modifier stays a dynamic read, not a skip.
+    { code: "it[skip]('creates a task', () => {})" },
+    // A bare identifier whose tail names a test function is not the x prefix form.
+    { code: "bit('creates a task', () => {})" },
     // A custom modifier list narrows what counts as skipped.
     {
       code: "it.skip('creates a task', () => {})",

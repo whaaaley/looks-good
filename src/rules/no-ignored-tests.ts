@@ -12,12 +12,8 @@ const defaults: Options = {
   testFunctions: ['it', 'test', 'describe'],
 }
 
-type Found = {
-  modifier: string
-}
-
 // A skipped test is written either as `it.skip(...)` or as the prefixed `xit(...)`.
-const readModifier = (node: CallExpression, options: Options): Found | null => {
+const readModifier = (node: CallExpression, options: Options): string | null => {
   const { callee } = node
 
   if (callee.type === 'MemberExpression' && !callee.computed) {
@@ -26,11 +22,10 @@ const readModifier = (node: CallExpression, options: Options): Found | null => {
     if (!options.testFunctions.includes(callee.object.name)) return null
     if (!options.modifiers.includes(callee.property.name)) return null
 
-    return { modifier: callee.property.name }
+    return callee.property.name
   }
 
   if (callee.type === 'Identifier') {
-    // The x prefix is shorthand for skipping, so it follows whether skip is configured.
     if (!options.modifiers.includes('skip')) return null
     if (!callee.name.startsWith('x')) return null
 
@@ -38,7 +33,7 @@ const readModifier = (node: CallExpression, options: Options): Found | null => {
     if (!options.testFunctions.includes(base)) return null
 
     // The reported name is the one written in the source, so a reader can find it.
-    return { modifier: callee.name }
+    return callee.name
   }
 
   return null
@@ -68,18 +63,18 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
-    return {
-      CallExpression: (node: CallExpression): void => {
-        const found = readModifier(node, options)
-        if (!found) return
+    const check = (node: CallExpression): void => {
+      const modifier = readModifier(node, options)
+      if (!modifier) return
 
-        context.report({
-          node,
-          messageId: 'ignored',
-          data: { modifier: found.modifier },
-        })
-      },
+      context.report({
+        node,
+        messageId: 'ignored',
+        data: { modifier },
+      })
     }
+
+    return { CallExpression: check }
   },
 }
 
