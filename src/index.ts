@@ -7,7 +7,7 @@ import denoConfig from '../deno.json' with { type: 'json' }
 import arrayBracketHug from './rules/array-bracket-hug.ts'
 import blankLineAfterBlock from './rules/blank-line-after-block.ts'
 import commentContent from './rules/comment-content.ts'
-import commentWrap from './rules/comment-wrap.ts'
+import commentWrap from './rules/comment-wrap/comment-wrap.ts'
 import describeGroupOrder from './rules/describe-group-order.ts'
 import describeTitlePattern from './rules/describe-title-pattern.ts'
 import importGroupOrder from './rules/import-group-order.ts'
