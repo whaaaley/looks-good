@@ -1,7 +1,7 @@
 import { docUrl } from '../utils/docs.utils.ts'
 import { locationOf, readerLocationOf } from '../utils/location.utils.ts'
 import type { Rule } from 'eslint'
-import type { BlockStatement, Node, Statement } from 'estree'
+import type { BlockStatement, Node } from 'estree'
 
 // A statement that owns a block, where the closing brace ends the paragraph.
 const blockOwners = new Set([
@@ -69,7 +69,7 @@ const rule: Rule.RuleModule = {
 
     return {
       Program: (node): void => {
-        check(node.body.filter((entry): entry is Statement => entry.type !== 'ImportDeclaration'))
+        check(node.body.filter((entry) => entry.type !== 'ImportDeclaration'))
       },
       BlockStatement: (node: BlockStatement): void => {
         check(node.body)

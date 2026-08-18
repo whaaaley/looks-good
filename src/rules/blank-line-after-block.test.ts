@@ -27,6 +27,8 @@ tester.run('blank-line-after-block', rule, {
     // Consecutive braceless guards stay together.
     { code: 'const run = () => {\n  if (!a) return 1\n  if (!b) return 2\n\n  return 3\n}' },
     { code: 'for (const item of items) read(item)\nwrite()' },
+    // An import against a brace is hoisted syntax, not a paragraph to separate.
+    { code: "if (a) {\n  read()\n}\nimport b from 'c'" },
     // A statement outside the owner set ends in a brace without owning a paragraph.
     { code: 'const a = () => {\n  read()\n}\nb()' },
     { code: 'class A {\n  m() {}\n}\nb()' },
