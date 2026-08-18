@@ -35,11 +35,11 @@ type Entry = {
   rank: number
 }
 
-export const bareNamePattern = /^\w/ // A bare package name opens with a word character.
-export const scopedNamePattern = /^@[^/]+\/?[^/]+/ // A scoped package name is a scope segment plus a name.
-export const parentSpecifierPattern = /^\.\.$|^\.\.[/\\]/ // A parent specifier is two dots alone or opening a path.
-export const siblingSpecifierPattern = /^\.[/\\]/ // A sibling specifier opens with one dot and a separator.
-export const blankTextPattern = /^\s*$/ // Blank text is whitespace alone.
+export const bareNamePattern = /^\w/ // Matches text opening with a word character.
+export const scopedNamePattern = /^@[^/]+\/?[^/]+/ // Matches an @scope segment followed by a name.
+export const parentSpecifierPattern = /^\.\.$|^\.\.[/\\]/ // Matches two dots alone or opening a path.
+export const siblingSpecifierPattern = /^\.[/\\]/ // Matches one dot followed by a path separator.
+export const blankTextPattern = /^\s*$/ // Matches text that is whitespace alone.
 
 const groupNames: GroupName[] = ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type', 'unknown']
 

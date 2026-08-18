@@ -17,9 +17,9 @@ export type ExemptionOptions = {
   allowLabels: string[]
 }
 
-export const urlPattern = /https?:\/\/\S+/ // A url has no natural break, so it exempts the line it sits on.
-export const trailingUrlPattern = /https?:\/\/\S+$/ // A url has no natural break, so wrapping one is worse.
-export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Closing on a symbol like `discord.js` reads as finished.
+export const urlPattern = /https?:\/\/\S+/ // Matches a url anywhere in the text.
+export const trailingUrlPattern = /https?:\/\/\S+$/ // Matches a url closing the text.
+export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Matches a dotted symbol like `discord.js` at the end.
 export const whitespacePattern = /\s/ // Matches one whitespace character.
 
 export const isLineComment = (comment: { type: string }): boolean => {
@@ -75,7 +75,7 @@ export const readComments = (context: Rule.RuleContext): CommentLine[] => {
   return collected
 }
 
-// A directive is read by a tool rather than a person, so rewriting one breaks it.
+// A directive like `eslint-disable-next-line no-console` is read by a tool, so rewriting one breaks it.
 // Each name matches as a whole word, since a prefix would exempt prose like "Biometrics are cool".
 const directives = [
   'eslint',
@@ -116,6 +116,7 @@ export const looksUnfinished = (text: string, options: ExemptionOptions): boolea
 
   if (text.length === 0) return false
   if (endsSentence(text)) return false
+  // A line closing on a url or a symbol like `discord.js` reads as finished without a period.
   if (allowUrls && trailingUrlPattern.test(text)) return false
   if (allowIdentifiers && trailingIdentifierPattern.test(text)) return false
   if (allowIdentifiers && endsWithCode(text)) return false
