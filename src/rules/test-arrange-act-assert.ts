@@ -69,7 +69,8 @@ const rule: Rule.RuleModule = {
       exempt.push(expression)
     }
 
-    const labels = new Set(options.order)
+    // A required label outside the order is still a label, so it must be recognized to be satisfiable.
+    const labels = new Set([...options.order, ...options.require])
 
     return {
       'Program:exit': (program: Program): void => {
@@ -130,7 +131,9 @@ const rule: Rule.RuleModule = {
         let previous = ''
 
         for (const entry of placed) {
+          // A label outside the order carries no rank, so it sits anywhere without an order report.
           const rank = options.order.indexOf(entry.label)
+          if (rank === -1) continue
 
           if (rank < highest) {
             context.report({

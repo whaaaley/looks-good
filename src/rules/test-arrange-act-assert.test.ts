@@ -10,6 +10,22 @@ const tester = new RuleTester()
 
 tester.run('test-arrange-act-assert', rule, {
   valid: [
+    // A required label outside the order is recognized wherever it sits.
+    {
+      code: [
+        "it('adds two numbers', () => {",
+        '  // Act',
+        '  const total = add(1, 2)',
+        '',
+        '  // Assert',
+        '  assertEquals(total, 3)',
+        '',
+        '  // Teardown',
+        '  reset()',
+        '})',
+      ].join('\n'),
+      options: [{ require: ['Act', 'Assert', 'Teardown'] }],
+    },
     // All three labels in order.
     {
       code: [
