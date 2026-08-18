@@ -267,6 +267,22 @@ tester.run('test-arrange-act-assert', rule, {
         { messageId: 'missing', data: { label: 'Assert' } },
       ],
     },
+    // A block comment is not a phase label, so it satisfies nothing.
+    {
+      code: [
+        "it('adds two numbers', () => {",
+        '  /* Act */',
+        '  const total = add(1, 2)',
+        '',
+        '  /* Assert */',
+        '  assertEquals(total, 3)',
+        '})',
+      ].join('\n'),
+      errors: [
+        { messageId: 'missing', data: { label: 'Act' } },
+        { messageId: 'missing', data: { label: 'Assert' } },
+      ],
+    },
     // A one statement body is a test like any other, so it is labelled like any other.
     {
       code: [

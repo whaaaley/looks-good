@@ -135,7 +135,8 @@ const rule: Rule.RuleModule = {
         const rank = options.order.indexOf(entry.label)
         if (rank === -1) continue
 
-        if (!leader || rank >= leader.rank) {
+        // Duplicate labels never reach placed, so two entries cannot share a rank and strict comparison suffices.
+        if (!leader || rank > leader.rank) {
           leader = { label: entry.label, rank }
           continue
         }
