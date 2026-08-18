@@ -1101,7 +1101,6 @@ it('adds two numbers', () => {
 | `order` | `['Arrange', 'Act', 'Assert']` | The order the labels that are present must appear in. |
 | `testFunctions` | `['it', 'test']` | The calls whose last function argument is a test body. A call written as `it.only` or `test.skip` counts as its base name. |
 | `allowTitles` | `[]` | Regex source strings. A test whose title matches any of them is exempt. |
-| `minStatements` | `2` | A body with fewer statements than this is exempt, since a one line test needs no structure. |
 
 Only a line comment whose whole text is a label counts, so prose such as `// Act on the parsed input.` is left alone.
 

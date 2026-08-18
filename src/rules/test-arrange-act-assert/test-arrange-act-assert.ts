@@ -1,7 +1,6 @@
 import { docUrl } from '../../utils/docs.utils.ts'
 import { compilePattern } from '../../utils/regex.utils.ts'
 import { calleeName, readBody, readTitle } from '../../utils/test.utils.ts'
-import { isLineComment } from './test-arrange-act-assert.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Program } from 'estree'
 
@@ -10,7 +9,6 @@ type Options = {
   order: string[]
   testFunctions: string[]
   allowTitles: string[]
-  minStatements: number
 }
 
 const defaults: Options = {
@@ -18,12 +16,16 @@ const defaults: Options = {
   order: ['Arrange', 'Act', 'Assert'],
   testFunctions: ['it', 'test'],
   allowTitles: [],
-  minStatements: 2,
 }
 
 type Placed = {
   label: string
   line: number
+}
+
+type Leader = {
+  label: string
+  rank: number
 }
 
 const rule: Rule.RuleModule = {
@@ -43,7 +45,6 @@ const rule: Rule.RuleModule = {
         order: { type: 'array', items: { type: 'string', minLength: 1 } },
         testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
         allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
-        minStatements: { type: 'integer', minimum: 0 },
       },
     }],
     messages: {
@@ -69,86 +70,89 @@ const rule: Rule.RuleModule = {
       exempt.push(expression)
     }
 
-    // A required label outside the order is still a label, so it must be recognized to be satisfiable.
+    // A label in require but not in order must still be counted, or its missing report could never be satisfied.
     const labels = new Set([...options.order, ...options.require])
 
+    const checkPatterns = (program: Program): void => {
+      for (const source of invalid) {
+        context.report({
+          node: program,
+          messageId: 'invalidPattern',
+          data: { source },
+        })
+      }
+    }
+
+    const checkTest = (node: CallExpression & Rule.NodeParentExtension): void => {
+      if (!options.testFunctions.includes(calleeName(node))) return
+
+      const title = readTitle(node)
+      if (exempt.some((expression) => expression.test(title))) return
+
+      // An empty body has no phases to label, so a pending test placeholder passes.
+      const body = readBody(node)
+      if (!body || body.type !== 'BlockStatement' || body.body.length === 0) {
+        return
+      }
+
+      const placed: Placed[] = []
+      const seen = new Set<string>()
+
+      for (const comment of context.sourceCode.getCommentsInside(body)) {
+        // Only a located line comment can label a phase, so a block comment or a comment with no position is skipped.
+        if (comment.type !== 'Line' || !comment.loc) continue
+
+        const text = comment.value.trim()
+        if (!labels.has(text)) continue
+
+        if (seen.has(text)) {
+          context.report({
+            loc: { line: comment.loc.start.line, column: 0 },
+            messageId: 'duplicate',
+            data: { label: text },
+          })
+
+          continue
+        }
+
+        seen.add(text)
+        placed.push({ label: text, line: comment.loc.start.line })
+      }
+
+      for (const label of options.require) {
+        if (seen.has(label)) continue
+
+        context.report({
+          node,
+          messageId: 'missing',
+          data: { label },
+        })
+      }
+
+      // The highest-ranked label placed so far, so a label is out of order exactly when it ranks below the leader.
+      let leader: Leader | null = null
+
+      for (const entry of placed) {
+        // A label outside the order carries no rank, so it sits anywhere without an order report.
+        const rank = options.order.indexOf(entry.label)
+        if (rank === -1) continue
+
+        if (!leader || rank >= leader.rank) {
+          leader = { label: entry.label, rank }
+          continue
+        }
+
+        context.report({
+          loc: { line: entry.line, column: 0 },
+          messageId: 'order',
+          data: { label: entry.label, previous: leader.label, expected: options.order.join(', then ') },
+        })
+      }
+    }
+
     return {
-      'Program:exit': (program: Program): void => {
-        for (const source of invalid) {
-          context.report({
-            node: program,
-            messageId: 'invalidPattern',
-            data: { source },
-          })
-        }
-      },
-      CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
-        if (!options.testFunctions.includes(calleeName(node))) return
-
-        const title = readTitle(node)
-        if (exempt.some((expression) => expression.test(title))) return
-
-        const body = readBody(node)
-        if (!body || body.type !== 'BlockStatement') return
-        if (body.body.length < options.minStatements) return
-
-        const placed: Placed[] = []
-        const counts = new Map<string, number>()
-
-        for (const comment of context.sourceCode.getCommentsInside(body)) {
-          if (!isLineComment(comment)) continue
-
-          const text = comment.value.trim()
-          if (!labels.has(text)) continue
-
-          const seen = (counts.get(text) ?? 0) + 1
-          counts.set(text, seen)
-
-          if (seen > 1) {
-            context.report({
-              loc: { line: comment.loc?.start.line ?? body.loc?.start.line ?? 1, column: 0 },
-              messageId: 'duplicate',
-              data: { label: text },
-            })
-
-            continue
-          }
-
-          placed.push({ label: text, line: comment.loc?.start.line ?? 1 })
-        }
-
-        for (const label of options.require) {
-          if (counts.has(label)) continue
-
-          context.report({
-            node,
-            messageId: 'missing',
-            data: { label },
-          })
-        }
-
-        let highest = -1
-        let previous = ''
-
-        for (const entry of placed) {
-          // A label outside the order carries no rank, so it sits anywhere without an order report.
-          const rank = options.order.indexOf(entry.label)
-          if (rank === -1) continue
-
-          if (rank < highest) {
-            context.report({
-              loc: { line: entry.line, column: 0 },
-              messageId: 'order',
-              data: { label: entry.label, previous, expected: options.order.join(', then ') },
-            })
-
-            continue
-          }
-
-          highest = rank
-          previous = entry.label
-        }
-      },
+      Program: checkPatterns,
+      CallExpression: checkTest,
     }
   },
 }

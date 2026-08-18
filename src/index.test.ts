@@ -53,8 +53,11 @@ const lint = (code: string): Linter.LintMessage[] => {
 describe('All Plugin Tests', () => {
   describe('rule registration', () => {
     it('names the plugin so a rule reads as looks-good slash its name', () => {
+      // Act
+      const name = plugin.meta?.name
+
       // Assert
-      assertEquals(plugin.meta?.name, 'looks-good')
+      assertEquals(name, 'looks-good')
     })
 
     // Deriving the list from disk means a rule written but never registered fails here.
@@ -107,8 +110,11 @@ describe('All Plugin Tests', () => {
 
   describe('shipped configs', () => {
     it('exposes every config on the plugin', () => {
+      // Act
+      const names = Object.keys(plugin.configs ?? {}).sort()
+
       // Assert
-      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['parsing', 'recommended'])
+      assertEquals(names, ['parsing', 'recommended'])
     })
 
     // The two configs partition the rules, so no rule is enabled by both.

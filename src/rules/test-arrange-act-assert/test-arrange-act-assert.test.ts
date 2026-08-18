@@ -92,14 +92,6 @@ tester.run('test-arrange-act-assert', rule, {
         '})',
       ].join('\n'),
     },
-    // A one statement body needs no structure.
-    {
-      code: [
-        "it('adds two numbers', () => {",
-        '  assertEquals(add(1, 2), 3)',
-        '})',
-      ].join('\n'),
-    },
     // An empty body has nothing to label.
     { code: "it('is pending', () => {})" },
     // A title on the allow list is exempt entirely.
@@ -133,19 +125,6 @@ tester.run('test-arrange-act-assert', rule, {
         '  use(a)',
         '})',
       ].join('\n'),
-    },
-    // A lowered minStatements still exempts nothing here, since the labels are present.
-    {
-      code: [
-        "it('adds two numbers', () => {",
-        '  // Act',
-        '  const total = add(1, 2)',
-        '',
-        '  // Assert',
-        '  assertEquals(total, 3)',
-        '})',
-      ].join('\n'),
-      options: [{ minStatements: 0 }],
     },
   ],
   invalid: [
@@ -288,14 +267,13 @@ tester.run('test-arrange-act-assert', rule, {
         { messageId: 'missing', data: { label: 'Assert' } },
       ],
     },
-    // Lowering minStatements brings a one statement body back under the rule.
+    // A one statement body is a test like any other, so it is labelled like any other.
     {
       code: [
         "it('adds two numbers', () => {",
         '  assertEquals(add(1, 2), 3)',
         '})',
       ].join('\n'),
-      options: [{ minStatements: 1 }],
       errors: [
         { messageId: 'missing', data: { label: 'Act' } },
         { messageId: 'missing', data: { label: 'Assert' } },
