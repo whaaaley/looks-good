@@ -34,6 +34,12 @@ tester.run('describe-title-pattern', rule, {
       filename: 'event.queries.test.ts',
       options: [{ patterns: domain }],
     },
+    // A describe inside a function declaration is nested too.
+    {
+      code: "function shared() { describe('shared cases', () => {}) }\ndescribe('All Event Tests', () => { shared() })",
+      filename: 'event.queries.test.ts',
+      options: [{ patterns: domain }],
+    },
     // A wildcard standing in for several words.
     {
       code: "describe('All Recurring Event Tests', () => {})",
@@ -237,6 +243,13 @@ tester.run('describe-title-pattern', rule, {
     {
       code: "describe('All Event Tests', () => {})",
       filename: 'event.queries.test.ts',
+      options: [{ patterns: domain, allowTitles: ['(['] }],
+      errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
+    },
+    // A file matching no files pattern still reports a configuration problem.
+    {
+      code: 'export const helper = 1',
+      filename: 'event.utils.ts',
       options: [{ patterns: domain, allowTitles: ['(['] }],
       errors: [{ messageId: 'invalidPattern', data: { source: '([' } }],
     },

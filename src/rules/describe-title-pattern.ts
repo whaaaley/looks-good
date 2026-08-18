@@ -36,14 +36,13 @@ export const titlePatternFor = (pattern: string): RegExp => {
   return new RegExp(`^${body}$`, titleFlags)
 }
 
-// A call sits at the top level when nothing between it and the program is a function.
+const functionTypes = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'])
+
 const isTopLevel = (node: Rule.Node): boolean => {
   let current: Rule.Node | null = node.parent
 
   while (current) {
-    if (current.type === 'FunctionDeclaration') return false
-    if (current.type === 'FunctionExpression') return false
-    if (current.type === 'ArrowFunctionExpression') return false
+    if (functionTypes.has(current.type)) return false
 
     current = current.parent
   }
@@ -118,52 +117,51 @@ const rule: Rule.RuleModule = {
       return matchesGlob(entry.files, context.filename, context.cwd)
     })
 
-    if (!matched) {
-      if (invalid.length === 0) return {}
-
-      return { 'Program:exit': reportInvalid }
-    }
+    if (!matched) return { Program: reportInvalid }
 
     const expected = titlePatternFor(matched.title)
     const message = matched.message ? ` ${matched.message}` : ''
-    const [testFunction = 'describe'] = options.testFunctions
+    const [testFunction] = options.testFunctions
 
     let outermost: (CallExpression & Rule.NodeParentExtension) | null = null
 
-    return {
-      CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
-        if (outermost) return
-        if (!options.testFunctions.includes(calleeName(node))) return
+    const checkCall = (node: CallExpression & Rule.NodeParentExtension): void => {
+      if (outermost) return
+      if (!options.testFunctions.includes(calleeName(node))) return
 
-        // A call inside a function is nested, even when traversal reaches it first.
-        // Taking it would report a mismatch on a file whose own top level describe is correct.
-        if (!isTopLevel(node)) return
+      // A call inside a function is nested, even when traversal reaches it first.
+      // Taking it would report a mismatch on a file whose own top level describe is correct.
+      if (!isTopLevel(node)) return
 
-        outermost = node
-      },
-      'Program:exit': (program: Program): void => {
-        reportInvalid(program)
+      outermost = node
+    }
 
-        if (!outermost) {
-          context.report({
-            node: program,
-            messageId: 'missing',
-            data: { function: testFunction, pattern: matched.title, message },
-          })
-
-          return
-        }
-
-        const title = readTitle(outermost)
-        if (exempt.some((expression) => expression.test(title))) return
-        if (expected.test(title)) return
-
+    const checkFile = (program: Program): void => {
+      if (!outermost) {
         context.report({
-          node: outermost,
-          messageId: 'mismatch',
-          data: { function: testFunction, title, pattern: matched.title, message },
+          node: program,
+          messageId: 'missing',
+          data: { function: testFunction, pattern: matched.title, message },
         })
-      },
+
+        return
+      }
+
+      const title = readTitle(outermost)
+      if (exempt.some((expression) => expression.test(title))) return
+      if (expected.test(title)) return
+
+      context.report({
+        node: outermost,
+        messageId: 'mismatch',
+        data: { function: testFunction, title, pattern: matched.title, message },
+      })
+    }
+
+    return {
+      Program: reportInvalid,
+      CallExpression: checkCall,
+      'Program:exit': checkFile,
     }
   },
 }
