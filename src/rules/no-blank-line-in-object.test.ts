@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule, { blankLineRun } from './no-blank-line-in-object.ts'
+import rule, { blankLineRunPattern } from './no-blank-line-in-object.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -33,7 +33,7 @@ tester.run('no-blank-line-in-object', rule, {
     { code: 'const meta = {\n  cases: [\n    1,\n\n    2,\n  ],\n}' },
     // A spread member is a member like any other when it sits against its neighbour.
     { code: 'const meta = {\n  ...base,\n  b: 2,\n}' },
-    // The blank line blank-line-after-block requires after a nested brace is inside the value, so this rule leaves it alone.
+    // The blank line blank-line-after-block requires after a nested brace is inside the value, so it is left alone.
     { code: 'const listeners = {\n  Program: () => {\n    if (a) {\n      run()\n    }\n\n    after()\n  },\n  CallExpression: () => {\n    run()\n  },\n}' },
   ],
   invalid: [
@@ -83,10 +83,10 @@ tester.run('no-blank-line-in-object', rule, {
 })
 
 describe('All No Blank Line In Object Pattern Tests', () => {
-  describe('blankLineRun', () => {
+  describe('blankLineRunPattern', () => {
     it('closes a single blank line', () => {
       // Act
-      const closed = ',\n\n  '.replace(blankLineRun, '\n')
+      const closed = ',\n\n  '.replace(blankLineRunPattern, '\n')
 
       // Assert
       assertEquals(closed, ',\n  ')
@@ -94,7 +94,7 @@ describe('All No Blank Line In Object Pattern Tests', () => {
 
     it('closes a run of several blank lines', () => {
       // Act
-      const closed = ',\n\n\n\n  '.replace(blankLineRun, '\n')
+      const closed = ',\n\n\n\n  '.replace(blankLineRunPattern, '\n')
 
       // Assert
       assertEquals(closed, ',\n  ')
@@ -102,7 +102,7 @@ describe('All No Blank Line In Object Pattern Tests', () => {
 
     it('leaves text with no blank line alone', () => {
       // Act
-      const closed = ',\n  '.replace(blankLineRun, '\n')
+      const closed = ',\n  '.replace(blankLineRunPattern, '\n')
 
       // Assert
       assertEquals(closed, ',\n  ')
@@ -110,7 +110,7 @@ describe('All No Blank Line In Object Pattern Tests', () => {
 
     it('closes every gap in one pass', () => {
       // Act
-      const closed = 'a\n\nb\n\nc'.replace(blankLineRun, '\n')
+      const closed = 'a\n\nb\n\nc'.replace(blankLineRunPattern, '\n')
 
       // Assert
       assertEquals(closed, 'a\nb\nc')
@@ -118,7 +118,7 @@ describe('All No Blank Line In Object Pattern Tests', () => {
 
     it('leaves an empty string alone', () => {
       // Act
-      const closed = ''.replace(blankLineRun, '\n')
+      const closed = ''.replace(blankLineRunPattern, '\n')
 
       // Assert
       assertEquals(closed, '')

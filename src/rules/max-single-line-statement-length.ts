@@ -3,7 +3,7 @@ import { locationOf } from '../utils/location.utils.ts'
 import type { Rule, SourceCode } from 'eslint'
 import type { IfStatement, Statement } from 'estree'
 
-export const leadingWhitespace = /^\s*/
+export const leadingWhitespacePattern = /^\s*/ // Matches the indentation opening a line.
 
 type Options = {
   maxLength: number
@@ -86,7 +86,7 @@ const rule: Rule.RuleModule = {
           data: { length: String(line.length), maxLength: String(options.maxLength) },
           fix: (fixer): Rule.Fix => {
             // The body indents one step past the if, and the closing brace lines up with it.
-            const [indent = ''] = line.match(leadingWhitespace) ?? []
+            const [indent = ''] = line.match(leadingWhitespacePattern) ?? []
             const body = sourceCode.getText(consequent)
             const trailing = trailingComment(sourceCode, consequent)
 

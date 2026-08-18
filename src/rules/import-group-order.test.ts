@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
 import tsParser from '@typescript-eslint/parser'
 import { RuleTester } from 'eslint'
-import rule, { bareName, blankText, parentSpecifier, scopedName, siblingSpecifier } from './import-group-order.ts'
+import rule, { bareNamePattern, blankTextPattern, parentSpecifierPattern, scopedNamePattern, siblingSpecifierPattern } from './import-group-order.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -140,10 +140,10 @@ tester.run('import-group-order', rule, {
 })
 
 describe('All Import Group Order Pattern Tests', () => {
-  describe('bareName', () => {
+  describe('bareNamePattern', () => {
     it('matches a plain package name', () => {
       // Act
-      const matched = bareName.test('eslint')
+      const matched = bareNamePattern.test('eslint')
 
       // Assert
       assertEquals(matched, true)
@@ -151,7 +151,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match a relative specifier', () => {
       // Act
-      const matched = bareName.test('./sibling.ts')
+      const matched = bareNamePattern.test('./sibling.ts')
 
       // Assert
       assertEquals(matched, false)
@@ -159,17 +159,17 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match an empty specifier', () => {
       // Act
-      const matched = bareName.test('')
+      const matched = bareNamePattern.test('')
 
       // Assert
       assertEquals(matched, false)
     })
   })
 
-  describe('scopedName', () => {
+  describe('scopedNamePattern', () => {
     it('matches a scoped package name', () => {
       // Act
-      const matched = scopedName.test('@std/assert')
+      const matched = scopedNamePattern.test('@std/assert')
 
       // Assert
       assertEquals(matched, true)
@@ -177,7 +177,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('matches a scope written without a subpath', () => {
       // Act
-      const matched = scopedName.test('@std')
+      const matched = scopedNamePattern.test('@std')
 
       // Assert
       assertEquals(matched, true)
@@ -185,17 +185,17 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match a scope sigil on its own', () => {
       // Act
-      const matched = scopedName.test('@')
+      const matched = scopedNamePattern.test('@')
 
       // Assert
       assertEquals(matched, false)
     })
   })
 
-  describe('parentSpecifier', () => {
+  describe('parentSpecifierPattern', () => {
     it('matches a bare parent specifier', () => {
       // Act
-      const matched = parentSpecifier.test('..')
+      const matched = parentSpecifierPattern.test('..')
 
       // Assert
       assertEquals(matched, true)
@@ -203,7 +203,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('matches a parent path with a forward slash', () => {
       // Act
-      const matched = parentSpecifier.test('../utils/docs.utils.ts')
+      const matched = parentSpecifierPattern.test('../utils/docs.utils.ts')
 
       // Assert
       assertEquals(matched, true)
@@ -211,7 +211,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('matches a parent path with a backslash', () => {
       // Act
-      const matched = parentSpecifier.test('..\\utils\\docs.utils.ts')
+      const matched = parentSpecifierPattern.test('..\\utils\\docs.utils.ts')
 
       // Assert
       assertEquals(matched, true)
@@ -219,17 +219,17 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match a sibling specifier', () => {
       // Act
-      const matched = parentSpecifier.test('./sibling.ts')
+      const matched = parentSpecifierPattern.test('./sibling.ts')
 
       // Assert
       assertEquals(matched, false)
     })
   })
 
-  describe('siblingSpecifier', () => {
+  describe('siblingSpecifierPattern', () => {
     it('matches a sibling path', () => {
       // Act
-      const matched = siblingSpecifier.test('./sibling.ts')
+      const matched = siblingSpecifierPattern.test('./sibling.ts')
 
       // Assert
       assertEquals(matched, true)
@@ -237,17 +237,17 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match a bare dot', () => {
       // Act
-      const matched = siblingSpecifier.test('.')
+      const matched = siblingSpecifierPattern.test('.')
 
       // Assert
       assertEquals(matched, false)
     })
   })
 
-  describe('blankText', () => {
+  describe('blankTextPattern', () => {
     it('matches an empty string', () => {
       // Act
-      const matched = blankText.test('')
+      const matched = blankTextPattern.test('')
 
       // Assert
       assertEquals(matched, true)
@@ -255,7 +255,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('matches newlines and spaces', () => {
       // Act
-      const matched = blankText.test('\n  \n')
+      const matched = blankTextPattern.test('\n  \n')
 
       // Assert
       assertEquals(matched, true)
@@ -263,7 +263,7 @@ describe('All Import Group Order Pattern Tests', () => {
 
     it('does not match text holding a comment', () => {
       // Act
-      const matched = blankText.test('\n// a note\n')
+      const matched = blankTextPattern.test('\n// a note\n')
 
       // Assert
       assertEquals(matched, false)

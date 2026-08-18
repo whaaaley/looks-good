@@ -4,7 +4,7 @@ import type { Rule } from 'eslint'
 import type { ObjectExpression } from 'estree'
 
 // This carries the `g` flag, so only replace may consume it, since test or exec would leak lastIndex across calls.
-export const blankLineRun = /\n\s*\n/g
+export const blankLineRunPattern = /\n\s*\n/g
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -45,7 +45,7 @@ const rule: Rule.RuleModule = {
               const end = sourceCode.getIndexFromLoc({ line: following.start.line, column: 0 })
               const between = sourceCode.getText().slice(start, end)
 
-              return fixer.replaceTextRange([start, end], between.replace(blankLineRun, '\n'))
+              return fixer.replaceTextRange([start, end], between.replace(blankLineRunPattern, '\n'))
             },
           })
         })

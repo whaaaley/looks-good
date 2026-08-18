@@ -1,7 +1,7 @@
 import { remedy } from './dashprose.config.ts'
 
 // Finds a dash used as sentence punctuation in markdown prose.
-// Syntax that merely contains a dash is not punctuation, so a fence, a code span, a flag, and a rule line are all skipped.
+// Syntax that merely contains a dash is not punctuation, so fences, code spans, flags, and rule lines are skipped.
 
 export type Finding = {
   file: string
@@ -13,20 +13,20 @@ export type Finding = {
 }
 
 // An em dash and an en dash are punctuation wherever they appear, since neither has a syntactic use in markdown.
-const unicodeDash = /[—–]/g
+const unicodeDashPattern = /[—–]/g
 
 // Two hyphens are the ASCII stand-in, and only the spaced form is punctuation.
 // A flag binds its dashes to the word after it, and a table separator or a rule runs three or more.
-const asciiDash = /(?<=\s)--(?=\s)/g
+const asciiDashPattern = /(?<=\s)--(?=\s)/g
 
 // A fence opens and closes with the same marker, so the tool tracks which side of one it is on.
-const fenceMarker = /^\s*(```|~~~)/
+const fenceMarkerPattern = /^\s*(```|~~~)/
 
 // A row of pipes and dashes separates a table header from its body.
-const tableSeparator = /^\s*\|[\s|:-]+\|\s*$/
+const tableSeparatorPattern = /^\s*\|[\s|:-]+\|\s*$/
 
 // Three or more dashes alone on a line are a horizontal rule, or the delimiter around frontmatter.
-const ruleOrDelimiter = /^\s*-{3,}\s*$/
+const ruleOrDelimiterPattern = /^\s*-{3,}\s*$/
 
 // A code span is syntax rather than prose, so its contents are blanked before the line is scanned.
 // The replacement keeps the line's length so every reported column still points at the real character.
@@ -45,7 +45,7 @@ const withoutUrls = (line: string): string => {
 }
 
 const isSyntaxLine = (line: string): boolean => {
-  return tableSeparator.test(line) || ruleOrDelimiter.test(line)
+  return tableSeparatorPattern.test(line) || ruleOrDelimiterPattern.test(line)
 }
 
 const findingsIn = (file: string, line: string, number: number): Finding[] => {
@@ -55,7 +55,7 @@ const findingsIn = (file: string, line: string, number: number): Finding[] => {
 
   const prose = withoutUrls(withoutLinkTargets(withoutCodeSpans(line)))
 
-  for (const pattern of [unicodeDash, asciiDash]) {
+  for (const pattern of [unicodeDashPattern, asciiDashPattern]) {
     for (const match of prose.matchAll(pattern)) {
       const [dash] = match
 
@@ -72,7 +72,7 @@ export const scanMarkdown = (file: string, text: string): Finding[] => {
 
   text.split('\n').forEach((line, index) => {
     // A fence line toggles the block and is never prose itself, on either side.
-    if (fenceMarker.test(line)) {
+    if (fenceMarkerPattern.test(line)) {
       fenced = !fenced
       return
     }

@@ -35,11 +35,11 @@ type Entry = {
   rank: number
 }
 
-export const bareName = /^\w/
-export const scopedName = /^@[^/]+\/?[^/]+/
-export const parentSpecifier = /^\.\.$|^\.\.[/\\]/
-export const siblingSpecifier = /^\.[/\\]/
-export const blankText = /^\s*$/
+export const bareNamePattern = /^\w/ // A bare package name opens with a word character.
+export const scopedNamePattern = /^@[^/]+\/?[^/]+/ // A scoped package name is a scope segment plus a name.
+export const parentSpecifierPattern = /^\.\.$|^\.\.[/\\]/ // A parent specifier is two dots alone or opening a path.
+export const siblingSpecifierPattern = /^\.[/\\]/ // A sibling specifier opens with one dot and a separator.
+export const blankTextPattern = /^\s*$/ // Blank text is whitespace alone.
 
 const groupNames: GroupName[] = ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type', 'unknown']
 
@@ -109,7 +109,7 @@ const baseModule = (name: string): string => {
 
 // A bare name looks like a package, which is what the original falls back to when resolution finds nothing.
 const isExternalLooking = (name: string): boolean => {
-  return bareName.test(name) || scopedName.test(name)
+  return bareNamePattern.test(name) || scopedNamePattern.test(name)
 }
 
 const classify = (name: string, internalPrefixes: string[]): GroupName => {
@@ -124,9 +124,9 @@ const classify = (name: string, internalPrefixes: string[]): GroupName => {
 
   if (name.startsWith('/')) return 'unknown'
   if (builtins.has(baseModule(name))) return 'builtin'
-  if (parentSpecifier.test(name)) return 'parent'
+  if (parentSpecifierPattern.test(name)) return 'parent'
   if (indexSpecifiers.has(name)) return 'index'
-  if (siblingSpecifier.test(name)) return 'sibling'
+  if (siblingSpecifierPattern.test(name)) return 'sibling'
   if (isExternalLooking(name)) return 'external'
 
   return 'unknown'
@@ -411,7 +411,7 @@ const rule: Rule.RuleModule = {
         const between = text.slice(previousEnd, currentStart)
 
         // Anything other than whitespace between the two lines is not this rule's to remove.
-        const isBlank = blankText.test(between)
+        const isBlank = blankTextPattern.test(between)
 
         context.report({
           node: previous.node,

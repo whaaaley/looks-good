@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule, { emoji } from './no-emoji.ts'
+import rule, { emojiPattern } from './no-emoji.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -89,7 +89,7 @@ describe('All No Emoji Pattern Tests', () => {
   describe('emoji', () => {
     it('finds a plain pictograph', () => {
       // Act
-      const found = [...'Done 🎉'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'Done 🎉'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, ['🎉'])
@@ -97,7 +97,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('reads a skin tone modifier as part of one emoji', () => {
       // Act
-      const found = [...'👍🏽'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'👍🏽'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, ['👍🏽'])
@@ -105,7 +105,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('reads a zero width joiner run as one emoji', () => {
       // Act
-      const found = [...'👨‍👩‍👧'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'👨‍👩‍👧'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, ['👨‍👩‍👧'])
@@ -113,7 +113,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('reads a regional indicator pair as one flag', () => {
       // Act
-      const found = [...'🇬🇧'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'🇬🇧'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, ['🇬🇧'])
@@ -121,7 +121,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('finds every emoji in one string', () => {
       // Act
-      const found = [...'🎉 and 🚀'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'🎉 and 🚀'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, ['🎉', '🚀'])
@@ -129,7 +129,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('finds nothing in text with no emoji', () => {
       // Act
-      const found = [...'£10 ≈ $13'.matchAll(emoji)].map((match) => match[0])
+      const found = [...'£10 ≈ $13'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, [])
@@ -137,7 +137,7 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('finds nothing in an empty string', () => {
       // Act
-      const found = [...''.matchAll(emoji)].map((match) => match[0])
+      const found = [...''.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(found, [])
@@ -145,10 +145,10 @@ describe('All No Emoji Pattern Tests', () => {
 
     it('carries no state between separate scans', () => {
       // Arrange
-      const first = [...'Ship it 🚀'.matchAll(emoji)].map((match) => match[0])
+      const first = [...'Ship it 🚀'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Act
-      const second = [...'Ship it 🚀'.matchAll(emoji)].map((match) => match[0])
+      const second = [...'Ship it 🚀'.matchAll(emojiPattern)].map((match) => match[0])
 
       // Assert
       assertEquals(second, first)

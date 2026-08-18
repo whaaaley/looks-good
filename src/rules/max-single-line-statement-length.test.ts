@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import { assertEquals } from '@std/assert'
 import { RuleTester } from 'eslint'
-import rule, { leadingWhitespace } from './max-single-line-statement-length.ts'
+import rule, { leadingWhitespacePattern } from './max-single-line-statement-length.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
 RuleTester.describe = describe as never
@@ -80,10 +80,10 @@ tester.run('max-single-line-statement-length', rule, {
 })
 
 describe('All Max Single Line Statement Length Pattern Tests', () => {
-  describe('leadingWhitespace', () => {
+  describe('leadingWhitespacePattern', () => {
     it('captures the indent of an indented line', () => {
       // Act
-      const [indent = ''] = '    if (ready) return'.match(leadingWhitespace) ?? []
+      const [indent = ''] = '    if (ready) return'.match(leadingWhitespacePattern) ?? []
 
       // Assert
       assertEquals(indent, '    ')
@@ -91,7 +91,7 @@ describe('All Max Single Line Statement Length Pattern Tests', () => {
 
     it('captures an empty indent for a line starting at the margin', () => {
       // Act
-      const [indent = ''] = 'if (ready) return'.match(leadingWhitespace) ?? []
+      const [indent = ''] = 'if (ready) return'.match(leadingWhitespacePattern) ?? []
 
       // Assert
       assertEquals(indent, '')
@@ -99,7 +99,7 @@ describe('All Max Single Line Statement Length Pattern Tests', () => {
 
     it('captures a tab indent', () => {
       // Act
-      const [indent = ''] = '\t\tif (ready) return'.match(leadingWhitespace) ?? []
+      const [indent = ''] = '\t\tif (ready) return'.match(leadingWhitespacePattern) ?? []
 
       // Assert
       assertEquals(indent, '\t\t')
@@ -107,7 +107,7 @@ describe('All Max Single Line Statement Length Pattern Tests', () => {
 
     it('captures an empty indent for an empty line', () => {
       // Act
-      const [indent = ''] = ''.match(leadingWhitespace) ?? []
+      const [indent = ''] = ''.match(leadingWhitespacePattern) ?? []
 
       // Assert
       assertEquals(indent, '')
