@@ -6,29 +6,44 @@
  * {@link recommended}, {@link parsing}, and {@link typescript}. The same three
  * are reachable as `plugin.configs`.
  *
- * Two registered rules are enabled by no config. `comment-reflow` is off
- * because it and `comment-one-sentence-per-line` report the same wrap, so a
- * consumer picks one: turn `comment-one-sentence-per-line` off and
- * `comment-reflow` on to rewrite a wrapped sentence under `--fix` instead.
+ * Some registered rules are enabled by no config.
  * `no-try-catch-handler` is off because it names a result helper the consumer
  * has to have written first, and enabled without one it would tell a project to
  * call a function that does not exist there. Write the helper, then enable the
- * rule with the module path it lives at.
+ * rule with the module path it lives at. `require-foreign-key-index` is off
+ * because it reads Drizzle table calls, which a project that does not use
+ * Drizzle never writes. Enable it with a `files` glob pointing at the schema
+ * files, such as `**\/*.tables.ts`. `import-group-order` is off because a
+ * project already running `import-x/order` would get the same import reported
+ * twice. Turn that rule off, then enable this one with the same options.
+ * `no-inline-regex` is off because a project that has never hoisted its patterns
+ * would see every inline match and replace reported at once, and each one needs
+ * a person to pick the name. Enable it once the codebase is ready to hoist, and
+ * pass `{ position: 'top' }` to additionally require the patterns be grouped at
+ * the head of the file rather than scattered through it.
+ *
+ * `comment-wrap` reports a sentence that wraps onto the next comment line. Pass
+ * `{ onWrap: 'join' }` to have `--fix` join the two lines instead of reporting
+ * them.
  *
  * @module
  */
 
+import denoConfig from '../deno.json' with { type: 'json' }
 import blankLineAfterBlock from './rules/blank-line-after-block.ts'
 import commentContent from './rules/comment-content.ts'
-import commentOneSentencePerLine from './rules/comment-one-sentence-per-line.ts'
-import commentReflow from './rules/comment-reflow.ts'
+import commentWrap from './rules/comment-wrap.ts'
 import describeGroupOrder from './rules/describe-group-order.ts'
 import describeTitlePattern from './rules/describe-title-pattern.ts'
+import importGroupOrder from './rules/import-group-order.ts'
 import maxDestructuredParameters from './rules/max-destructured-parameters.ts'
 import maxSingleLineStatementLength from './rules/max-single-line-statement-length.ts'
 import noBlankLineInObject from './rules/no-blank-line-in-object.ts'
 import noEmoji from './rules/no-emoji.ts'
+import noIdOnlyMutationScope from './rules/no-id-only-mutation-scope.ts'
 import noIgnoredTests from './rules/no-ignored-tests.ts'
+import noInlineRegex from './rules/no-inline-regex.ts'
+import noNullableUniqueColumn from './rules/no-nullable-unique-column.ts'
 import noRestrictedCharacters from './rules/no-restricted-characters.ts'
 import noSingleLineNestedObject from './rules/no-single-line-nested-object.ts'
 import noTestBeforeGroup from './rules/no-test-before-group.ts'
@@ -36,6 +51,7 @@ import noTryCatchHandler from './rules/no-try-catch-handler.ts'
 import noUnionInParameterType from './rules/no-union-in-parameter-type.ts'
 import objectCommentsTrailing from './rules/object-comments-trailing.ts'
 import requireFileCalls from './rules/require-file-calls.ts'
+import requireForeignKeyIndex from './rules/require-foreign-key-index.ts'
 import testArrangeActAssert from './rules/test-arrange-act-assert.ts'
 import type { ESLint, Linter } from 'eslint'
 
@@ -43,18 +59,21 @@ import type { ESLint, Linter } from 'eslint'
 // A violation here needs a person or an agent to decide what the text should say.
 const reporting = {
   'comment-content': commentContent,
-  'comment-one-sentence-per-line': commentOneSentencePerLine,
   'describe-group-order': describeGroupOrder,
   'describe-title-pattern': describeTitlePattern,
   'max-destructured-parameters': maxDestructuredParameters,
   'no-emoji': noEmoji,
+  'no-id-only-mutation-scope': noIdOnlyMutationScope,
   'no-ignored-tests': noIgnoredTests,
+  'no-inline-regex': noInlineRegex,
+  'no-nullable-unique-column': noNullableUniqueColumn,
   'no-single-line-nested-object': noSingleLineNestedObject,
   'no-test-before-group': noTestBeforeGroup,
   'no-try-catch-handler': noTryCatchHandler,
   'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
   'require-file-calls': requireFileCalls,
+  'require-foreign-key-index': requireForeignKeyIndex,
   'test-arrange-act-assert': testArrangeActAssert,
 }
 
@@ -62,7 +81,8 @@ const reporting = {
 // A violation here moves text, or swaps one character for the spelling a project asked for.
 const fixable = {
   'blank-line-after-block': blankLineAfterBlock,
-  'comment-reflow': commentReflow,
+  'comment-wrap': commentWrap,
+  'import-group-order': importGroupOrder,
   'max-single-line-statement-length': maxSingleLineStatementLength,
   'no-blank-line-in-object': noBlankLineInObject,
   'no-restricted-characters': noRestrictedCharacters,
@@ -78,7 +98,7 @@ const rules = {
  *
  * Use this to wire rules by hand instead of spreading one of the configs, which
  * is what a project wants when it enables a rule no config turns on, such as
- * `comment-reflow` or `no-try-catch-handler`.
+ * `no-inline-regex` or `no-try-catch-handler`.
  *
  * @example
  * ```js
@@ -87,7 +107,7 @@ const rules = {
  * export default [
  *   {
  *     plugins: { 'looks-good': plugin },
- *     rules: { 'looks-good/comment-reflow': ['error', { maxLength: 100 }] },
+ *     rules: { 'looks-good/comment-wrap': ['error', { onWrap: 'join' }] },
  *   },
  * ]
  * ```
@@ -95,7 +115,7 @@ const rules = {
 export const plugin: ESLint.Plugin = {
   meta: {
     name: 'looks-good',
-    version: '0.1.0',
+    version: denoConfig.version,
   },
   rules,
 }
@@ -169,9 +189,11 @@ export const parsing: Linter.Config = {
   },
   rules: {
     'looks-good/comment-content': 'warn',
-    'looks-good/comment-one-sentence-per-line': 'error',
+    'looks-good/comment-wrap': 'error',
     'looks-good/describe-title-pattern': 'error',
     'looks-good/no-emoji': 'error',
+    'looks-good/no-id-only-mutation-scope': 'error',
+    'looks-good/no-nullable-unique-column': 'error',
     'looks-good/no-restricted-characters': 'error',
     'looks-good/require-file-calls': 'error',
     'looks-good/test-arrange-act-assert': 'error',

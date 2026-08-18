@@ -12,16 +12,16 @@ const config = [
     files: ['**/*.ts'],
     languageOptions: { parser: tsParser },
     plugins: { 'looks-good': plugin },
-    rules: { 'looks-good/comment-one-sentence-per-line': 'error' },
+    rules: { 'looks-good/comment-wrap': 'error' },
   },
 ]
 
-const reflowConfig = [
+const joinConfig = [
   {
     files: ['**/*.ts'],
     languageOptions: { parser: tsParser },
     plugins: { 'looks-good': plugin },
-    rules: { 'looks-good/comment-reflow': 'error' },
+    rules: { 'looks-good/comment-wrap': ['error', { onWrap: 'join' }] },
   },
 ]
 
@@ -153,23 +153,12 @@ describe('All Plugin Tests', () => {
       assertEquals(leaked, [])
     })
 
-    // Both enabled would report one wrapped sentence twice, once per rule.
-    it('enables exactly one of the two comment wrapping rules', () => {
-      // Arrange
-      const wrapping = ['looks-good/comment-one-sentence-per-line', 'looks-good/comment-reflow']
-
-      // Act
-      const enabled = wrapping.filter((name) => name in (parsing.rules ?? {}))
-
-      // Assert
-      assertEquals(enabled, ['looks-good/comment-one-sentence-per-line'])
-    })
-
-    // Both opt in rules replace something a consumer supplies, a sibling rule or a result helper.
-    it('enables every registered rule across the three configs except the two opt in rules', () => {
+    // Every opt in rule waits on something a consumer supplies.
+    // That is a sibling rule, a result helper, a schema glob, or the third party rule it replaces.
+    it('enables every registered rule across the three configs except the opt in rules', () => {
       // Arrange
       const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
-      const optIn = ['looks-good/comment-reflow', 'looks-good/no-try-catch-handler']
+      const optIn = ['looks-good/import-group-order', 'looks-good/no-inline-regex', 'looks-good/no-try-catch-handler', 'looks-good/require-foreign-key-index']
 
       // Act
       const enabled = new Set([
@@ -209,7 +198,7 @@ describe('All Plugin Tests', () => {
 
       // Assert
       assert(first)
-      assertEquals(first.ruleId, 'looks-good/comment-one-sentence-per-line')
+      assertEquals(first.ruleId, 'looks-good/comment-wrap')
     })
 
     it('reports each wrapped sentence it holds', () => {
@@ -220,10 +209,10 @@ describe('All Plugin Tests', () => {
       assertEquals(reported, ['wrapped', 'wrapped'])
     })
 
-    // Reflow moves text without rewriting it, so it is the rule that carries a fixer.
-    it('reflows the file into one that reports nothing', () => {
+    // Join mode moves text without rewriting it, so it is the mode that carries a fixer.
+    it('joins the file into one that reports nothing', () => {
       // Act
-      const fixed = linter.verifyAndFix(broken, reflowConfig as never, 'fixture.ts')
+      const fixed = linter.verifyAndFix(broken, joinConfig as never, 'fixture.ts')
 
       // Assert
       assert(fixed.fixed)
