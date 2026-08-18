@@ -37,14 +37,12 @@ const looksGoodRules = [
 ]
 
 // A file that declares which characters are restricted has to contain them.
-const self = [
-  {
-    files: ['eslint.config.js'],
-    rules: {
-      'looks-good/no-restricted-characters': 0,
-    },
+const self = [{
+  files: ['eslint.config.js'],
+  rules: {
+    'looks-good/no-restricted-characters': 0,
   },
-]
+}]
 
 // no-try-catch-handler ships in no config, since only this project knows where its result helper lives.
 const results = [
@@ -69,6 +67,7 @@ const tests = [
     files: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': 0,
+      'looks-good/array-bracket-hug': 0, // A chain leaves a fresh case annotation no line to land on.
       'looks-good/no-emoji': 0,
       'looks-good/no-restricted-characters': 0,
     },
