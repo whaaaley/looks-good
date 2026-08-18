@@ -46,7 +46,6 @@ tester.run('comment-content', rule, {
       code: '/* A block comment when they are allowed. */\nconst a = 1',
       options: [{ forbidBlockComments: false }],
     },
-    // A jsdoc block is read by a documentation tool, so forbidding block comments leaves it alone.
     {
       code: '/** A documented export. */\nexport const a = 1',
       options: [{ forbidBlockComments: true }],
