@@ -21,7 +21,7 @@ const joinConfig = [
     files: ['**/*.ts'],
     languageOptions: { parser: tsParser },
     plugins: { 'looks-good': plugin },
-    rules: { 'looks-good/comment-wrap': ['error', { onWrap: 'join' }] },
+    rules: { 'looks-good/comment-wrap': 'error' },
   },
 ]
 
@@ -200,10 +200,10 @@ describe('All Plugin Tests', () => {
       const reported = lint(broken).map((message) => message.messageId)
 
       // Assert
-      assertEquals(reported, ['wrapped', 'wrapped'])
+      assertEquals(reported, ['join', 'join'])
     })
 
-    // Join mode moves text without rewriting it, so it is the mode that carries a fixer.
+    // The join moves text without rewriting it, which is what lets the rule carry a fixer.
     it('joins the file into one that reports nothing', () => {
       // Act
       const fixed = linter.verifyAndFix(broken, joinConfig as never, 'fixture.ts')

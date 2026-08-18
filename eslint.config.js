@@ -12,7 +12,7 @@ const looksGoodRules = [
   // Join mode rewrites the wrap that report mode only reports.
   {
     rules: {
-      'looks-good/comment-wrap': ['error', { onWrap: 'join' }],
+      'looks-good/comment-wrap': 'error',
       'looks-good/comment-content': ['error', {
         forbid: [
           { pattern: '\\b(TODO|FIXME|HACK|XXX)\\b', message: 'a marker is deferred work nothing tracks', ignoreCase: true },

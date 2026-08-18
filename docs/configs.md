@@ -28,13 +28,13 @@ Installing from JSR pulls those four packages in for you, and taking `recommende
 Skip `parsing` if you would rather your linter dependencies stay at `eslint` and nothing else.
 
 `comment-wrap` reports a wrapped sentence by default and leaves rewriting it to you.
-Pass `onWrap: 'join'` to have `--fix` join the two lines instead.
+`--fix` joins the two lines back into one.
 
 ```js
 looksGood.configs.parsing,
 {
   rules: {
-    'looks-good/comment-wrap': ['error', { onWrap: 'join' }],
+    'looks-good/comment-wrap': 'error',
   },
 }
 ```
@@ -117,7 +117,6 @@ export default defineConfig([
         ],
         forbidBlockComments: true,
       }],
-      // Pass { onWrap: 'join' } to have --fix join a wrapped sentence.
       'looks-good/comment-wrap': 'error',
       'looks-good/describe-group-order': ['error', {
         sequence: ['create', 'read', 'update', 'list', '*', 'delete'],

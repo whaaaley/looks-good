@@ -71,7 +71,7 @@ The rules are written to the ESLint rule interface, and ESLint is the host they 
 | [array-bracket-hug](docs/rules.md#array-bracket-hug) | An array of object literals hugs its brackets into a compact chain | recommended | yes |
 | [blank-line-after-block](docs/rules.md#blank-line-after-block) | Separates a closing brace from the statement that follows it | recommended | yes |
 | [comment-content](docs/rules.md#comment-content) | Forbids comment text a project does not want left in source | parsing | |
-| [comment-wrap](docs/rules.md#comment-wrap) | A comment sentence fits on one line and a line holds one sentence | parsing | yes (`onWrap: 'join'`) |
+| [comment-wrap](docs/rules.md#comment-wrap) | A comment sentence fits on one line and a line holds one sentence | parsing | yes |
 | [describe-group-order](docs/rules.md#describe-group-order) | Requires sibling describe groups to appear in a configured order | recommended | |
 | [describe-title-pattern](docs/rules.md#describe-title-pattern) | Requires a test file to name its subject in a top level describe title | parsing | |
 | [import-group-order](docs/rules.md#import-group-order) | Enforces a group order and an alphabetical order among the imports of a file | opt in | yes |

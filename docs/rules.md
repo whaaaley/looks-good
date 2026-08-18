@@ -107,7 +107,7 @@ A pattern that is not a valid regular expression is reported once at the top of 
 ### comment-wrap
 
 Reports a comment sentence that wraps to the next line.
-`onWrap` selects the remedy for a wrapped sentence, leaving everything else the same in both modes.
+A wrapped sentence joins onto its first line under `--fix`, unless the joined line would run past `maxLength`, which reports without rewriting.
 
 Examples of **incorrect** code for this rule:
 
@@ -117,14 +117,14 @@ Examples of **incorrect** code for this rule:
 const a = 1
 ```
 
-Examples of **correct** code under the default `onWrap: 'report'`, where the sentence is rewritten to fit:
+Examples of **correct** code, where each sentence fits its line:
 
 ```js
 // This sentence fits on one line.
 const a = 1
 ```
 
-Examples of **correct** code under `onWrap: 'join'`, where the two lines become one:
+Examples of code `--fix` rewrites, joining the two lines into one:
 
 ```js
 // This sentence continues onto the next line.
@@ -141,7 +141,6 @@ How long a comment line may run is [max-comment-length](#max-comment-length)'s b
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `onWrap` | `'report'` | What to do with a sentence that wraps. `'report'` asks for a rewrite, and `'join'` joins the two lines under `--fix`. |
 | `maxLength` | `120` | The longest a joined line may run, indentation and marker included. Under `'join'`, two lines that would join past it are reported without a fix. |
 | `allowUrls` | `true` | Exempts a line ending in a url. |
 | `allowIdentifiers` | `true` | Exempts a line ending in a symbol such as `` `comment.utils` `` or `discord.js`. |

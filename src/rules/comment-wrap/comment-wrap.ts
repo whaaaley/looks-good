@@ -1,10 +1,8 @@
 import { findWrappedPairs, readLineComments } from '../../utils/comment.utils.ts'
 import { docUrl } from '../../utils/docs.utils.ts'
-import type { CommentLine } from '../../utils/comment.utils.ts'
 import type { Rule } from 'eslint'
 
 type Options = {
-  onWrap: 'report' | 'join'
   maxLength: number
   allowUrls: boolean
   allowIdentifiers: boolean
@@ -12,7 +10,6 @@ type Options = {
 }
 
 const defaults: Options = {
-  onWrap: 'report',
   maxLength: 120,
   allowUrls: true,
   allowIdentifiers: true,
@@ -23,7 +20,7 @@ const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
     docs: {
-      description: 'A comment sentence fits on one line, reported or joined under --fix depending on onWrap',
+      description: 'A comment sentence fits on one line, joined onto it under --fix',
       url: docUrl('comment-wrap'),
     },
     defaultOptions: [defaults],
@@ -32,7 +29,6 @@ const rule: Rule.RuleModule = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        onWrap: { enum: ['report', 'join'] },
         maxLength: { type: 'integer', minimum: 1 },
         allowUrls: { type: 'boolean' },
         allowIdentifiers: { type: 'boolean' },
@@ -40,7 +36,6 @@ const rule: Rule.RuleModule = {
       },
     }],
     messages: {
-      wrapped: 'This sentence continues onto the next comment line. Rewrite it to fit on one line, or cut it.',
       join: 'This sentence continues on the next line, so the two lines join into one',
       tooLongToJoin: 'This sentence continues on the next line, but joining them would run past {{maxLength}} characters',
     },
@@ -48,16 +43,9 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
-    const reportMode = (comments: CommentLine[]): void => {
-      for (const { comment } of findWrappedPairs(comments, options)) {
-        context.report({
-          loc: { line: comment.line, column: 0 },
-          messageId: 'wrapped',
-        })
-      }
-    }
+    const check = (): void => {
+      const comments = readLineComments(context)
 
-    const joinMode = (comments: CommentLine[]): void => {
       for (const { comment, next } of findWrappedPairs(comments, options)) {
         // An empty line contributes no text, so joining it must not leave a trailing space.
         const joined = [comment.text, next.text].filter(Boolean).join(' ')
@@ -85,17 +73,7 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      'Program:exit': (): void => {
-        const comments = readLineComments(context)
-
-        if (options.onWrap === 'join') {
-          joinMode(comments)
-
-          return
-        }
-
-        reportMode(comments)
-      },
+      'Program:exit': check,
     }
   },
 }
