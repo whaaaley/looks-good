@@ -30,6 +30,7 @@
     "noUncheckedIndexedAccess": true
   },
   "exclude": [
+    ".claude/",
     "deleted/",
     "notes/"
   ],
