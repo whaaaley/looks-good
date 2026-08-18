@@ -1,7 +1,6 @@
-import { isDirective, readComments } from '../../utils/comment.utils.ts'
+import { isDirective } from '../../utils/comment.utils.ts'
 import { endsSentence, endsWithCode } from '../../utils/prose.utils.ts'
 import type { CommentLine } from '../../utils/comment.utils.ts'
-import type { Rule } from 'eslint'
 
 export type ExemptionOptions = {
   allowUrls: boolean
@@ -11,11 +10,6 @@ export type ExemptionOptions = {
 
 export const trailingUrlPattern = /https?:\/\/\S+$/ // Matches a url closing the text.
 export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Matches a dotted symbol like `discord.js` at the end.
-
-// The wrap check joins lines, which only line comments do, so block comments drop out here.
-export const readLineComments = (context: Rule.RuleContext): CommentLine[] => {
-  return readComments(context).filter((comment) => !comment.block)
-}
 
 // A bare prefix match would exempt prose such as "Actually this sentence wraps".
 export const startsWithLabel = (text: string, labels: string[]): boolean => {

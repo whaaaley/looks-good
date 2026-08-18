@@ -1,5 +1,6 @@
+import { readComments } from '../../utils/comment.utils.ts'
 import { docUrl } from '../../utils/docs.utils.ts'
-import { findWrappedPairs, readLineComments } from './comment-wrap.utils.ts'
+import { findWrappedPairs } from './comment-wrap.utils.ts'
 import type { Rule } from 'eslint'
 
 type Options = {
@@ -44,17 +45,16 @@ const rule: Rule.RuleModule = {
     const options: Options = { ...defaults, ...context.options[0] }
 
     const check = (): void => {
-      const comments = readLineComments(context)
+      // The wrap check joins lines, which only line comments do, so block comments drop out here.
+      const comments = readComments(context).filter((comment) => !comment.block)
 
       for (const { comment, next } of findWrappedPairs(comments, options)) {
         // An empty line contributes no text, so joining it must not leave a trailing space.
         const joined = [comment.text, next.text].filter(Boolean).join(' ')
 
-        // The joined line keeps the first comment's indentation plus its own comment marker.
-        const column = comment.node.loc?.start.column ?? 0
-
         // Joining past the limit would trade a wrapped sentence for a line max-comment-length flags.
-        if (column + 3 + joined.length > options.maxLength) {
+        // The joined line keeps the first comment's indentation plus its own comment marker.
+        if (comment.column + 3 + joined.length > options.maxLength) {
           context.report({
             loc: { line: comment.line, column: 0 },
             messageId: 'tooLongToJoin',

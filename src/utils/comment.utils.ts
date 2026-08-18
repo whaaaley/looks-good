@@ -4,6 +4,7 @@ import type { Comment } from 'estree'
 export type CommentLine = {
   text: string
   line: number
+  column: number
   node: Comment
   range: [number, number]
   trailing: boolean
@@ -12,14 +13,6 @@ export type CommentLine = {
 
 export const whitespacePattern = /\s/ // Matches one whitespace character.
 
-// A comment with code before it annotates that line rather than continuing the one above.
-const hasCodeBefore = (context: Rule.RuleContext, comment: Comment): boolean => {
-  const before = context.sourceCode.getTokenBefore(comment, { includeComments: false })
-  if (!before) return false
-
-  return before.loc.end.line === comment.loc?.start.line
-}
-
 // Reads every comment, block ones included, for checks that inspect text rather than flow.
 export const readComments = (context: Rule.RuleContext): CommentLine[] => {
   const collected: CommentLine[] = []
@@ -27,12 +20,16 @@ export const readComments = (context: Rule.RuleContext): CommentLine[] => {
   for (const comment of context.sourceCode.getAllComments()) {
     if (!comment.loc || !comment.range) continue
 
+    // A comment with code before it on the same line annotates that line rather than continuing the one above.
+    const before = context.sourceCode.getTokenBefore(comment, { includeComments: false })
+
     collected.push({
       text: comment.value.trim(),
       line: comment.loc.start.line,
+      column: comment.loc.start.column, // The source indentation of the comment, not a report position.
       node: comment,
       range: comment.range,
-      trailing: hasCodeBefore(context, comment),
+      trailing: before !== null && before.loc.end.line === comment.loc.start.line,
       block: comment.type !== 'Line',
     })
   }
