@@ -25,7 +25,8 @@
     "noUncheckedIndexedAccess": true
   },
   "exclude": [
-    "deleted/"
+    "deleted/",
+    "notes/"
   ],
   "tasks": {
     "check": "deno check --unstable-tsgo src/ tools/",
