@@ -28,7 +28,7 @@ tester.run('object-comments-trailing', rule, {
   invalid: [
     // The shape that prompted this rule.
     {
-      code: 'const meta = {\n  defaultOptions: [defaults],\n  // Deciding what a marker said needs a person.\n  fixable: undefined,\n}',
+      code: 'const meta = {\n  defaultOptions: [defaults],\n  // Deciding what a marker said needs the user.\n  fixable: undefined,\n}',
       errors: [{ messageId: 'ownLine', line: 3 }],
     },
     // A comment above the first property is the same shape.

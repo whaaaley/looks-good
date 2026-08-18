@@ -61,7 +61,7 @@ looksGood.configs.typescript,
 Some rules are in no config, because each one waits on something your project supplies.
 
 - `import-group-order` reports the same import as `import-x/order`, so a project already running that rule turns it off first.
-- `no-inline-regex` reports every inline pattern at once, and each one needs a person to pick the name it is hoisted to.
+- `no-inline-regex` reports every inline pattern at once, and each one needs the user to pick the name it is hoisted to.
 - `no-try-catch-handler` names a result helper you write first.
 - `require-foreign-key-index` reads Drizzle table calls, so a project points it at its schema files with a `files` glob.
 

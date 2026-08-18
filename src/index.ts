@@ -18,7 +18,7 @@
  * twice. Turn that rule off, then enable this one with the same options.
  * `no-inline-regex` is off because a project that has never hoisted its patterns
  * would see every inline match and replace reported at once, and each one needs
- * a person to pick the name. Enable it once the codebase is ready to hoist, and
+ * the user to pick the name. Enable it once the codebase is ready to hoist, and
  * pass `{ position: 'top' }` to additionally require the patterns be grouped at
  * the head of the file rather than scattered through it.
  *
@@ -59,7 +59,7 @@ import testArrangeActAssert from './rules/test-arrange-act-assert.ts'
 import type { ESLint, Linter } from 'eslint'
 
 // Rules that report and never rewrite.
-// A violation here needs a person or an agent to decide what the text should say.
+// A violation here needs the user or an agent to decide what the text should say.
 const reporting = {
   'comment-content': commentContent,
   'describe-group-order': describeGroupOrder,

@@ -86,7 +86,7 @@ Turn that rule off, then enable this one with the same options.
 }],
 ```
 
-`no-inline-regex` is off because a project that has never hoisted its patterns would see every inline match and replace reported at once, and each report needs a person to pick the name.
+`no-inline-regex` is off because a project that has never hoisted its patterns would see every inline match and replace reported at once, and each report needs the user to pick the name.
 Enable it once the codebase is ready to hoist, and pass `position: 'top'` to additionally require the patterns be grouped at the head of the file.
 
 ```js

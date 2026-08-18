@@ -130,7 +130,7 @@ Examples of **correct** code under `onWrap: 'join'`, where the two lines become 
 const a = 1
 ```
 
-Report mode attaches no fix, since deciding what a sentence should say instead is a person's call.
+Report mode attaches no fix, since deciding what a sentence should say instead is the user's call.
 Join mode is the fixable one, so it is what `--fix` acts on.
 
 How long a comment line may run is [max-comment-length](#max-comment-length)'s business, so a long line that wraps nothing is not reported here.
@@ -1029,7 +1029,7 @@ Both `index()` and `uniqueIndex()` count, and so does a `unique()` constraint, s
 A column declared `.primaryKey()` and a `primaryKey({ columns: [...] })` in the config array count for the same reason.
 
 The rule is not fixable.
-Inserting `index().on(table.x)` is mechanical, but the name the index carries and its position among the other constraints are choices a person makes, and a composite foreign key often wants a wider index than the one covering it exactly.
+Inserting `index().on(table.x)` is mechanical, but the name the index carries and its position among the other constraints are choices the user makes, and a composite foreign key often wants a wider index than the one covering it exactly.
 
 Examples of **incorrect** code for this rule:
 
