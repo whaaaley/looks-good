@@ -129,18 +129,9 @@ export const parsing: Linter.Config = {
   },
 }
 
-/** The rules that read TypeScript syntax nodes, spread inside a block that sets a TypeScript parser. */
-export const typescript: Linter.Config = {
-  plugins: {
-    'looks-good': plugin,
-  },
-  rules: {},
-}
-
 plugin.configs = {
   parsing,
   recommended,
-  typescript,
 }
 
 export default plugin

@@ -3,7 +3,7 @@ import { assert, assertEquals } from '@std/assert'
 import { fromFileUrl } from '@std/path'
 import tsParser from '@typescript-eslint/parser'
 import { Linter } from 'eslint'
-import { parsing, plugin, recommended, typescript } from './index.ts'
+import { parsing, plugin, recommended } from './index.ts'
 
 const linter = new Linter()
 
@@ -108,30 +108,13 @@ describe('All Plugin Tests', () => {
   describe('shipped configs', () => {
     it('exposes every config on the plugin', () => {
       // Assert
-      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['parsing', 'recommended', 'typescript'])
+      assertEquals(Object.keys(plugin.configs ?? {}).sort(), ['parsing', 'recommended'])
     })
 
-    // A rule that reads TypeScript nodes can never fire under the default parser.
-    it('keeps the typescript only rules out of recommended', () => {
-      // Arrange
-      const tsOnly = Object.keys(typescript.rules ?? {})
-
-      // Act
-      const leaked = tsOnly.filter((name) => name in (recommended.rules ?? {}))
-
-      // Assert
-      assertEquals(leaked, [])
-    })
-
-    it('sets no parser of its own in the typescript config', () => {
-      // Assert
-      assertEquals(typescript.languageOptions?.parser, undefined)
-    })
-
-    // The three configs partition the rules, so no rule is enabled by two of them.
+    // The two configs partition the rules, so no rule is enabled by both.
     it('enables each rule in exactly one config', () => {
       // Arrange
-      const configs = [recommended, parsing, typescript]
+      const configs = [recommended, parsing]
 
       // Act
       const counted = new Map<string, number>()
@@ -161,7 +144,7 @@ describe('All Plugin Tests', () => {
 
     // Every opt in rule waits on something a consumer supplies.
     // That is a sibling rule, a result helper, a schema glob, or the third party rule it replaces.
-    it('enables every registered rule across the three configs except the opt in rules', () => {
+    it('enables every registered rule across the two configs except the opt in rules', () => {
       // Arrange
       const registered = Object.keys(plugin.rules ?? {}).map((name) => `looks-good/${name}`)
       const optIn = ['looks-good/import-group-order', 'looks-good/no-inline-regex', 'looks-good/no-try-catch-handler', 'looks-good/require-foreign-key-index']
@@ -170,7 +153,6 @@ describe('All Plugin Tests', () => {
       const enabled = new Set([
         ...Object.keys(recommended.rules ?? {}),
         ...Object.keys(parsing.rules ?? {}),
-        ...Object.keys(typescript.rules ?? {}),
       ])
 
       // Assert

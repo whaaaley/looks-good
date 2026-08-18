@@ -1,5 +1,5 @@
 import eslintRules from './src/eslint-rules.ts'
-import { parsing, recommended, typescript } from './src/index.ts'
+import { parsing, recommended } from './src/index.ts'
 
 // This repository lints itself with the configs it ships.
 // eslintRules holds the eslint recommended set, and the three configs hold every rule written here.
@@ -9,7 +9,6 @@ import { parsing, recommended, typescript } from './src/index.ts'
 const looksGoodRules = [
   recommended,
   parsing,
-  typescript,
   // Join mode rewrites the wrap that report mode only reports.
   {
     rules: {
