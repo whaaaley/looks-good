@@ -51,6 +51,11 @@ tester.run('comment-content', rule, {
       code: '/** A documented export. */\nexport const a = 1',
       options: [{ forbidBlockComments: true }],
     },
+    // A directive only works as a block comment, so forbidding block comments leaves it alone.
+    {
+      code: '/* global foo */\nconst a = foo',
+      options: [{ forbidBlockComments: true }],
+    },
     // A pattern is matched against comment text, so code holding the word is untouched.
     {
       code: 'const TODO = 1',

@@ -1,4 +1,4 @@
-import { readComments } from '../utils/comment.utils.ts'
+import { isDirective, readComments } from '../utils/comment.utils.ts'
 import { docUrl } from '../utils/docs.utils.ts'
 import { compilePattern } from '../utils/regex.utils.ts'
 import type { Rule } from 'eslint'
@@ -94,7 +94,8 @@ const rule: Rule.RuleModule = {
 
         for (const comment of readComments(context)) {
           // A jsdoc block is read by a documentation tool, so it is not the prose block this option targets.
-          if (options.forbidBlockComments && comment.block && !comment.text.startsWith('*')) {
+          // A directive like `/* global foo */` only works as a block comment, so it cannot be rewritten.
+          if (options.forbidBlockComments && comment.block && !comment.text.startsWith('*') && !isDirective(comment.text)) {
             context.report({
               loc: { line: comment.line, column: 0 },
               messageId: 'blockComment',
