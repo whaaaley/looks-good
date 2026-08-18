@@ -1,6 +1,6 @@
 # looks-good
 
-ESLint rules for conventions nothing else enforces.
+Lint rules for conventions nothing else enforces, written to the ESLint rule interface and hosted by oxlint or ESLint.
 
 ## Docs
 
@@ -12,19 +12,30 @@ ESLint rules for conventions nothing else enforces.
 ## Install
 
 ```sh
-deno add jsr:@whaaaley/looks-good npm:eslint
+deno add jsr:@whaaaley/looks-good npm:oxlint
 ```
 
 It exports the plugin from `.` and the separate eslint rule set from `./eslint-rules`.
-
-The plugin is consumed through a flat config.
-It is developed and tested against ESLint 10.8.1, and no earlier version has been tested.
-Legacy `.eslintrc` is not supported.
 
 ## Usage
 
 List the rules you want and set the options that suit your project.
 Every rule reads as `looks-good/<name>`.
+
+Under oxlint, register the plugin through `jsPlugins`.
+
+```json
+{
+  "jsPlugins": ["@whaaaley/looks-good"],
+  "rules": {
+    "looks-good/no-emoji": "error",
+    "looks-good/test-arrange-act-assert": "error"
+  }
+}
+```
+
+Under ESLint, the plugin is consumed through a flat config.
+It is developed against ESLint 10.8.1, and legacy `.eslintrc` is not supported.
 
 ```js
 // eslint.config.js
@@ -47,7 +58,7 @@ The plugin also ships two configs.
 
 | Config | What it enables | What it costs |
 | --- | --- | --- |
-| `recommended` | the rules that need nothing beyond eslint | nothing |
+| `recommended` | the rules that need nothing beyond the linter | nothing |
 | `parsing` | the rules that read the text inside a file | parse-english, nlcst-to-string, mdast-util-from-markdown, and minimatch |
 
 ```js
@@ -64,7 +75,8 @@ Some rules are in no config, because each one waits on something your project su
 
 ## Rules
 
-The rules are written to the ESLint rule interface, and ESLint is the host they are tested against.
+The rules are written to the ESLint rule interface.
+ESLint is the host the suite runs against, and oxlint hosts the plugin through its js plugin support, verified down to the fixers.
 
 | Rule | Description | Config | Fixable |
 | --- | --- | --- | --- |
