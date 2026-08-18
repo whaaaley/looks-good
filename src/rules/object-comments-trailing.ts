@@ -40,7 +40,11 @@ const rule: Rule.RuleModule = {
 
         for (const property of node.properties) {
           const location = locationOf(property)
-          if (location) occupied.add(location.start.line)
+          if (!location) continue
+
+          // A multi-line property's closing line carries code too, so a comment there trails the property.
+          occupied.add(location.start.line)
+          occupied.add(location.end.line)
         }
 
         for (const comment of comments) {

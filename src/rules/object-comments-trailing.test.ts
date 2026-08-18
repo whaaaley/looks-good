@@ -22,6 +22,8 @@ tester.run('object-comments-trailing', rule, {
     { code: 'const meta = { // The rule metadata.\n  fixable: undefined,\n}' },
     // A comment between array elements describes an element, not an enclosing property.
     { code: 'const cases = {\n  valid: [\n    { code: 1 },\n    // Names the next case.\n    { code: 2 },\n  ],\n}' },
+    // A trailing comment on a multi-line property's closing line still trails that property.
+    { code: 'const meta = {\n  a: [\n    1,\n  ], // Names a.\n  b: 2,\n}' },
     // A comment inside a nested function body has a body to sit in, not an object.
     { code: 'const meta = {\n  create: () => {\n    // Reads the value.\n    return 1\n  },\n}' },
   ],
