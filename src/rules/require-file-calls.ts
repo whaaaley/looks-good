@@ -10,10 +10,12 @@ export type Matcher = {
   literal?: string
 }
 
+type Condition = { references?: string; found?: string }
+
 export type FileRequirement = {
   id: string
   files?: string
-  when?: { references?: string; found?: string }
+  when?: Condition
   require?: Matcher[]
   requireAny?: Matcher[]
   message: string
@@ -23,16 +25,18 @@ type Options = {
   patterns: FileRequirement[]
 }
 
+type Dangling = { id: string; found: string }
+
 const defaults: Options = {
   patterns: [],
 }
 
 // What a traversal collected from one file, which every entry is then evaluated against.
 type Contents = {
-  calls: Set<string>
-  methods: Set<string>
-  members: Set<string>
-  identifiers: Set<string>
+  calls: string[]
+  methods: string[]
+  members: string[]
+  identifiers: string[]
   literals: Set<string>
 }
 
@@ -43,15 +47,9 @@ const nameMatches = (pattern: string, name: string): boolean => {
   return name.startsWith(pattern.slice(0, -1))
 }
 
-const someMatches = (pattern: string, names: Set<string>): boolean => {
-  for (const name of names) {
-    if (nameMatches(pattern, name)) return true
-  }
+const someMatches = (pattern: string, names: string[]): boolean => names.some((name) => nameMatches(pattern, name))
 
-  return false
-}
-
-const satisfies = (matcher: Matcher, contents: Contents): boolean => {
+const matcherMet = (matcher: Matcher, contents: Contents): boolean => {
   if (matcher.call !== undefined) {
     // A leading `*.` asks for a method call on any receiver, so `*.parse` matches `schema.parse(...)`.
     if (matcher.call.startsWith('*.')) {
@@ -73,7 +71,16 @@ const satisfies = (matcher: Matcher, contents: Contents): boolean => {
     return contents.literals.has(matcher.literal)
   }
 
+  // An empty matcher constrains nothing, so it is vacuously met.
   return true
+}
+
+const entryMet = (entry: FileRequirement, contents: Contents): boolean => {
+  const all = entry.require ?? []
+  const any = entry.requireAny ?? []
+
+  return all.every((matcher) => matcherMet(matcher, contents)) &&
+    (any.length === 0 || any.some((matcher) => matcherMet(matcher, contents)))
 }
 
 const matcherSchema = {
@@ -134,19 +141,20 @@ const rule: Rule.RuleModule = {
     const options: Options = { ...defaults, ...context.options[0] }
     const known = new Set(options.patterns.map((entry) => entry.id))
 
-    // A `when.found` naming an entry that does not exist would silently never apply, so it is a configuration error.
-    const dangling = options.patterns.filter((entry) => {
-      const found = entry.when?.found
-      if (!found) return false
+    const dangling: Dangling[] = []
+    for (const entry of options.patterns) {
+      const when = entry.when ?? {}
+      if (when.found === undefined) continue
+      if (known.has(when.found)) continue
 
-      return !known.has(found)
-    })
+      dangling.push({ id: entry.id, found: when.found })
+    }
 
     const contents: Contents = {
-      calls: new Set(),
-      methods: new Set(),
-      members: new Set(),
-      identifiers: new Set(),
+      calls: [],
+      methods: [],
+      members: [],
+      identifiers: [],
       literals: new Set(),
     }
 
@@ -156,74 +164,71 @@ const rule: Rule.RuleModule = {
       return matchesGlob(entry.files, context.filename, context.cwd)
     })
 
+    const reportDangling = (program: Program): void => {
+      for (const entry of dangling) {
+        context.report({
+          node: program,
+          messageId: 'unknownFound',
+          data: { id: entry.id, found: entry.found },
+        })
+      }
+    }
+
+    const check = (program: Program): void => {
+      // Every entry is measured before any is gated, so a when.found may name an entry declared later in the list.
+      const satisfied = new Set<string>()
+
+      for (const entry of applicable) {
+        if (entryMet(entry, contents)) satisfied.add(entry.id)
+      }
+
+      for (const entry of applicable) {
+        const when = entry.when ?? {}
+        if (when.references !== undefined && !someMatches(when.references, contents.identifiers)) {
+          continue
+        }
+
+        if (when.found !== undefined && !satisfied.has(when.found)) continue
+
+        if (satisfied.has(entry.id)) continue
+
+        context.report({
+          node: program,
+          messageId: 'missing',
+          data: { id: entry.id, message: entry.message },
+        })
+      }
+    }
+
+    // A deliberate perf guard: with nothing to report or evaluate, skip the traversal entirely.
     if (applicable.length === 0 && dangling.length === 0) return {}
 
     return {
+      Program: reportDangling,
       CallExpression: (node: CallExpression): void => {
         const { callee } = node
         if (callee.type === 'Identifier') {
-          contents.calls.add(callee.name)
+          contents.calls.push(callee.name)
         }
 
         if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
-          contents.methods.add(callee.property.name)
+          contents.methods.push(callee.property.name)
         }
       },
       MemberExpression: (node: MemberExpression): void => {
         if (node.object.type !== 'Identifier') return
 
-        contents.members.add(node.object.name)
+        contents.members.push(node.object.name)
       },
       Identifier: (node: Identifier): void => {
-        contents.identifiers.add(node.name)
+        contents.identifiers.push(node.name)
       },
       Literal: (node: Literal): void => {
         if (typeof node.value !== 'string') return
 
         contents.literals.add(node.value)
       },
-      'Program:exit': (program: Program): void => {
-        for (const entry of dangling) {
-          context.report({
-            node: program,
-            messageId: 'unknownFound',
-            data: { id: entry.id, found: entry.when?.found ?? '' },
-          })
-        }
-
-        const meets = (entry: FileRequirement): boolean => {
-          const all = entry.require ?? []
-          const any = entry.requireAny ?? []
-
-          return all.every((matcher) => satisfies(matcher, contents)) &&
-            (any.length === 0 || any.some((matcher) => satisfies(matcher, contents)))
-        }
-
-        // Every entry is measured before any is gated, so a when.found may name an entry declared later in the list.
-        const satisfied = new Set<string>()
-
-        for (const entry of applicable) {
-          if (meets(entry)) satisfied.add(entry.id)
-        }
-
-        for (const entry of applicable) {
-          const references = entry.when?.references
-          if (references && !someMatches(references, contents.identifiers)) {
-            continue
-          }
-
-          const found = entry.when?.found
-          if (found && !satisfied.has(found)) continue
-
-          if (satisfied.has(entry.id)) continue
-
-          context.report({
-            node: program,
-            messageId: 'missing',
-            data: { id: entry.id, message: entry.message },
-          })
-        }
-      },
+      'Program:exit': check,
     }
   },
 }

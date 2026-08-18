@@ -161,6 +161,12 @@ tester.run('require-file-calls', rule, {
       filename: 'event.queries.test.ts',
       options: [{ patterns: [{ id: 'creates-context', require: [{ call: 'create*' }], message: 'Create a context.' }] }],
     },
+    // An empty matcher constrains nothing, so it is vacuously satisfied even with no matching content.
+    {
+      code: 'export const helper = 1',
+      filename: 'event.router.ts',
+      options: [{ patterns: [{ id: 'vacuous', files: '*.router.ts', require: [{}], message: 'Anything goes.' }] }],
+    },
     // Every matcher in `require` is present.
     {
       code: 'const rows = caller.event.list()\nassertEquals(rows.length, 1)',
