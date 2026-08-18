@@ -17,7 +17,6 @@ export type ExemptionOptions = {
   allowLabels: string[]
 }
 
-export const urlPattern = /https?:\/\/\S+/ // Matches a url anywhere in the text.
 export const trailingUrlPattern = /https?:\/\/\S+$/ // Matches a url closing the text.
 export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Matches a dotted symbol like `discord.js` at the end.
 export const whitespacePattern = /\s/ // Matches one whitespace character.
