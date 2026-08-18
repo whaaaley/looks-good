@@ -82,7 +82,7 @@ const rule: Rule.RuleModule = {
       },
     }],
     messages: {
-      mismatch: "The top level describe is titled '{{title}}', which does not match '{{pattern}}'.{{message}}",
+      mismatch: "The top level {{function}} is titled '{{title}}', which does not match '{{pattern}}'.{{message}}",
       missing: "This file has no top level {{function}} title, so nothing names what it tests. Wrap it in one titled '{{pattern}}'.{{message}}",
       invalidPattern: "The allowed title '{{source}}' is not a valid regular expression. Correct it in this rule's configuration.",
     },
@@ -161,7 +161,7 @@ const rule: Rule.RuleModule = {
         context.report({
           node: outermost,
           messageId: 'mismatch',
-          data: { title, pattern: matched.title, message },
+          data: { function: testFunction, title, pattern: matched.title, message },
         })
       },
     }

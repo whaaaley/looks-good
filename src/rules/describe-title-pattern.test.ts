@@ -141,7 +141,7 @@ tester.run('describe-title-pattern', rule, {
       code: "describe('Event Tests', () => {})",
       filename: 'event.queries.test.ts',
       options: [{ patterns: domain }],
-      errors: [{ messageId: 'mismatch', data: { title: 'Event Tests', pattern: 'All * Tests', message: '' } }],
+      errors: [{ messageId: 'mismatch', data: { function: 'describe', title: 'Event Tests', pattern: 'All * Tests', message: '' } }],
     },
     // A title missing the required suffix.
     {
@@ -184,7 +184,7 @@ tester.run('describe-title-pattern', rule, {
       ].join('\n'),
       filename: 'event.queries.test.ts',
       options: [{ patterns: domain }],
-      errors: [{ messageId: 'mismatch', data: { title: 'Event', pattern: 'All * Tests', message: '' }, line: 1 }],
+      errors: [{ messageId: 'mismatch', data: { function: 'describe', title: 'Event', pattern: 'All * Tests', message: '' }, line: 1 }],
     },
     // describe.only is held to the pattern like any other.
     {
@@ -208,7 +208,7 @@ tester.run('describe-title-pattern', rule, {
       errors: [
         {
           messageId: 'mismatch',
-          data: { title: 'All Event Tests', pattern: '* Security Tests', message: ' A security file names the domain it defends.' },
+          data: { function: 'describe', title: 'All Event Tests', pattern: '* Security Tests', message: ' A security file names the domain it defends.' },
         },
       ],
     },
