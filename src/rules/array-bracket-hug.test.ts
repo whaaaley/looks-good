@@ -49,6 +49,12 @@ tester.run('array-bracket-hug', rule, {
       output: 'const s = [{\n  a: 1,\n}, {\n  b: 2,\n}]',
       errors: [{ messageId: 'hugSeam' }],
     },
+    // A comma-first seam still folds into the compact chain.
+    {
+      code: 'const s = [{\n  a: 1,\n}\n, {\n  b: 2,\n}]',
+      output: 'const s = [{\n  a: 1,\n}, {\n  b: 2,\n}]',
+      errors: [{ messageId: 'hugSeam' }],
+    },
     // Without a trailing comma the closing bracket still folds up.
     {
       code: 'const s = [\n  {\n    a: 1,\n  }\n]',

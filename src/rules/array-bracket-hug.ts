@@ -96,17 +96,17 @@ const rule: Rule.RuleModule = {
           if (!elementLocation || !nextLocation) return
           if (elementLocation.end.line === nextLocation.start.line) return
 
-          const comma = sourceCode.getTokenAfter(element)
+          const elementToken = sourceCode.getLastToken(element)
           const nextToken = sourceCode.getFirstToken(next)
-          if (!comma || comma.value !== ',' || !nextToken) return
+          if (!elementToken || !nextToken) return
 
-          const [, from = 0] = comma.range
+          const [, from = 0] = elementToken.range
           const [to = 0] = nextToken.range
 
           context.report({
-            loc: comma.loc.start,
+            loc: nextToken.loc.start,
             messageId: 'hugSeam',
-            fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ' '),
+            fix: (fixer): Rule.Fix => fixer.replaceTextRange([from, to], ', '),
           })
         })
 
