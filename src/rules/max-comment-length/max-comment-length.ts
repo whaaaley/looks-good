@@ -1,5 +1,5 @@
-import { isDirective, urlPattern } from '../utils/comment.utils.ts'
-import { docUrl } from '../utils/docs.utils.ts'
+import { isDirective, urlPattern } from '../../utils/comment.utils.ts'
+import { docUrl } from '../../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
 
 type Options = {
