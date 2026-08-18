@@ -23,7 +23,6 @@ const looksGoodRules = [
       'looks-good/describe-title-pattern': ['error', {
         patterns: [
           { files: 'src/utils/*.test.ts', title: 'All * Tests' },
-          { files: 'tools/**/*.test.ts', title: 'All * Tests' },
         ],
       }],
       'looks-good/no-restricted-characters': ['error', {

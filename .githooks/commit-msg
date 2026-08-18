@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+exec deno run --allow-read --allow-run=git @whaaaley/git-going validate --file "$1"

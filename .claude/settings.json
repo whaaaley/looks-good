@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "deno task --quiet --cwd \"$CLAUDE_PROJECT_DIR\" treesize",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && deno run --allow-read --allow-write --allow-run=git @whaaaley/git-going treesize",
             "timeout": 10,
             "statusMessage": "Checking uncommitted tree size"
           }

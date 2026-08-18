@@ -1229,7 +1229,6 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@^1.0.19",
-      "jsr:@std/cli@^1.0.32",
       "jsr:@std/path@^1.1.6",
       "jsr:@whaaaley/common@0",
       "jsr:@whaaaley/git-going@0",
@@ -1253,7 +1252,9 @@
         "dependencies": [
           "jsr:@std/assert@^1.0.19",
           "jsr:@whaaaley/git-going@0",
-          "jsr:@whaaaley/looks-good@0"
+          "jsr:@whaaaley/looks-good@0",
+          "npm:@typescript-eslint/parser@^8.67.0",
+          "npm:eslint@^10.8.1"
         ]
       },
       "jsr:@whaaaley/git-going@0.4.0": {

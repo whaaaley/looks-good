@@ -13,7 +13,6 @@
   "publish": {
     "exclude": [
       "**/*.test.ts",
-      "tools/",
       ".claude/",
       "eslint.config.js",
       ".oxlintrc.json",
@@ -35,22 +34,17 @@
     "notes/"
   ],
   "tasks": {
-    "check": "deno check --unstable-tsgo src/ tools/",
+    "check": "deno check --unstable-tsgo src/",
     "lint": "deno task lint:deno && deno task lint:oxlint && deno task lint:eslint",
     "lint:deno": "deno lint",
-    "lint:oxlint": "deno run -A npm:oxlint@1.78.0 src tools",
-    "lint:eslint": "deno run -A npm:eslint src tools eslint.config.js",
-    "lint:fix": "deno run -A npm:eslint src tools eslint.config.js --fix",
+    "lint:oxlint": "deno run -A npm:oxlint@1.78.0 src",
+    "lint:eslint": "deno run -A npm:eslint src eslint.config.js",
+    "lint:fix": "deno run -A npm:eslint src eslint.config.js --fix",
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "test": "deno test -A",
     "test:coverage": "deno test -A --coverage=coverage",
-    "coverage": "deno coverage coverage",
-    "uncommitted": "deno run --allow-run=git tools/uncommitted/uncommitted.ts",
-    "treesize": "deno run --allow-run=git --allow-read=.claude --allow-write=.claude tools/treesize/treesize.ts",
-    "docdrift": "deno run --allow-read=. --allow-env=__MINIMATCH_TESTING_PLATFORM__ tools/docdrift/docdrift.ts",
-    "dashprose": "deno run --allow-read=. tools/dashprose/dashprose.ts",
-    "install-hooks": "git config core.hooksPath tools/hooks"
+    "coverage": "deno coverage coverage"
   },
   "lint": {
     "rules": {
@@ -74,7 +68,6 @@
   "imports": {
     "@eslint/js": "npm:@eslint/js@^10.0.1",
     "@std/assert": "jsr:@std/assert@^1.0.19",
-    "@std/cli": "jsr:@std/cli@^1.0.32",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@types/eslint": "npm:@types/eslint@^9.6.1",
     "@typescript-eslint/parser": "npm:@typescript-eslint/parser@^8.67.0",
