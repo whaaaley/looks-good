@@ -27,9 +27,10 @@ const schema = [{
 }]
 ```
 
-The rule fires only when every element is an object literal, so scalar lists, mixed arrays, and single-line arrays are left as written.
+The rule fires only when every element is a multiline object literal, so scalar lists, mixed arrays, single-line arrays, and lists of single-line objects are left as written.
 A trailing comma folds into the closing `}]` and is removed by the fix.
-A comment sitting between a bracket and an element is reported but never deleted, so that fix is left to a person.
+A comment between the brackets opts the whole array out, since the chain has no line to hold it and a partial fix would leave a hybrid the formatter reflows destructively.
+A comment inside an element rides along with its object and does not opt the array out.
 
 ### blank-line-after-block
 
