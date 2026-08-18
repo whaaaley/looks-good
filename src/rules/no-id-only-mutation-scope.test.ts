@@ -86,6 +86,42 @@ tester.run('no-id-only-mutation-scope', rule, {
       filename: 'doc.queries.ts',
       options: [{ patterns: governance }],
     },
+    // A where naming no member-expression column has no columns to judge, so it is out of scope.
+    {
+      code: [
+        scopedList,
+        'await db.delete(doc).where(condition)',
+      ].join('\n'),
+      filename: 'doc.queries.ts',
+      options: [{ patterns: governance }],
+    },
+    // A transaction callback built by a call has no parameter to trust, and that must not crash the rule.
+    {
+      code: [
+        scopedList,
+        'await db.transaction(buildHandler(input))',
+      ].join('\n'),
+      filename: 'doc.queries.ts',
+      options: [{ patterns: governance }],
+    },
+    // A transaction call with no callback at all has nothing to inspect, and that must not crash the rule.
+    {
+      code: [
+        scopedList,
+        'await getDb(input).transaction()',
+      ].join('\n'),
+      filename: 'doc.queries.ts',
+      options: [{ patterns: governance }],
+    },
+    // A helper call inside a parameterless transaction callback has no handle to match and must not crash the rule.
+    {
+      code: [
+        scopedList,
+        'await db.transaction(async () => { await helper(input) })',
+      ].join('\n'),
+      filename: 'doc.queries.ts',
+      options: [{ patterns: governance }],
+    },
     // A configured id column widens what counts as id only, and here the mutation is tenant scoped anyway.
     {
       code: [

@@ -20,7 +20,7 @@ const defaults: Options = {
 type Suspect = {
   node: CallExpression
   method: string
-  transaction: Rule.Node | null
+  transaction: (CallExpression & Rule.NodeParentExtension) | null
 }
 
 // Query builders write eq(column, value), so the first argument of each comparator names the column.
@@ -66,9 +66,7 @@ const mutationMethod = (whereCall: CallExpression): string | null => {
   return null
 }
 
-const transactionParamName = (transaction: Rule.Node): string | null => {
-  if (transaction.type !== 'CallExpression') return null
-
+const transactionParamName = (transaction: CallExpression): string | null => {
   const [callback] = transaction.arguments
   if (!callback) return null
   if (callback.type !== 'ArrowFunctionExpression' && callback.type !== 'FunctionExpression') {
@@ -81,7 +79,7 @@ const transactionParamName = (transaction: Rule.Node): string | null => {
   return param.name
 }
 
-const enclosingTransaction = (node: Rule.Node): Rule.Node | null => {
+const enclosingTransaction = (node: Rule.Node): (CallExpression & Rule.NodeParentExtension) | null => {
   let current: Rule.Node | null = node.parent
 
   while (current) {
@@ -145,65 +143,68 @@ const rule: Rule.RuleModule = {
     const suspects: Suspect[] = []
     let fileScopesByTenant = false
 
+    const checkCall = (node: CallExpression & Rule.NodeParentExtension): void => {
+      const { callee } = node
+
+      // A helper handed the transaction handle participates in the transaction, so it is trusted as the verify.
+      if (callee.type === 'Identifier') {
+        const transaction = enclosingTransaction(node)
+        if (!transaction) return
+
+        const param = transactionParamName(transaction)
+
+        if (node.arguments.some((argument) => argument.type === 'Identifier' && argument.name === param)) {
+          verifiedTransactions.add(transaction)
+        }
+
+        return
+      }
+
+      if (callee.type !== 'MemberExpression' || callee.property.type !== 'Identifier' || callee.property.name !== 'where') {
+        return
+      }
+
+      const columns = columnsIn(node)
+
+      if ([...columns].some((name) => tenantColumns.has(name))) {
+        fileScopesByTenant = true
+
+        const transaction = enclosingTransaction(node)
+        if (transaction) verifiedTransactions.add(transaction)
+
+        return
+      }
+
+      const method = mutationMethod(node)
+      if (!method) return
+
+      // A where naming no column, or one scoped by another column such as a foreign key, is out of scope.
+      if (columns.size === 0) return
+      if (![...columns].every((name) => idColumns.has(name))) return
+
+      suspects.push({ node, method, transaction: enclosingTransaction(node) })
+    }
+
+    const checkFile = (): void => {
+      if (!fileScopesByTenant) return
+
+      for (const suspect of suspects) {
+        // A tenant scoped read in the same transaction holds the mutation to the check it just made.
+        if (suspect.transaction && verifiedTransactions.has(suspect.transaction)) {
+          continue
+        }
+
+        context.report({
+          node: suspect.node,
+          messageId: 'idOnly',
+          data: { method: suspect.method, columns: columnList },
+        })
+      }
+    }
+
     return {
-      CallExpression: (node: CallExpression & Rule.NodeParentExtension): void => {
-        const { callee } = node
-
-        // A helper handed the transaction handle participates in the transaction, so it is trusted as the verify.
-        if (callee.type === 'Identifier') {
-          const transaction = enclosingTransaction(node)
-          if (!transaction) return
-
-          const param = transactionParamName(transaction)
-          if (!param) return
-
-          if (node.arguments.some((argument) => argument.type === 'Identifier' && argument.name === param)) {
-            verifiedTransactions.add(transaction)
-          }
-
-          return
-        }
-
-        if (callee.type !== 'MemberExpression') return
-        if (callee.property.type !== 'Identifier') return
-        if (callee.property.name !== 'where') return
-
-        const columns = columnsIn(node)
-
-        if ([...columns].some((name) => tenantColumns.has(name))) {
-          fileScopesByTenant = true
-
-          const transaction = enclosingTransaction(node)
-          if (transaction) verifiedTransactions.add(transaction)
-
-          return
-        }
-
-        const method = mutationMethod(node)
-        if (!method) return
-
-        // A where naming no column, or one scoped by another column such as a foreign key, is out of scope.
-        if (columns.size === 0) return
-        if (![...columns].every((name) => idColumns.has(name))) return
-
-        suspects.push({ node, method, transaction: enclosingTransaction(node) })
-      },
-      'Program:exit': (): void => {
-        if (!fileScopesByTenant) return
-
-        for (const suspect of suspects) {
-          // A tenant scoped read in the same transaction holds the mutation to the check it just made.
-          if (suspect.transaction && verifiedTransactions.has(suspect.transaction)) {
-            continue
-          }
-
-          context.report({
-            node: suspect.node,
-            messageId: 'idOnly',
-            data: { method: suspect.method, columns: columnList },
-          })
-        }
-      },
+      CallExpression: checkCall,
+      'Program:exit': checkFile,
     }
   },
 }
