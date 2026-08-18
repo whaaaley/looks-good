@@ -33,20 +33,23 @@ const rule: Rule.RuleModule = {
           const following = readerLocationOf(sourceCode, property)
           if (!following) return
 
+          const propertyLocation = locationOf(property)
+          if (!propertyLocation) return
+
           // Measuring from the previous property's last line leaves a blank line inside its value alone.
-          const gap = following.start.line - preceding.end.line
-          if (gap < 2) return
+          // Scanning all the way to the property itself catches a blank line on either side of a comment.
+          const start = sourceCode.getIndexFromLoc({ line: preceding.end.line, column: preceding.end.column })
+          const end = sourceCode.getIndexFromLoc({ line: propertyLocation.start.line, column: 0 })
+          if (end <= start) return
+
+          const between = sourceCode.getText().slice(start, end)
+          const closed = between.replace(blankLineRunPattern, '\n')
+          if (closed === between) return
 
           context.report({
             loc: following,
             messageId: 'gap',
-            fix: (fixer): Rule.Fix => {
-              const start = sourceCode.getIndexFromLoc({ line: preceding.end.line, column: preceding.end.column })
-              const end = sourceCode.getIndexFromLoc({ line: following.start.line, column: 0 })
-              const between = sourceCode.getText().slice(start, end)
-
-              return fixer.replaceTextRange([start, end], between.replace(blankLineRunPattern, '\n'))
-            },
+            fix: (fixer): Rule.Fix => fixer.replaceTextRange([start, end], closed),
           })
         })
       },

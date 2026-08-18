@@ -43,6 +43,24 @@ tester.run('no-blank-line-in-object', rule, {
       output: 'const meta = {\n  a: 1,\n  b: 2,\n}',
       errors: [{ messageId: 'gap' }],
     },
+    // A blank line after a trailing comment is still a gap between the properties.
+    {
+      code: 'const meta = {\n  a: 1, // note\n\n  b: 2,\n}',
+      output: 'const meta = {\n  a: 1, // note\n  b: 2,\n}',
+      errors: [{ messageId: 'gap' }],
+    },
+    // A blank line between a leading comment and its property is still a gap.
+    {
+      code: 'const meta = {\n  a: 1,\n  // c\n\n  b: 2,\n}',
+      output: 'const meta = {\n  a: 1,\n  // c\n  b: 2,\n}',
+      errors: [{ messageId: 'gap' }],
+    },
+    // Blank lines on both sides of a comment close in one fix.
+    {
+      code: 'const meta = {\n  a: 1,\n\n  // c\n\n  b: 2,\n}',
+      output: 'const meta = {\n  a: 1,\n  // c\n  b: 2,\n}',
+      errors: [{ messageId: 'gap' }],
+    },
     // A gap after a property whose value is a function still belongs to the object.
     {
       code: 'const listeners = {\n  Program: () => {\n    check()\n  },\n\n  CallExpression: () => {\n    check()\n  },\n}',

@@ -24,7 +24,6 @@ const imports: Linter.Config[] = [
     rules: {
       'import-x/no-unresolved': 0, // TypeScript resolves modules, not the plugin.
       'import-x/named': 0, // TypeScript checks named exports, not the plugin.
-
       'import-x/export': 'error',
       'import-x/first': 'error',
       'import-x/no-absolute-path': ['error', { esmodule: true, commonjs: true, amd: false }],
