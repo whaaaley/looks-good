@@ -140,6 +140,11 @@ const rule: Rule.RuleModule = {
       Literal: (node: Literal & Rule.NodeParentExtension): void => {
         if (!('regex' in node)) return
 
+        // A regex literal feeding a static RegExp construction is judged once, through the construction.
+        if (node.parent.type === 'NewExpression' && isStaticRegExp(node.parent)) {
+          return
+        }
+
         check(node)
       },
       NewExpression: (node: NewExpression & Rule.NodeParentExtension): void => {

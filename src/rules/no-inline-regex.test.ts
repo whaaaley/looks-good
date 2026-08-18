@@ -64,6 +64,11 @@ tester.run('no-inline-regex', rule, {
       code: "const check = (text) => new RegExp('^a$', 'u').test(text)",
       errors: [{ messageId: 'inline' }],
     },
+    // A regex literal inside a static construction reports once, through the construction.
+    {
+      code: 'const check = (text) => new RegExp(/^a$/u).test(text)',
+      errors: [{ messageId: 'inline' }],
+    },
     // A conditional is not a declaration.
     {
       code: 'const check = (text) => { if (/^a$/u.test(text)) return true; return false }',
