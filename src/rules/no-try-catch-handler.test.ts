@@ -33,6 +33,11 @@ tester.run('no-try-catch-handler', rule, {
       code: 'const read = async (): Promise<void> => { try { await work() } catch (error) { report(error) } }',
       errors: [{ messageId: 'helper', data: { helper: 'safeAsync' } }],
     },
+    // A static block cannot hold an await, so it names the sync helper.
+    {
+      code: 'class A { static { try { work() } catch (error) { report(error) } } }',
+      errors: [{ messageId: 'helper', data: { helper: 'safe' } }],
+    },
     // A catch with a finally clause still has a handler.
     {
       code: 'const read = (): void => { try { work() } catch (error) { report(error) } finally { close() } }',

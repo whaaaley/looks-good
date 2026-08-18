@@ -774,6 +774,7 @@ A `try` with only a `finally` clause is left alone, since a result helper has no
 
 The rule picks the helper to name by walking out to the nearest enclosing function and reading whether it is async.
 A `try` inside no function at all is treated as async, since a module body can hold a top level await.
+A `try` inside a static class block is treated as sync, since `await` is a syntax error there.
 
 This rule is in no shipped config.
 It points at a helper your project has to have written, so enabling it without one would report every `try` and name a function that does not exist there.

@@ -25,7 +25,12 @@ const isAsyncPosition = (ancestors: Node[]): boolean => {
   for (let index = ancestors.length - 1; index >= 0; index -= 1) {
     const ancestor = ancestors[index]
 
-    if (!ancestor || !functionTypes.has(ancestor.type)) continue
+    if (!ancestor) continue
+
+    // await is a syntax error inside a static block, so it is always a sync position.
+    if (ancestor.type === 'StaticBlock') return false
+
+    if (!functionTypes.has(ancestor.type)) continue
 
     return Reflect.get(ancestor, 'async') === true
   }
