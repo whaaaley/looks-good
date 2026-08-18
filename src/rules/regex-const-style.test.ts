@@ -48,6 +48,11 @@ tester.run('regex-const-style', rule, {
       code: 'const urlPattern = /https?:/',
       errors: [{ messageId: 'comment' }],
     },
+    // A comment trailing the previous statement describes that statement, not this pattern.
+    {
+      code: 'const a = 1 // Matches a.\nconst urlPattern = /https?:/',
+      errors: [{ messageId: 'comment' }],
+    },
     // A blank line between the comment and the declaration orphans the explanation.
     {
       code: '// Matches a url scheme.\n\nconst urlPattern = /https?:/',

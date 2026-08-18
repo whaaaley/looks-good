@@ -66,8 +66,13 @@ const rule: Rule.RuleModule = {
       if (!before) return false
       if (before.type !== 'Line' && before.type !== 'Block') return false
       if (!before.loc || !statement.loc) return false
+      if (before.loc.end.line !== statement.loc.start.line - 1) return false
 
-      return before.loc.end.line === statement.loc.start.line - 1
+      // A comment trailing the previous statement describes that statement, so only an own-line comment counts.
+      const beforeComment = sourceCode.getTokenBefore(before)
+      if (!beforeComment || !beforeComment.loc) return true
+
+      return beforeComment.loc.end.line < before.loc.start.line
     }
 
     return {
