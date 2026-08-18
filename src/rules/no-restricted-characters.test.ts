@@ -175,5 +175,12 @@ tester.run('no-restricted-characters', rule, {
       errors: 1,
       output: '// An ellipsis … and a quote " here.',
     },
+    // An allow entry holding several characters permits each of them, like chars does.
+    {
+      code: '// An ellipsis … a quote ” and a dash — here.',
+      options: [{ ...fixingPunctuation, allow: ['…—'] }],
+      errors: 1,
+      output: '// An ellipsis … a quote " and a dash — here.',
+    },
   ],
 })

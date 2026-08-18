@@ -85,7 +85,8 @@ const rule: Rule.RuleModule = {
   },
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const allow = new Set(options.allow)
+    // Joining before splitting reads every entry per character, matching how `chars` is read.
+    const allow = new Set(options.allow.join(''))
 
     // Compiling once in create keeps a large file from rebuilding these per node.
     const restrictions = options.restrict.map((restriction) => ({
