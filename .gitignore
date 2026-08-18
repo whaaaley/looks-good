@@ -5,3 +5,5 @@ deleted/
 package.json
 package-lock.json
 .npmrc
+TODO.md
+notes/
