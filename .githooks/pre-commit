@@ -3,3 +3,9 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 deno task lint:oxlint
+
+# The suite runs silently, and only the failing cases are printed when it fails.
+if ! output=$(deno test -A 2>&1); then
+  printf '%s\n' "$output" | grep -E "FAILED|error|AssertionError" | head -40
+  exit 1
+fi
