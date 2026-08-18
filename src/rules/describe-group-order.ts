@@ -38,6 +38,12 @@ type Group = {
   node: CallExpression
 }
 
+// The highest-ranked group seen so far in a sibling walk; later groups must not rank below it.
+type Leader = {
+  title: string
+  rank: number
+}
+
 // A statement inside a group body is a child group only when it is a bare call to a group function.
 const readChildCall = (statement: Node, testFunctions: string[]): CallExpression | null => {
   if (statement.type !== 'ExpressionStatement') return null
@@ -55,7 +61,7 @@ export const wholeWordPatternFor = (name: string, ignoreCase: boolean): RegExp =
   return new RegExp(`${wordPrefixSource}${RegExp.escape(name)}${wordSuffixSource}`, flags)
 }
 
-// The needles come from the configured sequence, so each whole word pattern is built once per rule run.
+// Maps each name to the pattern that matches it as a whole word.
 const compileWholeWords = (names: string[], ignoreCase: boolean): Map<string, RegExp> => {
   const compiled = new Map<string, RegExp>()
 
@@ -99,6 +105,7 @@ const rule: Rule.RuleModule = {
     const named = options.sequence.filter((name) => name !== wildcard)
     const wildcardRank = options.sequence.indexOf(wildcard)
     const expected = options.sequence.join(', then ')
+    // The needles come from the configured sequence, so each whole word pattern is built once per rule run.
     const wholeWords = compileWholeWords(named, options.ignoreCase)
 
     const matchesName = (title: string, name: string): boolean => {
@@ -116,9 +123,8 @@ const rule: Rule.RuleModule = {
 
     // A title matching no name sits in the wildcard slot, and is otherwise unranked.
     const rankOf = (title: string): number => {
-      for (let index = 0; index < options.sequence.length; index += 1) {
-        const name = options.sequence[index]
-        if (!name || name === wildcard) continue
+      for (const [index, name] of options.sequence.entries()) {
+        if (name === wildcard) continue
         if (matchesName(title, name)) return index
       }
 
@@ -126,25 +132,23 @@ const rule: Rule.RuleModule = {
     }
 
     const checkSiblings = (groups: Group[], report: Node): void => {
-      let highest = -1
-      let previous = ''
+      let leader: Leader | null = null
 
       for (const group of groups) {
         const rank = rankOf(group.title)
         if (rank < 0) continue
 
-        if (rank < highest) {
+        if (leader && rank < leader.rank) {
           context.report({
             node: group.node,
             messageId: 'order',
-            data: { title: group.title, previous, expected },
+            data: { title: group.title, previous: leader.title, expected },
           })
 
           continue
         }
 
-        highest = rank
-        previous = group.title
+        leader = { title: group.title, rank }
       }
 
       if (!options.requireAll) return
@@ -166,7 +170,7 @@ const rule: Rule.RuleModule = {
 
     const readGroups = (call: CallExpression): Group[] => {
       const body = readBody(call)
-      if (!body || body.type !== 'BlockStatement') return []
+      if (!body) return []
 
       const groups: Group[] = []
 

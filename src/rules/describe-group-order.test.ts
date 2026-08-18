@@ -39,6 +39,27 @@ tester.run('describe-group-order', rule, {
         '})',
       ].join('\n'),
     },
+    // An explicitly configured empty sequence is just as inert.
+    {
+      code: [
+        "describe('All Task Tests', () => {",
+        "  describe('delete', () => {})",
+        "  describe('create', () => {})",
+        '})',
+      ].join('\n'),
+      options: [{ sequence: [] }],
+    },
+    // A sequence with no wildcard leaves an unranked title unconstrained.
+    {
+      code: [
+        "describe('All Task Tests', () => {",
+        "  describe('create', () => {})",
+        "  describe('zzz', () => {})",
+        "  describe('delete', () => {})",
+        '})',
+      ].join('\n'),
+      options: [{ sequence: ['create', 'delete'] }],
+    },
     // A group named by no entry sits in the wildcard slot between list and delete.
     {
       code: [
@@ -202,6 +223,21 @@ tester.run('describe-group-order', rule, {
       ].join('\n'),
       options: [{ sequence: crudl }],
       errors: [{ messageId: 'order', data: { title: 'archive', previous: 'delete', expected: crudlOrder }, line: 4 }],
+    },
+    // Each group ranking below the leader reports against that same leader.
+    {
+      code: [
+        "describe('All Task Tests', () => {",
+        "  describe('delete', () => {})",
+        "  describe('create', () => {})",
+        "  describe('read', () => {})",
+        '})',
+      ].join('\n'),
+      options: [{ sequence: ['create', 'read', 'delete'] }],
+      errors: [
+        { messageId: 'order', data: { title: 'create', previous: 'delete', expected: 'create, then read, then delete' }, line: 3 },
+        { messageId: 'order', data: { title: 'read', previous: 'delete', expected: 'create, then read, then delete' }, line: 4 },
+      ],
     },
     // requireAll names the group that is absent.
     {
