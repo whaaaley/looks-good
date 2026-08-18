@@ -361,7 +361,11 @@ const rule: Rule.RuleModule = {
             return fixer.replaceTextRange([firstStart, secondEnd], moved + text.slice(firstStart, secondStart))
           }
 
-          return fixer.replaceTextRange([secondStart, firstEnd], text.slice(secondEnd, firstEnd) + moved)
+          // The slice ends at the last import's node end, so a file without a trailing newline needs one added.
+          let shifted = text.slice(secondEnd, firstEnd)
+          if (!shifted.endsWith('\n')) shifted = `${shifted}\n`
+
+          return fixer.replaceTextRange([secondStart, firstEnd], shifted + moved)
         },
       })
     }

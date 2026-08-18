@@ -59,6 +59,13 @@ tester.run('import-group-order', rule, {
       options,
       errors: [{ messageId: 'order' }],
     },
+    // One import above two it should follow reports once, from the shorter direction.
+    {
+      code: "import a from './a.ts'\nimport { x } from 'xxx'\nimport { y } from 'yyy'",
+      output: "import { x } from 'xxx'\nimport { y } from 'yyy'\nimport a from './a.ts'\n",
+      options,
+      errors: [{ messageId: 'order' }],
+    },
     // Two packages out of alphabetical order inside one group.
     {
       code: "import { b } from 'bbb'\nimport { a } from 'aaa'",
