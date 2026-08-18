@@ -3,7 +3,7 @@ import { Minimatch } from 'minimatch'
 
 const compiled = new Map<string, Minimatch>()
 
-// ESLint matches config globs with `dot` on and `matchBase` off, so a bare filename pattern never matches a nested path.
+// ESLint matches config globs with `dot` on and `matchBase` off, so a bare filename never matches a nested path.
 const matcherFor = (pattern: string): Minimatch => {
   const cached = compiled.get(pattern)
   if (cached) return cached

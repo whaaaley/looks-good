@@ -75,7 +75,7 @@ export const buildTextListener = (options: TextListenerOptions): Rule.RuleListen
             data: match.data,
           }
 
-          // A rule that declares no fixable meta throws if a report carries a fix, so this is attached only when one is offered.
+          // A rule with no fixable meta throws if a report carries a fix, so this is attached only when one is offered.
           if (fixComment) {
             descriptor.fix = (): Rule.Fix | null => fixComment([at, at + match.length], match) ?? null
           }

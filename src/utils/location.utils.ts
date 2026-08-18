@@ -2,12 +2,12 @@ import type { AST } from 'eslint'
 import type { Comment, Node, SourceLocation } from 'estree'
 
 // The estree types mark `loc` optional, but ESLint fills it in for every node it parses from real source.
-// A node without one cannot be pointed at, so a rule that cannot resolve a location skips the node instead of reporting.
+// A node without one cannot be pointed at, so a rule that cannot resolve a location skips it instead of reporting.
 type Located = {
   loc?: SourceLocation | null
 }
 
-// A caller may hold a node that is absent, so the helper takes that case rather than making every call site guard first.
+// A caller may hold a node that is absent, so the helper takes that case rather than making call sites guard first.
 type MaybeLocated = Located | null | undefined
 
 export type Locatable = Node | AST.Token
