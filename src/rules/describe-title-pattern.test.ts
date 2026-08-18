@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { describe, it } from 'node:test'
-import { assertEquals } from '@std/assert'
-import { RuleTester } from 'eslint'
+import { assertEquals, assertThrows } from '@std/assert'
+import { Linter, RuleTester } from 'eslint'
 import rule, { titleFlags, titlePatternFor } from './describe-title-pattern.ts'
 
 // RuleTester drives its own suite, so pointing it at node:test reports each case as a step.
@@ -108,6 +108,12 @@ tester.run('describe-title-pattern', rule, {
       code: "describe('All Event Tests', () => {})",
       filename: 'event.queries.test.ts',
       options: [{ patterns: layered }],
+    },
+    // The first top level describe wins, so a later sibling with a different title stays unchecked.
+    {
+      code: "describe('All Event Tests', () => {})\ndescribe('leftovers', () => {})",
+      filename: 'event.queries.test.ts',
+      options: [{ patterns: domain }],
     },
     // A custom describe name is checked once it is named.
     {
@@ -239,6 +245,13 @@ tester.run('describe-title-pattern', rule, {
       options: [{ patterns: domain, testFunctions: ['suite'] }],
       errors: [{ messageId: 'missing', data: { function: 'suite', pattern: 'All * Tests', message: '' } }],
     },
+    // The mismatch names the function actually called, not the first configured one.
+    {
+      code: "suite('Bad Title', () => {})",
+      filename: 'event.queries.test.ts',
+      options: [{ patterns: domain, testFunctions: ['describe', 'suite'] }],
+      errors: [{ messageId: 'mismatch', data: { function: 'suite', title: 'Bad Title', pattern: 'All * Tests', message: '' } }],
+    },
     // An allowTitles entry that does not compile reports as a configuration problem rather than crashing the run.
     {
       code: "describe('All Event Tests', () => {})",
@@ -344,6 +357,24 @@ describe('All Describe Title Pattern Tests', () => {
 
       // Assert
       assertEquals(matched, false)
+    })
+  })
+
+  describe('options schema', () => {
+    it('rejects an empty testFunctions list', () => {
+      // Arrange
+      const linter = new Linter()
+      const config = {
+        plugins: { local: { rules: { 'describe-title-pattern': rule } } },
+        rules: { 'local/describe-title-pattern': ['error', { testFunctions: [] }] },
+      } as never
+
+      // An empty list would leave the missing message with no function name.
+      // Act
+      const run = (): void => void linter.verify('', config)
+
+      // Assert
+      assertThrows(run)
     })
   })
 

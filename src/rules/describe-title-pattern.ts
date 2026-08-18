@@ -5,7 +5,8 @@ import { calleeName, readTitle } from '../utils/test.utils.ts'
 import type { Rule } from 'eslint'
 import type { CallExpression, Program } from 'estree'
 
-export const wildcardSource = '.*'
+const wildcardSource = '.*'
+
 export const titleFlags = 'u'
 
 export type TitlePattern = {
@@ -76,7 +77,7 @@ const rule: Rule.RuleModule = {
             },
           },
         },
-        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        testFunctions: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
         allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
       },
     }],
@@ -154,7 +155,7 @@ const rule: Rule.RuleModule = {
       context.report({
         node: outermost,
         messageId: 'mismatch',
-        data: { function: testFunction, title, pattern: matched.title, message },
+        data: { function: calleeName(outermost), title, pattern: matched.title, message },
       })
     }
 
