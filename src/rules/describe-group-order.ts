@@ -88,7 +88,7 @@ const rule: Rule.RuleModule = {
       },
     }],
     messages: {
-      order: "The '{{title}}' group comes before '{{previous}}'. Move it below so these groups read {{expected}}.",
+      order: "The '{{title}}' group belongs before '{{previous}}'. Move it above so these groups read {{expected}}.",
       missing: "No group here covers '{{name}}'. Add a '{{name}}' group so this file reads {{expected}}.",
     },
   },
