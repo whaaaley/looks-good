@@ -24,7 +24,6 @@ import noRestrictedCharacters from './rules/no-restricted-characters.ts'
 import noSingleLineNestedObject from './rules/no-single-line-nested-object.ts'
 import noTestBeforeGroup from './rules/no-test-before-group.ts'
 import noTryCatchHandler from './rules/no-try-catch-handler.ts'
-import noUnionInParameterType from './rules/no-union-in-parameter-type.ts'
 import objectCommentsTrailing from './rules/object-comments-trailing.ts'
 import regexConstStyle from './rules/regex-const-style.ts'
 import requireFileCalls from './rules/require-file-calls.ts'
@@ -48,7 +47,6 @@ const reporting = {
   'no-single-line-nested-object': noSingleLineNestedObject,
   'no-test-before-group': noTestBeforeGroup,
   'no-try-catch-handler': noTryCatchHandler,
-  'no-union-in-parameter-type': noUnionInParameterType,
   'object-comments-trailing': objectCommentsTrailing,
   'regex-const-style': regexConstStyle,
   'require-file-calls': requireFileCalls,
@@ -136,9 +134,7 @@ export const typescript: Linter.Config = {
   plugins: {
     'looks-good': plugin,
   },
-  rules: {
-    'looks-good/no-union-in-parameter-type': 'error',
-  },
+  rules: {},
 }
 
 plugin.configs = {

@@ -836,41 +836,6 @@ With `module` set to `~/utils/safe.utils.ts`, a `try` in an async function repor
 Wrap the call in safeAsync from ~/utils/safe.utils.ts and guard on the returned error. A try with only a finally clause is still allowed.
 ```
 
-### no-union-in-parameter-type
-
-Reports a union type written inline in a function parameter annotation.
-A union in a signature states the values without stating what the set of them means, and the same union then gets rewritten at every other place that takes it.
-A named alias says what the set is once, and every signature refers to it.
-
-This rule reads a TypeScript node, so it ships in the `typescript` config rather than in `recommended`.
-
-Examples of **incorrect** code for this rule:
-
-```ts
-const setStatus = (status: 'open' | 'closed' | 'merged'): void => {
-  record(status)
-}
-```
-
-Examples of **correct** code for this rule:
-
-```ts
-type Status = 'open' | 'closed' | 'merged'
-
-const setStatus = (status: Status): void => {
-  record(status)
-}
-```
-
-#### Options
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `allowNullable` | `false` | Exempts a two member union whose other member is `null` or `undefined`, so `string \| null` passes. |
-
-A rest parameter annotated as an array of a union is reported too, since the annotation sits one wrapper above the parameter.
-A `TSFunctionType` describes a type rather than a function being written, so its parameters are left alone.
-
 ### object-comments-trailing
 
 Reports a comment that sits on its own line inside an object literal.
