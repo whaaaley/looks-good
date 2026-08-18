@@ -1,6 +1,6 @@
 import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
-import type { Node } from 'estree'
+import type { Node, TryStatement } from 'estree'
 
 type Options = {
   module: string
@@ -20,7 +20,7 @@ const functionTypes = new Set([
   'FunctionExpression',
 ])
 
-// A try in a module body is treated as async, since a module body can hold a top level await.
+// Answers whether an await could be written where the node sits.
 const isAsyncPosition = (ancestors: Node[]): boolean => {
   for (let index = ancestors.length - 1; index >= 0; index -= 1) {
     const ancestor = ancestors[index]
@@ -35,6 +35,7 @@ const isAsyncPosition = (ancestors: Node[]): boolean => {
     return Reflect.get(ancestor, 'async') === true
   }
 
+  // A try in a module body is treated as async, since a module body can hold a top level await.
   return true
 }
 
@@ -64,21 +65,23 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
+    const check = (node: TryStatement): void => {
+      if (!node.handler) return
+
+      const helper = isAsyncPosition(context.sourceCode.getAncestors(node)) ? options.async : options.sync
+
+      context.report({
+        node,
+        messageId: options.module ? 'helperFrom' : 'helper',
+        data: {
+          helper,
+          module: options.module,
+        },
+      })
+    }
+
     return {
-      TryStatement(node): void {
-        if (!node.handler) return
-
-        const helper = isAsyncPosition(context.sourceCode.getAncestors(node)) ? options.async : options.sync
-
-        context.report({
-          node,
-          messageId: options.module ? 'helperFrom' : 'helper',
-          data: {
-            helper,
-            module: options.module,
-          },
-        })
-      },
+      TryStatement: check,
     }
   },
 }
