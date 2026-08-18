@@ -13,7 +13,7 @@ export type CommentLine = {
 export const whitespacePattern = /\s/ // Matches one whitespace character.
 
 // A comment with code before it annotates that line rather than continuing the one above.
-export const hasCodeBefore = (context: Rule.RuleContext, comment: Comment): boolean => {
+const hasCodeBefore = (context: Rule.RuleContext, comment: Comment): boolean => {
   const before = context.sourceCode.getTokenBefore(comment, { includeComments: false })
   if (!before) return false
 

@@ -1,4 +1,4 @@
-import { hasCodeBefore, isDirective } from '../../utils/comment.utils.ts'
+import { isDirective, readComments } from '../../utils/comment.utils.ts'
 import { endsSentence, endsWithCode } from '../../utils/prose.utils.ts'
 import type { CommentLine } from '../../utils/comment.utils.ts'
 import type { Rule } from 'eslint'
@@ -11,25 +11,10 @@ export type ExemptionOptions = {
 
 export const trailingUrlPattern = /https?:\/\/\S+$/ // Matches a url closing the text.
 export const trailingIdentifierPattern = /[\w$)\]]\.[\w$]+$/ // Matches a dotted symbol like `discord.js` at the end.
+
+// The wrap check joins lines, which only line comments do, so block comments drop out here.
 export const readLineComments = (context: Rule.RuleContext): CommentLine[] => {
-  const comments = context.sourceCode.getAllComments()
-  const collected: CommentLine[] = []
-
-  for (const comment of comments) {
-    if (comment.type !== 'Line') continue
-    if (!comment.loc || !comment.range) continue
-
-    collected.push({
-      text: comment.value.trim(),
-      line: comment.loc.start.line,
-      node: comment,
-      range: comment.range,
-      trailing: hasCodeBefore(context, comment),
-      block: false,
-    })
-  }
-
-  return collected
+  return readComments(context).filter((comment) => !comment.block)
 }
 
 // A bare prefix match would exempt prose such as "Actually this sentence wraps".
@@ -62,30 +47,33 @@ export type WrappedPair = {
   next: CommentLine
 }
 
+// A pair joins when neither side is structural and the first line reads unfinished.
+const pairJoins = (pair: WrappedPair, options: ExemptionOptions): boolean => {
+  const { comment, next } = pair
+
+  // A label is a structural marker rather than prose, so it neither wraps nor absorbs the line below it.
+  if (startsWithLabel(comment.text, options.allowLabels)) return false
+  if (startsWithLabel(next.text, options.allowLabels)) return false
+
+  // A directive is an instruction to a tool that expects it on its own line, so joining either side would break it.
+  if (isDirective(comment.text) || isDirective(next.text)) return false
+
+  // Two trailing comments annotate their own code lines rather than one continuing the other.
+  if (comment.trailing || next.trailing) return false
+
+  return looksUnfinished(comment.text, options)
+}
+
 // One definition of a wrapped sentence, feeding the join and its too-long report alike.
 export const findWrappedPairs = (comments: CommentLine[], options: ExemptionOptions): WrappedPair[] => {
   const pairs: WrappedPair[] = []
 
   for (const [index, comment] of comments.entries()) {
-    const { text } = comment
-
     // A pair is two comments on adjacent lines, so a comment with no direct neighbour below cannot wrap.
     const next = comments[index + 1]
     if (!next || next.line !== comment.line + 1) continue
 
-    // A label is a structural marker rather than prose, so it neither wraps nor absorbs the line below it.
-    if (startsWithLabel(text, options.allowLabels)) continue
-    if (startsWithLabel(next.text, options.allowLabels)) continue
-
-    // A directive is an instruction to a tool that expects it on its own line, so joining either side would break it.
-    if (isDirective(text) || isDirective(next.text)) continue
-
-    // Two trailing comments annotate their own code lines rather than one continuing the other.
-    if (comment.trailing || next.trailing) continue
-
-    if (!looksUnfinished(text, options)) continue
-
-    pairs.push({ comment, next })
+    if (pairJoins({ comment, next }, options)) pairs.push({ comment, next })
   }
 
   return pairs
