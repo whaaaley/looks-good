@@ -2,7 +2,7 @@
 set -euo pipefail
 
 VERSION=$(jq -r .version deno.json)
-TAG="v${VERSION}"
+TAG="${VERSION}"
 
 # A dispatch repeated for the same version no-ops in deno publish, so the release skips too
 # instead of failing the run on a duplicate tag.
@@ -11,7 +11,7 @@ if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
   exit 0
 fi
 
-PREV_TAG=$(git describe --tags --match 'v*' --exclude "${TAG}" --abbrev=0 2>/dev/null || echo "")
+PREV_TAG=$(git describe --tags --match '[0-9]*' --exclude "${TAG}" --abbrev=0 2>/dev/null || echo "")
 RANGE="${PREV_TAG:+$PREV_TAG..HEAD}"
 NOTES=$(git log ${RANGE:-HEAD} --oneline)
 

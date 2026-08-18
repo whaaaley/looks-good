@@ -2,6 +2,9 @@ name: Publish
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -10,6 +13,9 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
+    # The bump script pushes its own chore commit, so that push must not trigger a second run.
+    if: "github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore: bump to')"
 
     # id-token lets the job ask GitHub to sign a statement about this run, which is what JSR verifies.
     # Naming any permission narrows the whole set, so contents has to be stated for checkout.
@@ -27,6 +33,10 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
+      # Every merge publishes as the next patch unless deno.json already carries a manual bump.
+      - name: Bump version
+        run: bash .github/workflows/scripts/bump-version.sh
 
       # A published version can never be replaced, so every check runs before publish is reached.
       - run: deno task fmt:check
