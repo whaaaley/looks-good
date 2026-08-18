@@ -31,6 +31,10 @@ tester.run('no-single-line-nested-object', rule, {
     },
     // An empty nested object holds nothing to split out, so the default threshold skips it.
     { code: 'context.report({ data: {}, messageId })' },
+    // An object as a computed key is not the property's value, so it is not a nested value.
+    { code: 'run({ [{ a: 1 }]: 2 })' },
+    // An outer object in the callee position is not an argument.
+    { code: '({ a: { b: 1 } })()' },
     // minNestedProperties above the nested size leaves the call alone.
     {
       code: 'context.report({ loc: { line: 1 }, messageId })',

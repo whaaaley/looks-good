@@ -45,12 +45,12 @@ const rule: Rule.RuleModule = {
         const outer = property.parent
         if (outer.type !== 'ObjectExpression') return
 
-        // The outer object has to be a direct call or construction argument, which is where the crowding happens.
         const call = outer.parent
         if (call.type !== 'CallExpression' && call.type !== 'NewExpression') {
           return
         }
 
+        // An outer object in the callee position is not a crowded argument.
         if (!call.arguments.includes(outer)) return
         if (!isSingleLine(outer)) return
 
