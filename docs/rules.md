@@ -4,10 +4,6 @@ Every rule the plugin registers, with its options and examples.
 Each rule reads as `looks-good/<name>` in a flat config.
 Which config enables a rule, and what enabling it costs, is in [Configs](configs.md).
 
-`comment-reflow` and `comment-one-sentence-per-line` both catch a sentence that wraps onto the next line.
-The first rewrites, the second reports.
-Enable one or the other, never both, since both enabled report the same wrapped sentence twice.
-
 ### blank-line-after-block
 
 Reports a statement that sits directly under the closing brace of an `if`, a loop, a `try`, or a `switch`.
@@ -79,9 +75,10 @@ With it set, a `\\bTODO\\b` pattern also matches `todo` and `ToDo`.
 
 A pattern that is not a valid regular expression is reported once at the top of the file rather than being ignored.
 
-### comment-one-sentence-per-line
+### comment-wrap
 
 Reports a comment sentence that wraps to the next line, and a comment past `maxLength`.
+`onWrap` selects the remedy for a wrapped sentence, leaving everything else the same in both modes.
 
 Examples of **incorrect** code for this rule:
 
@@ -91,48 +88,34 @@ Examples of **incorrect** code for this rule:
 const a = 1
 ```
 
-Examples of **correct** code for this rule:
+Examples of **correct** code under the default `onWrap: 'report'`, where the sentence is rewritten to fit:
 
 ```js
 // This sentence fits on one line.
 const a = 1
 ```
 
-#### Options
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `maxLength` | `120` | The longest a comment may run. |
-| `allowUrls` | `true` | Exempts a line ending in a url. |
-| `allowIdentifiers` | `true` | Exempts a line ending in a symbol such as `` `comment.utils` `` or `discord.js`. |
-| `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
-
-### comment-reflow
-
-Joins a comment sentence that wraps onto the next line.
-
-Examples of **incorrect** code for this rule:
-
-```js
-// This sentence continues
-// onto the next line.
-const a = 1
-```
-
-Examples of **correct** code for this rule:
+Examples of **correct** code under `onWrap: 'join'`, where the two lines become one:
 
 ```js
 // This sentence continues onto the next line.
 const a = 1
 ```
 
+Report mode attaches no fix, since deciding what a sentence should say instead is a person's call.
+Join mode is the fixable one, so it is what `--fix` acts on.
+
+A comment line past `maxLength` is reported in both modes, and that report never carries a fix, because joining a line cannot shorten it.
+It also suppresses the wrap report for the same line, so an over-length line yields one message rather than two.
+
 #### Options
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `maxLength` | `120` | The longest a joined comment may run. Two lines that would join past it are reported without a fix. |
+| `onWrap` | `'report'` | What to do with a sentence that wraps. `'report'` asks for a rewrite, and `'join'` joins the two lines under `--fix`. |
+| `maxLength` | `120` | The longest a comment may run. Under `'join'`, two lines that would join past it are reported without a fix. |
 | `allowUrls` | `true` | Exempts a line ending in a url. |
-| `allowIdentifiers` | `true` | Exempts a line ending in a symbol. |
+| `allowIdentifiers` | `true` | Exempts a line ending in a symbol such as `` `comment.utils` `` or `discord.js`. |
 | `allowLabels` | `['Arrange', 'Act', 'Assert']` | Words that mark a comment as a label rather than prose. |
 
 ### describe-group-order
@@ -227,6 +210,57 @@ describe('All Event Tests', () => {
 A `title` is literal apart from `*`, which stands for any run of characters, and the whole string is anchored.
 So `All * Tests` matches `All Event Tests` and not `Event Tests`, and every other character matches itself rather than as regex.
 Only the outermost describe is checked, so a nested one carries no title requirement of its own.
+
+### import-group-order
+
+Reports an import written out of the group order and the alphabetical order a project pins.
+Imports carry no meaning in the order they are written, so a fixed order makes the list scannable and stops a diff from recording a rearrangement nobody chose.
+Every import is placed in a group by the shape of its specifier, the groups run in the order the `groups` option lists, and imports inside one group sort alphabetically.
+
+This rule is a port of [`import-x/order`](https://github.com/un-ts/eslint-plugin-import-x/blob/v4.17.1/src/rules/order.ts) from `eslint-plugin-import-x`, which is MIT licensed and copyright 2015 Ben Mosher.
+It exists so a project can keep this ordering under oxlint, which has no equivalent rule and whose maintainers declined to add one.
+No config enables it, because a project already running `import-x/order` would see the same import reported twice, so turn that rule off before enabling this one.
+The port covers the options this project pins and leaves the rest out, so read the options table below as the whole surface rather than a summary of the original's.
+Option names are camelCase here, so the original's `newlines-between` is spelled `newlinesBetween`, matching every other rule in this plugin.
+
+Examples of **incorrect** code for this rule:
+
+```js
+import b from './b.ts'
+import { z } from 'zod'
+```
+
+Examples of **correct** code for this rule:
+
+```js
+import { z } from 'zod'
+import b from './b.ts'
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `groups` | `['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type']` | The group names in the order they should appear. A group left out of the list sorts below every group named in it. |
+| `alphabetize` | `{ order: 'ignore', orderImportKind: 'ignore', caseInsensitive: false }` | Sorting inside a group. `order` and `orderImportKind` take `asc`, `desc`, or `ignore`, and `caseInsensitive` folds case before comparing. |
+| `newlinesBetween` | `'ignore'` | `never` reports a blank line written between two imports. |
+| `internalPrefixes` | `[]` | Specifier prefixes that name the internal group, which is how a project's own alias reaches that group without module resolution. |
+
+A specifier is classified by its text alone, where the original resolves it against the filesystem to decide whether a bare name is a package or a file inside the project.
+A `node:` specifier and a bare Node builtin name are `builtin`, a `jsr:`, `npm:`, `http:`, or `https:` specifier is `external`, a name opening on a word character or an `@scope/name` is `external`, `..` is `parent`, `.` and `./index` are `index`, another `./` path is `sibling`, and anything else is `unknown`.
+An alias opening on a symbol, such as `$shared/temporal.ts` or `~/components/Button.tsx`, matches no group and lands in `unknown`, which is where the original also puts it whenever resolution fails.
+Name the alias in `internalPrefixes` to route it to the internal group instead.
+
+The rule is fixable and moves whole lines, carrying a comment written on the same line as an import along with it.
+A comment written on its own line above an import stays where it is, matching the original, so a comment that documents an import does not follow it.
+
+**Two things differ from the original, and both show up on the first run.**
+`newlinesBetween` takes only `never` and `ignore` here, where the original also takes `always` and `always-and-inside-groups`.
+A project that separates its groups with blank lines has no setting to ask for that, so leave `newlinesBetween` at `ignore` and the blank lines are left alone.
+
+The default `groups` names all eight groups, where the original defaults to `builtin`, `external`, `parent`, `sibling`, and `index`, leaving `internal`, `object`, and `type` unranked.
+A project migrating with default options therefore sees its type imports move to the bottom of the list on the first `--fix`.
+Pass the original's five explicitly to keep the previous placement.
 
 ### max-destructured-parameters
 
@@ -327,6 +361,8 @@ A blank line inside a property's value belongs to whatever is written there, so 
 This leaves the rule and `blank-line-after-block` on separate ground, and a blank line that rule requires after a nested closing brace is never reported here.
 The fix deletes the blank lines between the two members.
 
+This rule takes no options.
+
 ### no-emoji
 
 Reports emoji in code, comments, and identifiers.
@@ -359,6 +395,53 @@ const ship = true
 | `identifiers` | `true` | Reports emoji in identifiers. |
 
 A skin tone modifier, a zero width joiner run, and a regional indicator pair each count as one emoji, so `allow` takes the whole sequence.
+
+### no-id-only-mutation-scope
+
+Reports an `update` or `delete` whose where clause names only an id column, in a file that scopes other queries by a tenant column.
+The file itself is the evidence of intent: a mutation reachable by any id in a file whose sibling queries carry the tenant condition is almost always an oversight rather than a deliberate system path, so a file with no tenant scoped where clause anywhere is never reported.
+The first `patterns` entry whose `files` glob matches the file wins, and a file matching no entry is not checked.
+
+Examples of **incorrect** code for this rule:
+
+```js
+/* eslint looks-good/no-id-only-mutation-scope: ["error", { patterns: [{ files: "**/*.queries.ts", tenantColumns: ["collectiveId"] }] }] */
+
+// document.queries.ts
+export const listDocuments = async (ctx) => {
+  return await db.select().from(document).where(eq(document.collectiveId, ctx.membership.collectiveId))
+}
+
+export const updateDocument = async (ctx, input) => {
+  return await db.update(document).set(input).where(eq(document.id, input.id))
+}
+```
+
+Examples of **correct** code for this rule:
+
+```js
+/* eslint looks-good/no-id-only-mutation-scope: ["error", { patterns: [{ files: "**/*.queries.ts", tenantColumns: ["collectiveId"] }] }] */
+
+// document.queries.ts
+export const listDocuments = async (ctx) => {
+  return await db.select().from(document).where(eq(document.collectiveId, ctx.membership.collectiveId))
+}
+
+export const updateDocument = async (ctx, input) => {
+  return await db.update(document).set(input).where(and(eq(document.collectiveId, ctx.membership.collectiveId), eq(document.id, input.id)))
+}
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `patterns` | `[]` | A list of `{ files, tenantColumns, idColumns }`. `files` is a glob matched against the linted file's path, `tenantColumns` are the column names that count as tenant scoping, and `idColumns` (default `['id']`) are the column names that count as id filtering. The first entry whose glob matches wins. |
+
+A column is read from the first argument of each comparator call inside the where clause, following the `eq(column, value)` shape query builders write.
+A where clause naming a column outside both lists, such as a foreign key, is out of scope, and reads are never reported.
+A mutation inside a transaction is not reported when the same transaction also holds a tenant scoped where clause, or a plain function call handed the transaction handle, since a verify running on the transaction is the pattern this rule asks for.
+The same verify outside a transaction still reports, because the mutation itself stays open between the check and the write.
 
 ### no-ignored-tests
 
@@ -395,9 +478,124 @@ it('rejects an outsider', () => {
 
 A bare identifier written as `x` followed by a configured test function name counts too, so `xit`, `xtest`, and `xdescribe` are reported.
 
+### no-inline-regex
+
+Reports a regular expression written anywhere other than as the initializer of a module-level `const`.
+
+An inline pattern is recompiled on every call, and it says nothing about what it matches beyond the pattern itself.
+Hoisting it to a named const compiles it once and gives the call site a name to read instead of a pattern to decode.
+Both a literal and a `new RegExp(...)` call are read.
+
+Examples of **incorrect** code for this rule:
+
+```js
+export const slugify = (value) => {
+  return value.replace(/[^a-z0-9]+/g, '-')
+}
+```
+
+Examples of **correct** code for this rule:
+
+```js
+const nonAlphanumericRun = /[^a-z0-9]+/g
+
+export const slugify = (value) => {
+  return value.replace(nonAlphanumericRun, '-')
+}
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `position` | `'module'` | `module` accepts a pattern const anywhere at the top level of the file. `top` additionally requires the pattern consts be grouped in an unbroken run at the head of the file. |
+
+A const holding a collection of patterns, such as an array or an object of them, counts as a pattern declaration under `top`, so it does not break the opening run for the ones beside it.
+
+This rule is not fixable.
+The name a hoisted pattern carries is the point of hoisting it, and nothing in the source says what that name should be.
+
+### no-nullable-unique-column
+
+Reports a Drizzle unique constraint that covers a column a row may leave null.
+
+Postgres treats a null as distinct from every other null, including another null in the same column.
+A unique constraint compares rows for equality, and null is never equal to null, so two rows whose covered column is null do not collide.
+The constraint is therefore not enforced at all for those rows, and duplicates are accepted without limit.
+This is standard SQL behaviour rather than a Postgres quirk, and it is easy to miss because the constraint looks like it holds and the failure only appears once real rows start leaving the column null.
+
+The shape is worth reporting because the column definitions and the constraint sit in the same table call, so whether a covered column is nullable is decided by reading one expression.
+A column is nullable unless its builder chain calls `.notNull()` or `.primaryKey()`, since a primary key is not null in Postgres whether or not the builder spells it out.
+
+Consider a vote table that means to allow one vote per member per proposal:
+
+```js
+export const vote = pgTable('vote', {
+  proposalId: integer('proposal_id').notNull(),
+  createdBy: integer('created_by'),
+}, (table) => [
+  unique().on(table.proposalId, table.createdBy),
+])
+```
+
+Once a member is deleted and the foreign key sets `createdBy` to null, that member's votes stack without limit and the tally drifts.
+
+Examples of **incorrect** code for this rule:
+
+```js
+export const rsvp = pgTable('rsvp', {
+  eventId: integer('event_id'),
+  membershipId: integer('membership_id'),
+}, (table) => [
+  unique().on(table.eventId, table.membershipId),
+])
+```
+
+Examples of **correct** code for this rule:
+
+```js
+export const rsvp = pgTable('rsvp', {
+  eventId: integer('event_id').notNull(),
+  membershipId: integer('membership_id').notNull(),
+}, (table) => [
+  unique().on(table.eventId, table.membershipId),
+])
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `files` | `'**/*.tables.ts'` | The paths holding table definitions, so the rule reads nothing else. |
+| `allowSingleColumn` | `true` | Skips a unique that covers exactly one nullable column, since that shape is usually the intended unique when present pattern, such as a Discord guild id or a Stripe customer id that is null until the account is connected. Set it to `false` to report those too. |
+
+There are two ways to fix a report, and which one is right depends on what the constraint was meant to promise.
+Making the column `.notNull()` is correct when every row should carry a value and the nullability was an oversight.
+Writing the constraint as a unique index with `NULLS NOT DISTINCT` is correct when the column is legitimately nullable but two null rows should still collide.
+`NULLS NOT DISTINCT` needs Postgres 15 or newer; on an older server the equivalent is a pair of partial unique indexes, one covering the rows where the column is null and one covering the rest.
+
+**The composite case and the single-column case are not the same defect.**
+A composite unique is a strong signal of a real one, since its columns are usually a pair whose combination is meant to be unique per entity, and null in either one silently drops that promise for the rows that need it most.
+Those are reported by default.
+A unique covering exactly one nullable column is usually deliberate, so it is allowed by default and `allowSingleColumn: false` turns that allowance off.
+
+A nullable column in a single-column unique is often exactly what a schema wants.
+An optional external identifier is the usual case, where a unique on a nullable `stripe_customer_id` means no two rows claim the same Stripe customer while any number of rows have no Stripe customer at all.
+Postgres null distinctness is the wanted semantic there rather than an oversight, and turning it into `NULLS NOT DISTINCT` would be a bug, since it would cap the table at a single row without a Stripe customer.
+Set `allowSingleColumn` to `false` when a schema means every unique column to be present, which surfaces the constraint that meant to promise one row per user and quietly stops promising it once the user is deleted.
+
+The rule reads `unique().on(...)`, `unique('name').on(...)`, and the same two spellings of `uniqueIndex`.
+A `.unique()` modifier written directly on a column definition is not read, since no table in the projects this was measured against uses that form.
+
+This rule is not fixable.
+The two remedies produce different behaviour, and nothing in the source says which the author meant, so a fix would have to guess at intent.
+
 ### no-restricted-characters
 
 Reports characters a project does not want in source.
+
+A restriction that names a `replacement` is fixable, and the fix applies in comments only.
+An identifier is left alone because renaming it breaks its references, and a string is left alone because it may be a pattern or a fixture asserting on the character itself.
 
 Examples of **incorrect** code for this rule:
 
@@ -422,7 +620,7 @@ const parsed = parse(input)
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `restrict` | `[]` | A list of `{ chars, message }`. Every character in `chars` is matched literally, and `message` is reported alongside the character found. |
+| `restrict` | `[]` | A list of `{ chars, message, replacement }`. Every character in `chars` is matched literally, and `message` is reported alongside the character found. `replacement` is optional, and naming it makes the entry fixable in comments. |
 | `allow` | `[]` | Characters that are permitted anywhere, even when a restriction lists them. |
 | `strings` | `true` | Reports restricted characters in string literals and template strings. |
 | `comments` | `true` | Reports restricted characters in comments. |
@@ -729,6 +927,75 @@ A matcher is one of the following.
 | `{ member: 'caller*' }` | A member access whose object name matches, so `caller.event.list` matches. |
 | `{ identifier: 'tx' }` | A bare identifier reference anywhere in the file. |
 | `{ literal: 'governance' }` | A string literal whose value equals the string. |
+
+### require-foreign-key-index
+
+Reports a Drizzle foreign key whose referencing columns have no index covering them.
+
+Postgres creates a backing index for a primary key and for a unique constraint, but it never creates one for the referencing side of a foreign key.
+That side is the one a query filters on.
+Every lookup by `collectiveId`, `createdBy`, or `eventId` reads the whole child table when no index exists.
+The cost is worse on delete than on read.
+A foreign key declaring `on delete cascade` or `on delete set null` makes Postgres scan the entire child table once for every parent row deleted, because it has no other way to find the rows that reference it.
+A parent with sixteen referencing tables turns one delete into sixteen full scans, and that stays invisible until the tables are large enough for it to time out.
+
+The rule reads one table config at a time and compares each `foreignKey({ columns: [...] })` against the indexes and constraints declared beside it.
+An index covers a foreign key when the foreign key's columns are a leading prefix of the index's columns, which is what Postgres can actually use.
+So an index on `(a, b, c)` covers a foreign key on `(a)` and on `(a, b)`, and an index on `(b, a)` covers neither.
+Both `index()` and `uniqueIndex()` count, and so does a `unique()` constraint, since Postgres enforces uniqueness through a btree index that a lookup can read.
+A column declared `.primaryKey()` and a `primaryKey({ columns: [...] })` in the config array count for the same reason.
+
+The rule is not fixable.
+Inserting `index().on(table.x)` is mechanical, but the name the index carries and its position among the other constraints are choices a person makes, and a composite foreign key often wants a wider index than the one covering it exactly.
+
+Examples of **incorrect** code for this rule:
+
+```js
+export const task = governanceSchema.table('task', {
+  id: serial().primaryKey().notNull(),
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] })
+    .onDelete('cascade'),
+])
+```
+
+Examples of **correct** code for this rule:
+
+```js
+export const task = governanceSchema.table('task', {
+  id: serial().primaryKey().notNull(),
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  index().on(table.collectiveId),
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] })
+    .onDelete('cascade'),
+])
+
+export const settings = governanceSchema.table('settings', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  unique().on(table.collectiveId),
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] }),
+])
+```
+
+#### Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `files` | `'**/*.tables.ts'` | A glob matched against the linted path. A file that does not match is not read at all. |
+| `tableFunctions` | `['table', 'pgTable']` | The calls that declare a table. A call written as `pgSchema('x').table(...)` counts as `table`. |
+| `indexFunctions` | `['index', 'uniqueIndex']` | The builders that declare an index. |
+| `uniqueFunctions` | `['unique']` | The builders that declare a unique constraint, which Postgres backs with an index. |
+| `foreignKeyFunction` | `'foreignKey'` | The call that declares a foreign key. |
+
+The rule reads the third argument of a table call only when it is an arrow function returning an array, which is the shape current Drizzle uses.
+A table declaring its constraints some other way is left alone rather than guessed at.
+
+Only a `foreignKey({ ... })` call in that array is detected.
+A foreign key declared inline on a column with `.references(() => other.id)` is not read, so a schema written that way reports nothing at all.
+Declare the foreign key in the config array to bring it into scope.
 
 ### test-arrange-act-assert
 
