@@ -1,10 +1,5 @@
 /**
- * A curated set of third-party eslint rules this project considers correct,
- * drawn from eslint itself, eslint-plugin-import-x, and typescript-eslint.
- *
- * This ships separately from the plugin. The rules written in this package live
- * in the plugin, which a consumer imports from the root entrypoint.
- *
+ * A curated set of third-party eslint rules, shipped separately from the plugin.
  * @module
  */
 
@@ -73,34 +68,14 @@ const typescript: Linter.Config[] = [
   },
 ]
 
-/**
- * Every third-party config in this module, flattened into one array a consumer
- * spreads into a flat config.
- *
- * This is the eslint recommended set, the import-x recommended set with the
- * resolution rules turned off and ordering turned on, and the typescript-eslint
- * strict set. It sets no parser, so pair it with `@typescript-eslint/parser`
- * for the TypeScript rules to see the syntax they read.
- *
- * @example
- * ```js
- * import { recommended } from '@whaaaley/looks-good/eslint-rules'
- *
- * export default [
- *   ...recommended,
- * ]
- * ```
- */
+/** Every third-party config in this module, flattened into one array a consumer spreads into a flat config. */
 export const recommended: Linter.Config[] = [
   ...base,
   ...imports,
   ...typescript,
 ]
 
-/**
- * The module's configs under one object, for a consumer importing the default
- * rather than the named export.
- */
+/** The module's configs under one object, for a consumer importing the default. */
 const configs = { recommended }
 
 export default configs
