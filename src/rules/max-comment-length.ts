@@ -19,41 +19,39 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          maxLength: { type: 'integer', minimum: 1 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        maxLength: { type: 'integer', minimum: 1 },
       },
-    ],
+    }],
     messages: {
       tooLong: 'This comment line runs to {{length}} characters, past the {{maxLength}} configured. Shorten the sentence.',
     },
   },
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
-    const { sourceCode } = context
 
     return {
       'Program:exit': (): void => {
-        // Two comments on one line would otherwise report that line twice.
         const reported = new Set<number>()
 
-        for (const comment of sourceCode.getAllComments()) {
+        for (const comment of context.sourceCode.getAllComments()) {
           if (!comment.loc) continue
+
+          // A url has no natural break, so its line cannot be shortened by rewording.
           if (urlPattern.test(comment.value)) continue
 
           // A directive is read by a tool, so its length is not the writer's to shorten.
           if (isDirective(comment.value.trim())) continue
 
+          // A line comment spans one line, so only a multi-line block makes this loop run more than once.
           for (let line = comment.loc.start.line; line <= comment.loc.end.line; line++) {
             if (reported.has(line)) continue
 
-            const text = sourceCode.lines[line - 1]
-            if (text === undefined) continue
-            if (text.length <= options.maxLength) continue
+            const text = context.sourceCode.lines[line - 1]
+            if (text === undefined || text.length <= options.maxLength) continue
 
             reported.add(line)
             context.report({
