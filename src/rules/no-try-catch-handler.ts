@@ -1,6 +1,6 @@
 import { docUrl } from '../utils/docs.utils.ts'
 import type { Rule } from 'eslint'
-import type { Node, TryStatement } from 'estree'
+import type { ArrowFunctionExpression, FunctionDeclaration, FunctionExpression, Node, TryStatement } from 'estree'
 
 type Options = {
   module: string
@@ -20,23 +20,21 @@ const functionTypes = new Set([
   'FunctionExpression',
 ])
 
+type FunctionNode = ArrowFunctionExpression | FunctionDeclaration | FunctionExpression
+
+const isFunctionNode = (node: Node): node is FunctionNode => functionTypes.has(node.type)
+
 // Answers whether an await could be written where the node sits.
 const isAsyncPosition = (ancestors: Node[]): boolean => {
-  for (let index = ancestors.length - 1; index >= 0; index -= 1) {
-    const ancestor = ancestors[index]
-
-    if (!ancestor) continue
-
-    // await is a syntax error inside a static block, so it is always a sync position.
-    if (ancestor.type === 'StaticBlock') return false
-
-    if (!functionTypes.has(ancestor.type)) continue
-
-    return Reflect.get(ancestor, 'async') === true
-  }
+  const leader = ancestors.findLast((ancestor) => ancestor.type === 'StaticBlock' || isFunctionNode(ancestor))
 
   // A try in a module body is treated as async, since a module body can hold a top level await.
-  return true
+  if (!leader) return true
+
+  // await is a syntax error inside a static block, so it is always a sync position.
+  if (leader.type === 'StaticBlock') return false
+
+  return isFunctionNode(leader) && leader.async === true
 }
 
 const rule: Rule.RuleModule = {
