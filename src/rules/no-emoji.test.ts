@@ -33,6 +33,11 @@ tester.run('no-emoji', rule, {
       code: '// A note with 🎉 in it.',
       options: [{ comments: false }],
     },
+    // An emoji cannot form an identifier, so a string key is the closest shape; with strings off nothing reports.
+    {
+      code: 'const obj = { "🎉": 1 }',
+      options: [{ strings: false }],
+    },
   ],
   invalid: [
     {
