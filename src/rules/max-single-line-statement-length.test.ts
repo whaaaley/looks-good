@@ -26,6 +26,10 @@ tester.run('max-single-line-statement-length', rule, {
     { code: inFunction(`if (${wide}) {\n    return {}\n  }`) },
     // A body already on its own line is not the single line form.
     { code: inFunction(`if (${wide})\n    return {}`) },
+    // A short braceless else reads fine on its line.
+    { code: inFunction("if (!first) return ''\n  else return 'rest'") },
+    // A braced else is its own paragraph however wide its line runs.
+    { code: inFunction(`if (first) {\n    return ''\n  } else {\n    return ${wide}\n  }`) },
     // A wider limit accepts a line the default would report.
     {
       code: inFunction(`if (${wide}) return {}`),
@@ -68,6 +72,18 @@ tester.run('max-single-line-statement-length', rule, {
       code: inFunction(`if (${wide}) return {}\n  // annotates the close`),
       errors: [{ messageId: 'tooLong' }],
       output: inFunction(`if (${wide}) {\n    return {}\n  }\n  // annotates the close`),
+    },
+    // A braceless else body on the same line as its else gets the same braces.
+    {
+      code: inFunction(`if (first) {\n    return ''\n  } else return ${wide}`),
+      errors: [{ messageId: 'tooLong' }],
+      output: inFunction(`if (first) {\n    return ''\n  } else {\n    return ${wide}\n  }`),
+    },
+    // An enclosing brace on the same line is not a trailing comment, so the fix leaves it be.
+    {
+      code: `const read = () => { if (${wide}) return {} }`,
+      errors: [{ messageId: 'tooLong' }],
+      output: `const read = () => { if (${wide}) {\n  return {}\n} }`,
     },
     // A narrower limit reports a line the default would accept.
     {

@@ -18,17 +18,16 @@ type Trailing = {
   end: number
 }
 
-// A comment left outside the replaced range survives after the closing brace.
-// There it reads as a header for the next statement.
-const trailingComment = (sourceCode: SourceCode, consequent: Statement): Trailing | undefined => {
-  const after = sourceCode.getTokenAfter(consequent, { includeComments: true })
+// The text and end offset of a comment sitting on the same line as the body.
+const trailingComment = (sourceCode: SourceCode, body: Statement): Trailing | undefined => {
+  const after = sourceCode.getTokenAfter(body, { includeComments: true })
   if (!after) return undefined
   if (after.type !== 'Line' && after.type !== 'Block') return undefined
 
   const comment = locationOf(after)
-  const body = locationOf(consequent)
-  if (!comment || !body) return undefined
-  if (comment.start.line !== body.start.line) return undefined
+  const bodyLocation = locationOf(body)
+  if (!comment || !bodyLocation) return undefined
+  if (comment.start.line !== bodyLocation.start.line) return undefined
   if (!after.range) return undefined
 
   const [start, end] = after.range
@@ -60,45 +59,61 @@ const rule: Rule.RuleModule = {
     const options: Options = { ...defaults, ...context.options[0] }
     const { sourceCode } = context
 
-    return {
-      IfStatement: (node: IfStatement & Rule.NodeParentExtension): void => {
-        const { consequent } = node
+    const checkBody = (body: Statement, keywordLine: number): void => {
+      // A braced body already reads as its own paragraph, whatever its width.
+      if (body.type === 'BlockStatement') return
 
-        // A braced body already reads as its own paragraph, whatever its width.
-        if (consequent.type === 'BlockStatement') return
+      const bodyLocation = locationOf(body)
+      if (!bodyLocation) return
 
-        const bodyLocation = locationOf(consequent)
-        const statementLocation = locationOf(node)
-        if (!bodyLocation || !statementLocation) return
+      // A body already on its own line is not the single line form this rule governs.
+      if (bodyLocation.start.line !== keywordLine) return
 
-        // A body already on its own line is not the single line form this rule governs.
-        if (bodyLocation.start.line !== statementLocation.start.line) return
+      const line = sourceCode.lines[keywordLine - 1]
+      if (line === undefined) return
+      if (line.length <= options.maxLength) return
 
-        const line = sourceCode.lines[statementLocation.start.line - 1]
-        if (line === undefined) return
-        if (line.length <= options.maxLength) return
+      context.report({
+        node: body,
+        messageId: 'tooLong',
+        data: { length: String(line.length), maxLength: String(options.maxLength) },
+        fix: (fixer): Rule.Fix => {
+          // The body indents one step past the if, and the closing brace lines up with it.
+          const [indent = ''] = line.match(leadingWhitespacePattern) ?? []
+          const text = sourceCode.getText(body)
+          const trailing = trailingComment(sourceCode, body)
 
-        context.report({
-          node,
-          messageId: 'tooLong',
-          data: { length: String(line.length), maxLength: String(options.maxLength) },
-          fix: (fixer): Rule.Fix => {
-            // The body indents one step past the if, and the closing brace lines up with it.
-            const [indent = ''] = line.match(leadingWhitespacePattern) ?? []
-            const body = sourceCode.getText(consequent)
-            const trailing = trailingComment(sourceCode, consequent)
+          if (!trailing) {
+            return fixer.replaceText(body, `{\n${indent}  ${text}\n${indent}}`)
+          }
 
-            if (!trailing) {
-              return fixer.replaceText(consequent, `{\n${indent}  ${body}\n${indent}}`)
-            }
+          const [start = 0] = body.range ?? []
 
-            const [start = 0] = consequent.range ?? []
-
-            return fixer.replaceTextRange([start, trailing.end], `{\n${indent}  ${body} ${trailing.text}\n${indent}}`)
-          },
-        })
-      },
+          // A comment left outside the replaced range would survive after the closing brace,
+          // where it reads as a header for the next statement, so the fix carries it inside.
+          return fixer.replaceTextRange([start, trailing.end], `{\n${indent}  ${text} ${trailing.text}\n${indent}}`)
+        },
+      })
     }
+
+    const check = (node: IfStatement & Rule.NodeParentExtension): void => {
+      const statementLocation = locationOf(node)
+      if (!statementLocation) return
+
+      checkBody(node.consequent, statementLocation.start.line)
+
+      const { alternate } = node
+
+      // An else if is its own IfStatement, so the walk reaches it on its own.
+      if (!alternate || alternate.type === 'IfStatement') return
+
+      const elseToken = sourceCode.getTokenBefore(alternate)
+      if (!elseToken || !elseToken.loc) return
+
+      checkBody(alternate, elseToken.loc.start.line)
+    }
+
+    return { IfStatement: check }
   },
 }
 
