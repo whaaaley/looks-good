@@ -101,8 +101,6 @@ const columnsOf = (elements: Array<Expression | SpreadElement | null>): string[]
 
 // Postgres can use a leading prefix of a composite index, so an index on (a, b, c) serves a foreign key on (a, b).
 const coversPrefix = (covering: string[], required: string[]): boolean => {
-  if (covering.length < required.length) return false
-
   return required.every((name, position) => covering[position] === name)
 }
 
@@ -213,40 +211,40 @@ const rule: Rule.RuleModule = {
       return keys
     }
 
-    return {
-      CallExpression: (node: CallExpression): void => {
-        if (!tableNames.has(calleeName(node))) return
+    const check = (node: CallExpression): void => {
+      if (!tableNames.has(calleeName(node))) return
 
-        const [, columns, config] = node.arguments
-        if (!columns || columns.type !== 'ObjectExpression') return
-        if (!config) return
+      const [, columns, config] = node.arguments
+      if (!columns || columns.type !== 'ObjectExpression') return
+      if (!config) return
 
-        // A table config is an arrow returning an array of constraints, which is the only shape the rule reads.
-        if (config.type !== 'ArrowFunctionExpression') return
-        if (config.body.type !== 'ArrayExpression') return
+      // A table config is an arrow returning an array of constraints, which is the only shape the rule reads.
+      if (config.type !== 'ArrowFunctionExpression') return
+      if (config.body.type !== 'ArrayExpression') return
 
-        const entries = config.body.elements
-        const covering = collectCovering(entries, columns)
+      const entries = config.body.elements
+      const covering = collectCovering(entries, columns)
 
-        // The suggestion names columns through the config arrow's own parameter.
-        const [param] = config.params
-        const tableParam = param && param.type === 'Identifier' ? param.name : 'table'
+      // The suggestion names columns through the config arrow's own parameter.
+      const [param] = config.params
+      const tableParam = param && param.type === 'Identifier' ? param.name : 'table'
 
-        for (const key of collectForeignKeys(entries)) {
-          const covered = covering.some((candidate) => coversPrefix(candidate, key.columns))
-          if (covered) continue
+      for (const key of collectForeignKeys(entries)) {
+        const covered = covering.some((candidate) => coversPrefix(candidate, key.columns))
+        if (covered) continue
 
-          context.report({
-            node: key.node,
-            messageId: 'missing',
-            data: {
-              columns: key.columns.join(', '),
-              suggestion: key.columns.map((name) => `${tableParam}.${name}`).join(', '),
-            },
-          })
-        }
-      },
+        context.report({
+          node: key.node,
+          messageId: 'missing',
+          data: {
+            columns: key.columns.join(', '),
+            suggestion: key.columns.map((name) => `${tableParam}.${name}`).join(', '),
+          },
+        })
+      }
     }
+
+    return { CallExpression: check }
   },
 }
 

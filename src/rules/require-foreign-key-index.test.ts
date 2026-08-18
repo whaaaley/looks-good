@@ -123,6 +123,17 @@ export const link = governanceSchema.table('link', {
 `,
       filename,
     },
+    // A columns entry that is not a member expression yields no names, so the key is not checked at all.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  foreignKey({ columns: [someVariable], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+    },
     // The file does not match the glob, so nothing is read.
     {
       code: unindexed,
@@ -213,6 +224,55 @@ export const attachment = governanceSchema.table('attachment', {
 `,
       filename,
       errors: [{ messageId: 'missing' }, { messageId: 'missing' }],
+    },
+    // A string-keyed columns option still names the referencing columns.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  foreignKey({ 'columns': [table.collectiveId], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+      errors: [{ messageId: 'missing' }],
+    },
+    // An elision in the columns list does not crash the walk, and the key is still reported.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  foreignKey({ columns: [table.collectiveId, ,], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+      errors: [{ messageId: 'missing' }],
+    },
+    // An expression index yields no column names, so it must not read as covering the foreign key.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, (table) => [
+  index().on(sql\`lower(name)\`),
+  foreignKey({ columns: [table.collectiveId], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+      errors: [{ messageId: 'missing' }],
+    },
+    // A destructured config parameter cannot name the table, so the suggestion falls back to 'table'.
+    {
+      code: `
+export const task = governanceSchema.table('task', {
+  collectiveId: integer('collective_id').notNull(),
+}, ({ collectiveId }) => [
+  foreignKey({ columns: [collectiveId.someColumn], foreignColumns: [collective.id] }),
+])
+`,
+      filename,
+      errors: [{ messageId: 'missing', data: { columns: 'someColumn', suggestion: 'table.someColumn' } }],
     },
     // A configured glob and table function name reach a project that names them differently.
     {
