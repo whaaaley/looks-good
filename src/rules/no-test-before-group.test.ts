@@ -63,6 +63,15 @@ tester.run('no-test-before-group', rule, {
         '})',
       ].join('\n'),
     },
+    // Pins the CallExpression group guard: a non-group call's body is never swept, even when a test sits above a group.
+    {
+      code: [
+        'beforeAll(() => {',
+        "  it('a', () => {})",
+        "  describe('b', () => {})",
+        '})',
+      ].join('\n'),
+    },
     // The test function is renamed away from the default, so `it` is not a test here.
     {
       code: [

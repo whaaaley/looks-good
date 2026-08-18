@@ -46,7 +46,7 @@ const rule: Rule.RuleModule = {
   create(context): Rule.RuleListener {
     const options: Options = { ...defaults, ...context.options[0] }
 
-    // A body with no group has nothing to sit above, so a flat file of tests is left alone.
+    // Reports every test statement that precedes the first group call in one body.
     const checkBody = (statements: Node[]): void => {
       const loose: CallExpression[] = []
 
@@ -72,17 +72,18 @@ const rule: Rule.RuleModule = {
 
         if (options.testFunctions.includes(name)) loose.push(call)
       }
+      // A body with no group has nothing to sit above, so a flat run of tests is left alone.
     }
 
     return {
-      Program: (): void => {
+      'Program:exit': (): void => {
         checkBody(context.sourceCode.ast.body)
       },
       CallExpression: (node: CallExpression): void => {
         if (!options.groupFunctions.includes(calleeName(node))) return
 
         const body = readBody(node)
-        if (!body || body.type !== 'BlockStatement') return
+        if (!body) return
 
         checkBody(body.body)
       },
