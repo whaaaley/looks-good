@@ -67,6 +67,10 @@ tester.run('no-restricted-characters', rule, {
       code: '// An em dash — here.',
       options: [{ ...dashes, comments: false }],
     },
+    {
+      code: 'const 𝑥 = 1',
+      options: [{ ...fixingAstral, identifiers: false }],
+    },
   ],
   invalid: [
     {
@@ -167,6 +171,13 @@ tester.run('no-restricted-characters', rule, {
       options: [fixingPunctuation],
       errors: 2,
       output: 'const a = "an ellipsis … here"\n// An ellipsis ... here.',
+    },
+    // An identifier reports without a fix, since renaming it would break its references.
+    {
+      code: 'const 𝑥 = 1',
+      options: [fixingAstral],
+      errors: [{ messageId: 'restricted', data: { character: '𝑥', message: 'Write a plain letter instead.' } }],
+      output: null,
     },
     // The allow list is honored before anything is fixed.
     {

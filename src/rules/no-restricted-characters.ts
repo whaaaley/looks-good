@@ -88,14 +88,14 @@ const rule: Rule.RuleModule = {
     // Joining before splitting reads every entry per character, matching how `chars` is read.
     const allow = new Set(options.allow.join(''))
 
-    // Compiling once in create keeps a large file from rebuilding these per node.
+    // The per-restriction character sets the scan reads, compiled from each `chars` string.
     const restrictions = options.restrict.map((restriction) => ({
       chars: new Set(restriction.chars),
       message: restriction.message,
       replacement: restriction.replacement,
     }))
 
-    const scan = (text: string): TextMatch[] => {
+    const check = (text: string): TextMatch[] => {
       const findings: TextMatch[] = []
 
       for (const restriction of restrictions) {
@@ -111,14 +111,13 @@ const rule: Rule.RuleModule = {
 
     // Only a comment is rewritten, since renaming an identifier breaks its references.
     // A string may be a pattern or a fixture asserting on the character itself.
-    const fixComment = (range: [number, number], match: TextMatch): Rule.Fix | undefined => {
-      const { replacement } = match
-      if (replacement === undefined) return undefined
-
-      return { range, text: replacement }
-    }
-
-    return buildTextListener({ context, positions: options, scan, messageId: 'restricted', fixComment })
+    return buildTextListener({
+      context,
+      positions: options,
+      scan: check,
+      messageId: 'restricted',
+      fixComment: (range, match): Rule.Fix | undefined => match.replacement === undefined ? undefined : { range, text: match.replacement },
+    })
   },
 }
 
