@@ -1,5 +1,5 @@
-import { findWrappedPairs, readLineComments } from '../../utils/comment.utils.ts'
 import { docUrl } from '../../utils/docs.utils.ts'
+import { findWrappedPairs, readLineComments } from './comment-wrap.utils.ts'
 import type { Rule } from 'eslint'
 
 type Options = {
