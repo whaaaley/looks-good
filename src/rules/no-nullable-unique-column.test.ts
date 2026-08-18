@@ -80,6 +80,101 @@ tester.run('no-nullable-unique-column', rule, {
         ])
       `,
     },
+    {
+      name: 'a file outside the files glob is left alone even for a composite unique',
+      filename: otherFile,
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          proposalId: integer('proposal_id').notNull(),
+          createdBy: integer('created_by'),
+        }, (table) => [
+          unique().on(table.proposalId, table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a primary key column stays not null even when the single column allowance is off',
+      filename: tablesFile,
+      options: [{ allowSingleColumn: false }],
+      code: `
+        export const profile = portalSchema.table('profile', {
+          id: serial().primaryKey(),
+        }, (table) => [
+          unique().on(table.id),
+        ])
+      `,
+    },
+    {
+      name: 'a call that is not table or pgTable is left alone',
+      filename: tablesFile,
+      options: [{ allowSingleColumn: false }],
+      code: `
+        export const voteView = governanceSchema.view('vote_view', {
+          createdBy: integer('created_by'),
+        }, (table) => [
+          unique().on(table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a constraint chain without an on call is left alone',
+      filename: tablesFile,
+      options: [{ allowSingleColumn: false }],
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          createdBy: integer('created_by'),
+        }, (table) => [
+          index('vote_created_by_idx').using('btree', table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a plain index on a nullable column is not a unique constraint',
+      filename: tablesFile,
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          proposalId: integer('proposal_id').notNull(),
+          createdBy: integer('created_by'),
+        }, (table) => [
+          index('vote_idx').on(table.proposalId, table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a column declared under a computed key is skipped rather than matched by name',
+      filename: tablesFile,
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          proposalId: integer('proposal_id').notNull(),
+          [createdBy]: integer('created_by'),
+        }, (table) => [
+          unique().on(table.proposalId, table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a constraint with a computed member access is unreadable and left alone',
+      filename: tablesFile,
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          createdBy: integer('created_by'),
+        }, (table) => [
+          unique().on(table[key], table.createdBy),
+        ])
+      `,
+    },
+    {
+      name: 'a call whose first argument is not a string literal is left alone',
+      filename: tablesFile,
+      options: [{ allowSingleColumn: false }],
+      code: `
+        export const rsvp = pgTable(1, {
+          eventId: integer('event_id'),
+        }, (table) => [
+          unique().on(table.eventId),
+        ])
+      `,
+    },
   ],
   invalid: [
     {
@@ -155,6 +250,20 @@ tester.run('no-nullable-unique-column', rule, {
         export const vote = governanceSchema.table('vote', {
           createdBy: integer('created_by'),
         }, (table) => {
+          return [unique().on(table.createdBy)]
+        })
+      `,
+      errors: [{ messageId: 'nullable', data: { table: 'vote', columns: 'createdBy' } }],
+    },
+    {
+      name: 'a block bodied callback with a statement before the return still reports once',
+      filename: tablesFile,
+      options: [{ allowSingleColumn: false }],
+      code: `
+        export const vote = governanceSchema.table('vote', {
+          createdBy: integer('created_by'),
+        }, (table) => {
+          const label = 'vote'
           return [unique().on(table.createdBy)]
         })
       `,

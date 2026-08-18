@@ -55,9 +55,9 @@ const propertyName = (property: Property): string | null => {
   return null
 }
 
-// Collects which columns the table declares and which of them a reader can leave null.
-const readColumns = (object: ObjectExpression): Map<string, boolean> => {
-  const nullable = new Map<string, boolean>()
+// Collects the names of the declared columns a reader can leave null.
+const readColumns = (object: ObjectExpression): Set<string> => {
+  const nullable = new Set<string>()
 
   for (const property of object.properties) {
     if (property.type !== 'Property') continue
@@ -75,7 +75,7 @@ const readColumns = (object: ObjectExpression): Map<string, boolean> => {
     // A primary key column is not null in Postgres whether or not the builder spells it out.
     const isNotNull = methods.has('notNull') || methods.has('primaryKey')
 
-    nullable.set(name, !isNotNull)
+    if (!isNotNull) nullable.add(name)
   }
 
   return nullable
@@ -119,8 +119,6 @@ const readOnConstraint = (node: CallExpression): Constraint | null => {
     columns.push(name)
   }
 
-  if (columns.length === 0) return null
-
   return { node, columns }
 }
 
@@ -152,7 +150,7 @@ const rule: Rule.RuleModule = {
     if (!matchesGlob(options.files, context.filename, context.cwd)) return {}
 
     // A table call is `schema.table('name', { columns }, (table) => [ constraints ])` or the bare `pgTable` form.
-    const tableCall = (node: CallExpression): void => {
+    const check = (node: CallExpression): void => {
       const { callee } = node
 
       let name = ''
@@ -217,7 +215,7 @@ const rule: Rule.RuleModule = {
           continue
         }
 
-        const offenders = constraint.columns.filter((column) => nullable.get(column) === true)
+        const offenders = constraint.columns.filter((column) => nullable.has(column))
         if (offenders.length === 0) continue
 
         context.report({
@@ -229,7 +227,7 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      CallExpression: tableCall,
+      CallExpression: check,
     }
   },
 }
