@@ -45,15 +45,13 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: 'whitespace',
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          maxLength: { type: 'integer', minimum: 1 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        maxLength: { type: 'integer', minimum: 1 },
       },
-    ],
+    }],
     messages: {
       tooLong: 'This runs to {{length}} characters, past the {{maxLength}} configured. Put the body on its own line in braces.',
     },

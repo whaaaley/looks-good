@@ -56,31 +56,29 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: 'code',
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          allow: { type: 'array', items: { type: 'string', minLength: 1 } },
-          restrict: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['chars', 'message'],
-              properties: {
-                chars: { type: 'string', minLength: 1 },
-                message: { type: 'string', minLength: 1 },
-                replacement: { type: 'string', minLength: 1 },
-              },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        allow: { type: 'array', items: { type: 'string', minLength: 1 } },
+        restrict: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['chars', 'message'],
+            properties: {
+              chars: { type: 'string', minLength: 1 },
+              message: { type: 'string', minLength: 1 },
+              replacement: { type: 'string', minLength: 1 },
             },
           },
-          strings: { type: 'boolean' },
-          comments: { type: 'boolean' },
-          identifiers: { type: 'boolean' },
         },
+        strings: { type: 'boolean' },
+        comments: { type: 'boolean' },
+        identifiers: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       restricted: "'{{character}}' is not allowed here. {{message}}",
     },

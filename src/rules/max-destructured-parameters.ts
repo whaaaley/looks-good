@@ -62,15 +62,13 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          max: { type: 'integer', minimum: 0 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        max: { type: 'integer', minimum: 0 },
       },
-    ],
+    }],
     messages: {
       none: 'This parameter is destructured in the signature. Name the parameter and destructure it in the body instead.',
       above: 'This parameter destructures {{count}} bindings, which is above the {{max}} allowed. Name the parameter and destructure it in the body instead.',

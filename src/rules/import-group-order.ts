@@ -257,26 +257,24 @@ const rule: Rule.RuleModule = {
       url: docUrl('import-group-order'),
     },
     fixable: 'code',
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          groups: { type: 'array', items: { enum: groupNames } },
-          alphabetize: {
-            type: 'object',
-            additionalProperties: false,
-            properties: {
-              order: { enum: ['asc', 'desc', 'ignore'] },
-              orderImportKind: { enum: ['asc', 'desc', 'ignore'] },
-              caseInsensitive: { type: 'boolean' },
-            },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        groups: { type: 'array', items: { enum: groupNames } },
+        alphabetize: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            order: { enum: ['asc', 'desc', 'ignore'] },
+            orderImportKind: { enum: ['asc', 'desc', 'ignore'] },
+            caseInsensitive: { type: 'boolean' },
           },
-          newlinesBetween: { enum: ['never', 'ignore'] },
-          internalPrefixes: { type: 'array', items: { type: 'string', minLength: 1 } },
         },
+        newlinesBetween: { enum: ['never', 'ignore'] },
+        internalPrefixes: { type: 'array', items: { type: 'string', minLength: 1 } },
       },
-    ],
+    }],
     messages: {
       order: '{{second}} should occur {{order}} {{first}}',
       gap: 'There should be no empty line between import groups',

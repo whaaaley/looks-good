@@ -30,16 +30,14 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          groupFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        groupFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
       },
-    ],
+    }],
     messages: {
       before: "This test sits above the '{{group}}' group. Move it inside the group it belongs to, so it does not read as the primary behaviour here.",
       beforeUntitled: 'This test sits above the first group below it. Move it inside the group it belongs to, so it does not read as the primary behaviour here.',

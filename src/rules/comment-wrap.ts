@@ -28,19 +28,17 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: 'whitespace',
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          onWrap: { enum: ['report', 'join'] },
-          maxLength: { type: 'integer', minimum: 1 },
-          allowUrls: { type: 'boolean' },
-          allowIdentifiers: { type: 'boolean' },
-          allowLabels: { type: 'array', items: { type: 'string' } },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        onWrap: { enum: ['report', 'join'] },
+        maxLength: { type: 'integer', minimum: 1 },
+        allowUrls: { type: 'boolean' },
+        allowIdentifiers: { type: 'boolean' },
+        allowLabels: { type: 'array', items: { type: 'string' } },
       },
-    ],
+    }],
     messages: {
       wrapped: 'This sentence continues onto the next comment line. Rewrite it to fit on one line, or cut it.',
       join: 'This sentence continues on the next line, so the two lines join into one',

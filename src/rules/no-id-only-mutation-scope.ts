@@ -104,27 +104,25 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          patterns: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['files', 'tenantColumns'],
-              properties: {
-                files: { type: 'string', minLength: 1 },
-                tenantColumns: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
-                idColumns: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
-              },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        patterns: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['files', 'tenantColumns'],
+            properties: {
+              files: { type: 'string', minLength: 1 },
+              tenantColumns: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
+              idColumns: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
             },
           },
         },
       },
-    ],
+    }],
     messages: {
       idOnly: 'This {{method}} filters by id alone, while this file scopes other queries by {{columns}}. Add the tenant condition to the where clause, or run the scoped check and the mutation in one transaction.',
     },

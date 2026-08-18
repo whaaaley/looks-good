@@ -133,16 +133,14 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          files: { type: 'string', minLength: 1 },
-          allowSingleColumn: { type: 'boolean' },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        files: { type: 'string', minLength: 1 },
+        allowSingleColumn: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       nullable:
         "The unique constraint on '{{table}}' covers {{columns}}, which a row may leave null, and Postgres treats every null as distinct from every other. Duplicate rows are accepted whenever {{columns}} is null. Add .notNull(), or write the constraint as a unique index with NULLS NOT DISTINCT.",

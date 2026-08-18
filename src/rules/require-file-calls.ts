@@ -96,37 +96,35 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          patterns: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['id', 'message'],
-              properties: {
-                id: { type: 'string', minLength: 1 },
-                files: { type: 'string', minLength: 1 },
-                when: {
-                  type: 'object',
-                  additionalProperties: false,
-                  properties: {
-                    references: { type: 'string', minLength: 1 },
-                    found: { type: 'string', minLength: 1 },
-                  },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        patterns: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['id', 'message'],
+            properties: {
+              id: { type: 'string', minLength: 1 },
+              files: { type: 'string', minLength: 1 },
+              when: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  references: { type: 'string', minLength: 1 },
+                  found: { type: 'string', minLength: 1 },
                 },
-                require: { type: 'array', items: matcherSchema },
-                requireAny: { type: 'array', items: matcherSchema },
-                message: { type: 'string', minLength: 1 },
               },
+              require: { type: 'array', items: matcherSchema },
+              requireAny: { type: 'array', items: matcherSchema },
+              message: { type: 'string', minLength: 1 },
             },
           },
         },
       },
-    ],
+    }],
     messages: {
       missing: '{{id}}: {{message}}',
       unknownFound: "The entry '{{id}}' waits on '{{found}}', which no entry defines. Name an entry that exists.",

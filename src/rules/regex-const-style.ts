@@ -25,16 +25,14 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          suffix: { type: 'string', minLength: 1 },
-          requireComment: { type: 'boolean' },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        suffix: { type: 'string', minLength: 1 },
+        requireComment: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       suffix: "'{{name}}' holds a regular expression, so name it with the '{{suffix}}' suffix",
       comment: 'A regular expression does not read as prose, so state what it matches in a comment on or above this line',

@@ -20,15 +20,13 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          minNestedProperties: { type: 'integer', minimum: 0 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        minNestedProperties: { type: 'integer', minimum: 0 },
       },
-    ],
+    }],
     messages: {
       nested: 'This argument nests an object inside an object written on one line. Put the outer object properties on their own lines.',
     },

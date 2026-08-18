@@ -46,18 +46,16 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          allow: { type: 'array', items: { type: 'string', minLength: 1 } },
-          strings: { type: 'boolean' },
-          comments: { type: 'boolean' },
-          identifiers: { type: 'boolean' },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        allow: { type: 'array', items: { type: 'string', minLength: 1 } },
+        strings: { type: 'boolean' },
+        comments: { type: 'boolean' },
+        identifiers: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       emoji: "Emoji '{{emoji}}' is not allowed here",
     },

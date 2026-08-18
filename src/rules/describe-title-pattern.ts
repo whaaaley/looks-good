@@ -60,29 +60,27 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          patterns: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['files', 'title'],
-              properties: {
-                files: { type: 'string', minLength: 1 },
-                title: { type: 'string', minLength: 1 },
-                message: { type: 'string' },
-              },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        patterns: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['files', 'title'],
+            properties: {
+              files: { type: 'string', minLength: 1 },
+              title: { type: 'string', minLength: 1 },
+              message: { type: 'string' },
             },
           },
-          testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
         },
+        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
       },
-    ],
+    }],
     messages: {
       mismatch: "The top level describe is titled '{{title}}', which does not match '{{pattern}}'.{{message}}",
       missing: "This file has no top level {{function}} title, so nothing names what it tests. Wrap it in one titled '{{pattern}}'.{{message}}",

@@ -97,19 +97,17 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          files: { type: 'string', minLength: 1 },
-          tableFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          indexFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          uniqueFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          foreignKeyFunction: { type: 'string', minLength: 1 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        files: { type: 'string', minLength: 1 },
+        tableFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        indexFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        uniqueFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        foreignKeyFunction: { type: 'string', minLength: 1 },
       },
-    ],
+    }],
     messages: {
       missing: 'The foreign key on {{columns}} has no index covering it, so every lookup and every cascading delete through it scans the whole table. Add index().on({{suggestion}}).',
     },

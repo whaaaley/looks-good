@@ -75,20 +75,18 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          sequence: { type: 'array', items: { type: 'string', minLength: 1 } },
-          match: { type: 'string', enum: ['word', 'exact'] },
-          ignoreCase: { type: 'boolean' },
-          requireAll: { type: 'boolean' },
-          testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          depth: { type: 'string', enum: ['top', 'any'] },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        sequence: { type: 'array', items: { type: 'string', minLength: 1 } },
+        match: { type: 'string', enum: ['word', 'exact'] },
+        ignoreCase: { type: 'boolean' },
+        requireAll: { type: 'boolean' },
+        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        depth: { type: 'string', enum: ['top', 'any'] },
       },
-    ],
+    }],
     messages: {
       order: "The '{{title}}' group comes before '{{previous}}'. Move it below so these groups read {{expected}}.",
       missing: "No group here covers '{{name}}'. Add a '{{name}}' group so this file reads {{expected}}.",

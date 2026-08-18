@@ -35,19 +35,17 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          require: { type: 'array', items: { type: 'string', minLength: 1 } },
-          order: { type: 'array', items: { type: 'string', minLength: 1 } },
-          testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-          allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
-          minStatements: { type: 'integer', minimum: 0 },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        require: { type: 'array', items: { type: 'string', minLength: 1 } },
+        order: { type: 'array', items: { type: 'string', minLength: 1 } },
+        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
+        allowTitles: { type: 'array', items: { type: 'string', minLength: 1 } },
+        minStatements: { type: 'integer', minimum: 0 },
       },
-    ],
+    }],
     messages: {
       missing: "This test body has no '// {{label}}' comment. Label the {{label}} step so the phases of the test read apart.",
       order: "The '// {{label}}' comment comes after '// {{previous}}'. Move it above so the body reads {{expected}}.",

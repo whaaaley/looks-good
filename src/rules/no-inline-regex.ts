@@ -107,15 +107,13 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          position: { enum: ['module', 'top'] },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        position: { enum: ['module', 'top'] },
       },
-    ],
+    }],
     messages: {
       inline: 'This regular expression is written inline. Hoist it to a named module-level const, so it is compiled once and reads by name at the call site.',
       scattered: 'This regular expression is declared below other code. Group the patterns at the top of the file, after the imports and types, so every pattern the file uses reads in one place.',

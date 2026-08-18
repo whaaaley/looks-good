@@ -42,17 +42,15 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          module: { type: 'string' },
-          sync: { type: 'string' },
-          async: { type: 'string' },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        module: { type: 'string' },
+        sync: { type: 'string' },
+        async: { type: 'string' },
       },
-    ],
+    }],
     messages: {
       helper: 'Wrap the call in {{helper}} and guard on the returned error. A try with only a finally clause is still allowed.',
       helperFrom: 'Wrap the call in {{helper}} from {{module}} and guard on the returned error. A try with only a finally clause is still allowed.',

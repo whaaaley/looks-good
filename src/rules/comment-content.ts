@@ -35,28 +35,26 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          forbid: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['pattern', 'message'],
-              properties: {
-                pattern: { type: 'string' },
-                message: { type: 'string' },
-                ignoreCase: { type: 'boolean' },
-              },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        forbid: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['pattern', 'message'],
+            properties: {
+              pattern: { type: 'string' },
+              message: { type: 'string' },
+              ignoreCase: { type: 'boolean' },
             },
           },
-          forbidBlockComments: { type: 'boolean' },
         },
+        forbidBlockComments: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       forbidden: '{{message}}',
       blockComment: 'This is a block comment, so rewrite it as line comments',

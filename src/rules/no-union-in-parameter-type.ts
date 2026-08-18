@@ -92,15 +92,13 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          allowNullable: { type: 'boolean' },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        allowNullable: { type: 'boolean' },
       },
-    ],
+    }],
     messages: {
       inline: 'This parameter spells its union inline. Extract it to a named type alias and annotate the parameter with that name.',
     },

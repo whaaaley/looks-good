@@ -53,16 +53,14 @@ const rule: Rule.RuleModule = {
     },
     defaultOptions: [defaults],
     fixable: undefined,
-    schema: [
-      {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          modifiers: { type: 'array', items: { type: 'string', minLength: 1 } },
-          testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
-        },
+    schema: [{
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        modifiers: { type: 'array', items: { type: 'string', minLength: 1 } },
+        testFunctions: { type: 'array', items: { type: 'string', minLength: 1 } },
       },
-    ],
+    }],
     messages: {
       ignored: "This test is marked '{{modifier}}', so it proves nothing while it sits here. Land the work it covers and un-skip it, rather than leaving it skipped.",
     },
