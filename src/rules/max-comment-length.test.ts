@@ -44,6 +44,11 @@ tester.run('max-comment-length', rule, {
       code: `/* ${prose(120)}\n${prose(130)} */\nconst a = 1`,
       errors: [{ messageId: 'tooLong' }, { messageId: 'tooLong' }],
     },
+    // Two comments sharing one overlong line yield a single report, not one per comment.
+    {
+      code: `/* first */ /* second */ const a = '${prose(120)}' // third`,
+      errors: [{ messageId: 'tooLong' }],
+    },
     // A lowered bound reports a line the default would pass.
     {
       code: `// ${prose(50)}\nconst a = 1`,

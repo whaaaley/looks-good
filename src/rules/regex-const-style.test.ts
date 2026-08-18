@@ -26,6 +26,7 @@ tester.run('regex-const-style', rule, {
     },
     // A regex too wide for a shared line keeps its explanation directly above instead.
     { code: '// Matches a url scheme.\nconst urlPattern = /https?:/' },
+    { code: '// Matches a url scheme.\nexport const urlPattern = /https?:/' },
     // A configured suffix replaces the default.
     {
       code: 'const urlRegex = /https?:/ // Matches a url scheme.',
@@ -42,7 +43,7 @@ tester.run('regex-const-style', rule, {
       code: 'export const whitespace = /\\s/ // Matches one whitespace character.',
       errors: [{ messageId: 'suffix' }],
     },
-    // A regex line without a trailing comment leaves the pattern unexplained.
+    // A regex line without a comment leaves the pattern unexplained.
     {
       code: 'const urlPattern = /https?:/',
       errors: [{ messageId: 'comment' }],
